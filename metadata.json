@@ -1,0 +1,6 @@
+{
+  "name": "Custom Website Project",
+  "description": "User's custom vanilla JS/HTML website project.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

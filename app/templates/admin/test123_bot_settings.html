@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}Test123 Bot Settings - SMS Platform{% endblock %}
+{% block page_title %}Test123 Bot Settings{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fa fa-android"></i> Test123 Telegram Bot Configuration</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-4">
+                    Configure the Telegram bot for the <strong>test123</strong> account.
+                    This bot will forward OTP messages to your channel with masked information.
+                </p>
+
+                <form method="POST" action="{{ url_for('admin.test123_bot_settings') }}">
+                    <div class="form-group">
+                        <label class="control-label">
+                            <i class="fa fa-toggle-on"></i> Enable Bot
+                        </label>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="enabled" {% if settings.get('test123_enabled') == 'true' %}checked{% endif %}>
+                                Enable OTP forwarding to Telegram channel
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label">Bot Token</label>
+                        <input type="text" name="bot_token" class="form-control"
+                               placeholder="Enter your Telegram bot token (e.g., 123456789:ABC...)"
+                               value="{{ settings.get('test123_bot_token', '') }}">
+                        <span class="help-block">
+                            Get a bot token by talking to @BotFather on Telegram
+                        </span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label">Channel ID</label>
+                        <input type="text" name="channel_id" class="form-control"
+                               placeholder="Enter channel ID (e.g., -1001234567890)"
+                               value="{{ settings.get('test123_channel_id', '') }}">
+                        <span class="help-block">
+                            The channel where OTP messages will be forwarded.
+                            Make the bot an admin of the channel.
+                        </span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label">Admin Chat ID</label>
+                        <input type="text" name="admin_chat_id" class="form-control"
+                               placeholder="Enter your Telegram chat ID"
+                               value="{{ settings.get('test123_admin_chat_id', '') }}">
+                        <span class="help-block">
+                            Your personal Telegram chat ID for bot commands.
+                            Start a conversation with @userinfobot to find your ID.
+                        </span>
+                    </div>
+
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa fa-save"></i> Save Settings
+                        </button>
+                        <button type="button" class="btn btn-info" onclick="testConnection()">
+                            <i class="fa fa-plug"></i> Test Connection
+                        </button>
+                    </div>
+                </form>
+
+                <hr>
+
+                <h5>Bot Commands</h5>
+                <p class="text-muted">
+                    Once configured, the following commands will be available in your bot:
+                </p>
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Command</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>/start</code></td>
+                                <td>Start the bot and verify admin access</td>
+                            </tr>
+                            <tr>
+                                <td><code>/add [number]</code></td>
+                                <td>Add a number to test123 (e.g., /add 12025551234)</td>
+                            </tr>
+                            <tr>
+                                <td><code>/remove [number]</code></td>
+                                <td>Remove a number from test123</td>
+                            </tr>
+                            <tr>
+                                <td><code>/numbers</code></td>
+                                <td>List all numbers in test123</td>
+                            </tr>
+                            <tr>
+                                <td><code>/otp [number]</code></td>
+                                <td>Get latest OTP for a specific number</td>
+                            </tr>
+                            <tr>
+                                <td><code>/stats</code></td>
+                                <td>View OTP statistics</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fa fa-info-circle"></i> Instructions</h5>
+            </div>
+            <div class="card-body">
+                <ol style="padding-left: 18px;">
+                    <li class="mb-3">
+                        <strong>Create a Bot</strong><br>
+                        <small class="text-muted">Message @BotFather on Telegram and follow the instructions to create a new bot.</small>
+                    </li>
+                    <li class="mb-3">
+                        <strong>Get the Token</strong><br>
+                        <small class="text-muted">Copy the bot token provided by BotFather.</small>
+                    </li>
+                    <li class="mb-3">
+                        <strong>Create a Channel</strong><br>
+                        <small class="text-muted">Create a Telegram channel where OTP messages will be forwarded.</small>
+                    </li>
+                    <li class="mb-3">
+                        <strong>Add Bot as Admin</strong><br>
+                        <small class="text-muted">Add your bot to the channel and make it an admin with posting permissions.</small>
+                    </li>
+                    <li class="mb-3">
+                        <strong>Get Channel ID</strong><br>
+                        <small class="text-muted">Forward a message from your channel to @ChannelIDBot to get the channel ID.</small>
+                    </li>
+                    <li class="mb-3">
+                        <strong>Get Your Chat ID</strong><br>
+                        <small class="text-muted">Message @userinfobot to get your personal Telegram Chat ID.</small>
+                    </li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5><i class="fa fa-shield"></i> Security</h5>
+            </div>
+            <div class="card-body">
+                <ul style="padding-left: 18px;">
+                    <li class="mb-2">
+                        <small class="text-muted">All messages are automatically masked:</small>
+                    </li>
+                    <li>
+                        <small><strong>Phone:</strong> Last 7 digits replaced with X (e.g., 1202XXX-XXXX)</small>
+                    </li>
+                    <li>
+                        <small><strong>CLI:</strong> Last 6 characters replaced with X (e.g., WhatsXX)</small>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="testModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title"><i class="fa fa-plug"></i> Test Connection</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="testResult"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function testConnection() {
+    var botToken = $('input[name="bot_token"]').val();
+    var channelId = $('input[name="channel_id"]').val();
+
+    if (!botToken) {
+        alert('Please enter a bot token first.');
+        return;
+    }
+
+    $('#testModal').modal('show');
+    $('#testResult').html('<i class="fa fa-spinner fa-spin"></i> Testing connection...');
+
+    $.post('{{ url_for("admin.test123_bot_test") }}', {
+        bot_token: botToken,
+        channel_id: channelId
+    }, function(response) {
+        if (response.success) {
+            $('#testResult').html(
+                '<div class="alert alert-success">' +
+                '<i class="fa fa-check-circle"></i> Connection successful!<br>' +
+                '<strong>Bot Name:</strong> ' + response.bot_name + '<br>' +
+                '<strong>Username:</strong> @' + response.username +
+                '</div>'
+            );
+        } else {
+            $('#testResult').html(
+                '<div class="alert alert-danger">' +
+                '<i class="fa fa-times-circle"></i> Connection failed<br>' +
+                '<small>' + response.error + '</small>' +
+                '</div>'
+            );
+        }
+    }).fail(function() {
+        $('#testResult').html(
+            '<div class="alert alert-danger">' +
+            '<i class="fa fa-times-circle"></i> An error occurred while testing connection.' +
+            '</div>'
+        );
+    });
+}
+</script>
+{% endblock %}

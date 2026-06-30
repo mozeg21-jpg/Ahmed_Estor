@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMPP Server Settings - FURY SMS</title>
+</head>
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="breadcrumb">
+            <h4><i class="fa fa-server"></i> SMPP Server Settings</h4>
+        </div>
+    </div>
+</div>
+
+<div class="widget-block">
+    <div class="widget-head">
+        <h5><i class="fa fa-cog"></i> Configure External SMS Provider (SMPP)</h5>
+    </div>
+    <div class="widget-content">
+        <div class="alert alert-info">
+            <i class="fa fa-info-circle"></i>
+            <strong>SMPP Protocol:</strong> Short Message Peer-to-Peer is an open industry standard protocol for exchanging SMS between ESMEs and SMSCs.
+            Configure your external SMPP connection below.
+        </div>
+
+        <form method="POST" class="form-horizontal">
+            <!-- Enable/Disable -->
+            <div class="form-group">
+                <label class="col-md-3 control-label">Enable SMPP</label>
+                <div class="col-md-9">
+                    <input type="checkbox" name="smpp_enabled" {% if smpp_enabled %}checked{% endif %}>
+                    <small class="text-muted">Enable connection to external SMPP provider</small>
+                </div>
+            </div>
+
+            <hr>
+            <h5><i class="fa fa-plug"></i> Connection Settings</h5>
+
+            <!-- Host -->
+            <div class="form-group">
+                <label class="col-md-3 control-label">Host / IP Address</label>
+                <div class="col-md-9">
+                    <input type="text" name="smpp_host" class="form-control"
+                           placeholder="e.g., smpp.example.com or 192.168.1.100"
+                           value="{{ smpp_host }}">
+                    <small class="text-muted">SMPP server hostname or IP address</small>
+                </div>
+            </div>
+
+            <!-- Port -->
+            <div class="form-group">
+                <label class="col-md-3 control-label">Port</label>
+                <div class="col-md-9">
+                    <input type="number" name="smpp_port" class="form-control"
+                           placeholder="2775" value="{{ smpp_port }}">
+                    <small class="text-muted">Default SMPP port is 2775</small>
+                </div>
+            </div>
+
+            <hr>
+            <h5><i class="fa fa-key"></i> Bind Credentials</h5>
+
+            <!-- System ID -->
+            <div class="form-group">
+                <label class="col-md-3 control-label">System ID</label>
+                <div class="col-md-9">
+                    <input type="text" name="smpp_system_id" class="form-control"
+                           placeholder="Your SMPP system ID"
+                           value="{{ smpp_system_id }}">
+                    <small class="text-muted">Used for authentication (equivalent to ESME ID)</small>
+                </div>
+            </div>
+
+            <!-- Username -->
+            <div class="form-group">
+                <label class="col-md-3 control-label">Username</label>
+                <div class="col-md-9">
+                    <input type="text" name="smpp_username" class="form-control"
+                           placeholder="SMPP username"
+                           value="{{ smpp_username }}">
+                </div>
+            </div>
+
+            <!-- Password -->
+            <div class="form-group">
+                <label class="col-md-3 control-label">Password</label>
+                <div class="col-md-9">
+                    <input type="password" name="smpp_password" class="form-control"
+                           placeholder="SMPP password"
+                           value="{{ smpp_password }}">
+                </div>
+            </div>
+
+            <hr>
+            <h5><i class="fa fa-cogs"></i> Protocol Settings</h5>
+
+            <!-- Bind Type -->
+            <div class="form-group">
+                <label class="col-md-3 control-label">Bind Type</label>
+                <div class="col-md-9">
+                    <select name="smpp_bind_type" class="form-control">
+                        <option value="transceiver" {% if smpp_bind_type == 'transceiver' %}selected{% endif %}>Bind_Transceiver (Send & Receive)</option>
+                        <option value="transmitter" {% if smpp_bind_type == 'transmitter' %}selected{% endif %}>Bind_Transmitter (Send Only)</option>
+                        <option value="receiver" {% if smpp_bind_type == 'receiver' %}selected{% endif %}>Bind_Receiver (Receive Only)</option>
+                    </select>
+                    <small class="text-muted">
+                        <strong>Transceiver:</strong> Send & receive SMS |
+                        <strong>Transmitter:</strong> Submit_SM only |
+                        <strong>Receiver:</strong> Deliver_SM only
+                    </small>
+                </div>
+            </div>
+
+            <!-- System Type -->
+            <div class="form-group">
+                <label class="col-md-3 control-label">System Type</label>
+                <div class="col-md-9">
+                    <input type="text" name="smpp_system_type" class="form-control"
+                           placeholder="SMPP" value="{{ smpp_system_type if smpp_system_type else 'SMPP' }}">
+                    <small class="text-muted">Optional identifier for the SMPP session type</small>
+                </div>
+            </div>
+
+            <!-- Session Timeout -->
+            <div class="form-group">
+                <label class="col-md-3 control-label">Session Timeout (sec)</label>
+                <div class="col-md-9">
+                    <input type="number" name="smpp_session_timeout" class="form-control"
+                           placeholder="60" value="{{ smpp_session_timeout if smpp_session_timeout else 60 }}">
+                    <small class="text-muted">Time before session expires (default: 60 seconds)</small>
+                </div>
+            </div>
+
+            <!-- Enquire Link Interval -->
+            <div class="form-group">
+                <label class="col-md-3 control-label">Enquire_Link Interval (sec)</label>
+                <div class="col-md-9">
+                    <input type="number" name="smpp_enquire_interval" class="form-control"
+                           placeholder="30" value="{{ smpp_enquire_interval if smpp_enquire_interval else 30 }}">
+                    <small class="text-muted">Heartbeat interval to keep connection alive (default: 30 sec)</small>
+                </div>
+            </div>
+
+            <hr>
+            <div class="form-group">
+                <div class="col-md-offset-3 col-md-9">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa fa-save"></i> Save Settings
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="testConnection()">
+                        <i class="fa fa-plug"></i> Test Connection
+                    </button>
+                    <button type="button" class="btn btn-info" onclick="showProtocolInfo()">
+                        <i class="fa fa-question-circle"></i> Protocol Info
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Protocol Info Modal -->
+<div class="modal fade" id="protocolInfoModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fa fa-info-circle"></i> SMPP Protocol Reference</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h4>SMPP Protocol Overview</h4>
+                <p><strong>SMPP (Short Message Peer-to-Peer)</strong> is an open industry standard protocol used for SMS communications between external SMS applications (ESMEs) and SMS centers (SMSCs).</p>
+
+                <hr>
+                <h5><i class="fa fa-link"></i> PDU Operations</h5>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="well">
+                            <h6><strong>Bind Operations</strong></h6>
+                            <ul>
+                                <li><code>Bind_Transmitter</code> - Send SMS only</li>
+                                <li><code>Bind_Receiver</code> - Receive SMS only</li>
+                                <li><code>Bind_Transceiver</code> - Send & Receive</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="well">
+                            <h6><strong>Message Operations</strong></h6>
+                            <ul>
+                                <li><code>Submit_SM</code> - Send message to SMSC</li>
+                                <li><code>Submit_SM_Resp</code> - Response with message_id</li>
+                                <li><code>Deliver_SM</code> - Receive message from SMSC</li>
+                                <li><code>Enquire_Link</code> - Keep connection alive</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <hr>
+                <h5><i class="fa fa-server"></i> Popular SMPP Providers</h5>
+                <ul>
+                    <li><strong>Jasmin SMS</strong> - Open source SMS gateway (GitHub: jookies/jasmin)</li>
+                    <li><strong>Kannel</strong> - Open source WAP/Push gateway</li>
+                    <li><strong>AWS SNS</strong> - Amazon Simple Notification Service</li>
+                    <li><strong>Twilio</strong> - Via SMPP gateway connector</li>
+                    <li><strong>NOWSMS</strong> - Commercial SMS gateway</li>
+                </ul>
+
+                <hr>
+                <h5><i class="fa fa-code"></i> Connection Parameters</h5>
+                <table class="table table-bordered">
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Description</th>
+                    </tr>
+                    <tr>
+                        <td>system_id</td>
+                        <td>ESME identifier for authentication (like username)</td>
+                    </tr>
+                    <tr>
+                        <td>password</td>
+                        <td>Authentication password</td>
+                    </tr>
+                    <tr>
+                        <td>system_type</td>
+                        <td>Optional session type identifier</td>
+                    </tr>
+                    <tr>
+                        <td>interface_version</td>
+                        <td>SMPP version (default: 3.4 or 5.0)</td>
+                    </tr>
+                    <tr>
+                        <td>enquire_link</td>
+                        <td>Heartbeat PDU to maintain connection (usually every 10-60 sec)</td>
+                    </tr>
+                </table>
+
+                <hr>
+                <div class="alert alert-warning">
+                    <strong>Note:</strong> Jasmin SMS installation requires a Linux server with Python and Redis.
+                    Visit <a href="https://github.com/jookies/jasmin" target="_blank">https://github.com/jookies/jasmin</a> for installation guide.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function testConnection() {
+    $.ajax({
+        url: '{{ url_for("admin.smpp_test") }}',
+        method: 'POST',
+        success: function(response) {
+            if (response.success) {
+                alert('Connection successful! SMPP server is reachable.');
+            } else {
+                alert('Connection failed: ' + response.error);
+            }
+        },
+        error: function() {
+            alert('Connection test failed');
+        }
+    });
+}
+
+function showProtocolInfo() {
+    $('#protocolInfoModal').modal('show');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+{% block title %}Create Multiple SMS Ranges — ABYSS SMS{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <h4>
+        <i class="fa fa-plus-circle"></i> Create Multiple SMS Ranges
+    </h4>
+</div>
+
+<div class="widget-block">
+    <div class="widget-head">
+        <h5><i class="fa fa-list"></i> Add Multiple Ranges at Once</h5>
+    </div>
+    <div class="widget-content">
+        <form method="POST" enctype="multipart/form-data" id="multiRangeForm">
+            <div id="rangeContainer">
+                <!-- Range 1 -->
+                <div class="range-item panel panel-default" style="padding: 15px; margin-bottom: 20px; border-radius: 5px;">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h5><strong>Range #1</strong> <button type="button" class="btn btn-danger btn-xs remove-range" style="display:none;">Remove</button></h5>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label>Range Name *</label>
+                                <input type="text" name="range_name_0" class="form-control range-name" placeholder="e.g. Egypt WE">
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label>Country *</label>
+                                <input type="text" name="range_country_0" class="form-control range-country" placeholder="e.g. Egypt">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <label>Billing Cycle</label>
+                                <select name="range_billing_0" class="form-control range-billing">
+                                    <option value="monthly">Monthly</option>
+                                    <option value="weekly">Weekly</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <label>Price</label>
+                                <input type="number" step="0.001" name="range_price_0" class="form-control range-price" min="0" placeholder="0.00">
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <label>Application</label>
+                                <select name="range_app_0" class="form-control range-app">
+                                    <option value="">— Select —</option>
+                                    <option value="whatsapp">WhatsApp</option>
+                                    <option value="facebook">Facebook</option>
+                                    <option value="telegram">Telegram</option>
+                                    <option value="google">Google</option>
+                                    <option value="instagram">Instagram</option>
+                                    <option value="tiktok">TikTok</option>
+                                    <option value="twitter">Twitter / X</option>
+                                    <option value="snapchat">Snapchat</option>
+                                    <option value="viber">Viber</option>
+                                    <option value="line">LINE</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label>Numbers File (TXT or CSV)</label>
+                                <input type="file" name="multi_csv_file_0" class="form-control" accept=".csv,.txt">
+                                <span class="help-block">One number per line</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <button type="button" class="btn btn-success" id="addRangeBtn">
+                        <i class="fa fa-plus"></i> Add Another Range
+                    </button>
+                    <button type="submit" class="btn btn-primary" style="margin-left: 10px;">
+                        <i class="fa fa-save"></i> Create All Ranges
+                    </button>
+                    <a href="{{ url_for('admin.sms_ranges') }}" class="btn btn-default" style="margin-left: 10px;">
+                        Cancel
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+var rangeCounter = 1;
+
+$('#addRangeBtn').click(function() {
+    var html = `
+    <div class="range-item panel panel-default" style="padding: 15px; margin-bottom: 20px; border-radius: 5px;">
+        <div class="row">
+            <div class="col-md-12">
+                <h5><strong>Range #${rangeCounter + 1}</strong> <button type="button" class="btn btn-danger btn-xs remove-range">Remove</button></h5>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label>Range Name *</label>
+                    <input type="text" name="range_name_${rangeCounter}" class="form-control range-name" placeholder="e.g. Egypt WE">
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label>Country *</label>
+                    <input type="text" name="range_country_${rangeCounter}" class="form-control range-country" placeholder="e.g. Egypt">
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-4">
+                <div class="form-group">
+                    <label>Billing Cycle</label>
+                    <select name="range_billing_${rangeCounter}" class="form-control range-billing">
+                        <option value="monthly">Monthly</option>
+                        <option value="weekly">Weekly</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="form-group">
+                    <label>Price</label>
+                    <input type="number" step="0.001" name="range_price_${rangeCounter}" class="form-control range-price" min="0" placeholder="0.00">
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="form-group">
+                    <label>Application</label>
+                    <select name="range_app_${rangeCounter}" class="form-control range-app">
+                        <option value="">— Select —</option>
+                        <option value="whatsapp">WhatsApp</option>
+                        <option value="facebook">Facebook</option>
+                        <option value="telegram">Telegram</option>
+                        <option value="google">Google</option>
+                        <option value="instagram">Instagram</option>
+                        <option value="tiktok">TikTok</option>
+                        <option value="twitter">Twitter / X</option>
+                        <option value="snapchat">Snapchat</option>
+                        <option value="viber">Viber</option>
+                        <option value="line">LINE</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="form-group">
+                    <label>Numbers File (TXT or CSV)</label>
+                    <input type="file" name="multi_csv_file_${rangeCounter}" class="form-control" accept=".csv,.txt">
+                    <span class="help-block">One number per line</span>
+                </div>
+            </div>
+        </div>
+    </div>`;
+
+    $('#rangeContainer').append(html);
+    rangeCounter++;
+});
+
+// Remove range button
+$(document).on('click', '.remove-range', function() {
+    if ($('.range-item').length > 1) {
+        $(this).closest('.range-item').remove();
+        updateLabels();
+    }
+});
+
+function updateLabels() {
+    $('.range-item').each(function(index) {
+        $(this).find('h5 strong').text('Range #' + (index + 1));
+    });
+}
+
+// Form submission - convert to JSON
+$('#multiRangeForm').submit(function(e) {
+    e.preventDefault();
+
+    var formData = new FormData(this);
+
+    // Remove any existing hidden range_data fields
+    $('input[name="range_data"]').remove();
+
+    // Create a hidden input for EACH range (not one array)
+    $('.range-item').each(function(index) {
+        var rangeData = {
+            name: formData.get('range_name_' + index) || '',
+            country: formData.get('range_country_' + index) || '',
+            billing_cycle: formData.get('range_billing_' + index) || 'monthly',
+            manual_price: formData.get('range_price_' + index) || '0',
+            application: formData.get('range_app_' + index) || '',
+            file_index: index
+        };
+
+        // Only add if name and country are provided
+        if (rangeData.name && rangeData.country) {
+            $('<input>').attr({
+                type: 'hidden',
+                name: 'range_data',
+                value: JSON.stringify(rangeData)
+            }).appendTo('#multiRangeForm');
+        }
+    });
+
+    this.submit();
+});
+</script>
+{% endblock %}

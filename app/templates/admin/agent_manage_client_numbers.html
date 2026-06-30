@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Client Numbers - ABYSS SMS{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="breadcrumb">
+            <h4><i class="fa fa-phone"></i> Manage Numbers for {{ client.username }}</h4>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="widget-block">
+            <div class="widget-head">
+                <h5><i class="fa fa-plus"></i> Assign Numbers to Client</h5>
+            </div>
+            <div class="widget-content">
+                <p>Available Unassigned Numbers in your pool: <strong>{{ available_numbers }}</strong></p>
+                <form method="POST">
+                    <input type="hidden" name="action" value="add">
+                    <div class="form-group">
+                        <label>Count to Assign</label>
+                        <input type="number" name="count" class="form-control" min="1" max="{{ available_numbers }}" required>
+                    </div>
+                    <button type="submit" class="btn btn-success" {% if available_numbers == 0 %}disabled{% endif %}>
+                        <i class="fa fa-plus"></i> Assign Numbers
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="widget-block">
+            <div class="widget-head">
+                <h5><i class="fa fa-minus"></i> Remove Numbers from Client</h5>
+            </div>
+            <div class="widget-content">
+                <p>Numbers currently assigned to client: <strong>{{ client_numbers }}</strong></p>
+                <form method="POST">
+                    <input type="hidden" name="action" value="remove">
+                    <div class="form-group">
+                        <label>Count to Remove</label>
+                        <input type="number" name="count" class="form-control" min="1" max="{{ client_numbers }}" required>
+                    </div>
+                    <button type="submit" class="btn btn-danger" {% if client_numbers == 0 %}disabled{% endif %}>
+                        <i class="fa fa-minus"></i> Remove Numbers
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row" style="margin-top: 15px;">
+    <div class="col-md-12 text-center">
+        <a href="{{ url_for('admin.agent_clients') }}" class="btn btn-default"><i class="fa fa-arrow-left"></i> Back to Clients</a>
+    </div>
+</div>
+{% endblock %}

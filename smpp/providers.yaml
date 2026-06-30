@@ -1,0 +1,246 @@
+################################################################################
+# Providers Configuration File
+# 
+# This file contains the settings for all SMPP providers.
+# The system will automatically read this file and connect to all enabled providers.
+# 
+# Variables:
+# - name: (String) [Required] A unique name for the provider. Ex: "Twilio_SMPP"
+# - host: (String) [Required] The IP address or domain name of the SMPP server. Ex: "smpp.example.com"
+# - port: (Integer) [Required] The port number. Usually 2775. Ex: 2775
+# - system_id: (String) [Required] The username provided by the SMPP server. Ex: "admin"
+# - password: (String) [Required] The password for the system_id. Ex: "password123"
+# - system_type: (String) [Optional] The type of system. Usually empty or "SMPP". Ex: "SMPP"
+# - mode: (String) [Required] Connection mode: "receiver" or "transceiver". Ex: "receiver"
+# - interface_version: (Integer) [Optional] SMPP version, usually 34 (SMPP v3.4). Ex: 34
+# - ton: (Integer) [Optional] Type of Number for binding. Default is 0. Ex: 0
+# - npi: (Integer) [Optional] Numbering Plan Indicator for binding. Default is 0. Ex: 0
+# - address_range: (String) [Optional] The range of numbers to receive from. Default is "". Ex: "^\+?1"
+# - heartbeat_interval: (Integer) [Optional] Enquire Link interval in seconds. Ex: 30
+# - auto_reconnect: (Boolean) [Required] Whether to reconnect automatically on failure. Ex: true
+# - reconnect_delay: (Integer) [Optional] Wait time in seconds before reconnecting. Ex: 5
+# - connection_timeout: (Integer) [Optional] Socket connection timeout in seconds. Ex: 10
+# - read_timeout: (Integer) [Optional] Socket read timeout in seconds. Ex: 60
+# - enabled: (Boolean) [Required] Only providers with enabled=true will be started. Ex: true
+################################################################################
+
+providers:
+####################################################
+# Provider 1
+# Example Configuration for Provider 1
+####################################################
+  - name: "Provider_1"
+    host: "127.0.0.1"
+    port: 2775
+    system_id: "admin1"
+    password: "password1"
+    system_type: "SMPP"
+    mode: "receiver"
+    interface_version: 34
+    ton: 0
+    npi: 0
+    address_range: ""
+    heartbeat_interval: 30
+    auto_reconnect: true
+    reconnect_delay: 5
+    connection_timeout: 10
+    read_timeout: 60
+    enabled: true
+
+####################################################
+# Provider 2
+# Example Configuration for Provider 2
+####################################################
+  - name: "Provider_2"
+    host: "127.0.0.2"
+    port: 2775
+    system_id: "admin2"
+    password: "password1"
+    system_type: "SMPP"
+    mode: "receiver"
+    interface_version: 34
+    ton: 0
+    npi: 0
+    address_range: ""
+    heartbeat_interval: 30
+    auto_reconnect: true
+    reconnect_delay: 5
+    connection_timeout: 10
+    read_timeout: 60
+    enabled: false
+
+####################################################
+# Provider 3
+# Example Configuration for Provider 3
+####################################################
+  - name: "Provider_3"
+    host: "127.0.0.3"
+    port: 2775
+    system_id: "admin3"
+    password: "password1"
+    system_type: ""
+    mode: "receiver"
+    interface_version: 34
+    ton: 0
+    npi: 0
+    address_range: ""
+    heartbeat_interval: 60
+    auto_reconnect: true
+    reconnect_delay: 10
+    connection_timeout: 15
+    read_timeout: 120
+    enabled: false
+
+####################################################
+# Provider 4
+# Example Configuration for Provider 4
+####################################################
+  - name: "Provider_4"
+    host: "127.0.0.4"
+    port: 2775
+    system_id: "admin4"
+    password: "password1"
+    system_type: "SMPP"
+    mode: "receiver"
+    interface_version: 34
+    ton: 1
+    npi: 1
+    address_range: "^\+?1"
+    heartbeat_interval: 15
+    auto_reconnect: true
+    reconnect_delay: 3
+    connection_timeout: 5
+    read_timeout: 30
+    enabled: false
+
+####################################################
+# Provider 5
+# Example Configuration for Provider 5
+####################################################
+  - name: "Provider_5"
+    host: "127.0.0.5"
+    port: 2775
+    system_id: "admin5"
+    password: "password1"
+    system_type: "SMPP"
+    mode: "transceiver"
+    interface_version: 34
+    ton: 0
+    npi: 0
+    address_range: ""
+    heartbeat_interval: 30
+    auto_reconnect: true
+    reconnect_delay: 5
+    connection_timeout: 10
+    read_timeout: 60
+    enabled: false
+
+####################################################
+# Provider 6
+# Example Configuration for Provider 6
+####################################################
+  - name: "Provider_6"
+    host: "127.0.0.6"
+    port: 2775
+    system_id: "admin6"
+    password: "password1"
+    system_type: "SMPP"
+    mode: "receiver"
+    interface_version: 34
+    ton: 0
+    npi: 0
+    address_range: ""
+    heartbeat_interval: 30
+    auto_reconnect: true
+    reconnect_delay: 5
+    connection_timeout: 10
+    read_timeout: 60
+    enabled: false
+
+####################################################
+# Provider 7
+# Example Configuration for Provider 7
+####################################################
+  - name: "Provider_7"
+    host: "127.0.0.7"
+    port: 2775
+    system_id: "admin7"
+    password: "password1"
+    system_type: "SMPP"
+    mode: "receiver"
+    interface_version: 34
+    ton: 0
+    npi: 0
+    address_range: ""
+    heartbeat_interval: 30
+    auto_reconnect: true
+    reconnect_delay: 5
+    connection_timeout: 10
+    read_timeout: 60
+    enabled: false
+
+####################################################
+# Provider 8
+# Example Configuration for Provider 8
+####################################################
+  - name: "Provider_8"
+    host: "127.0.0.8"
+    port: 2775
+    system_id: "admin8"
+    password: "password1"
+    system_type: "SMPP"
+    mode: "receiver"
+    interface_version: 34
+    ton: 0
+    npi: 0
+    address_range: ""
+    heartbeat_interval: 30
+    auto_reconnect: true
+    reconnect_delay: 5
+    connection_timeout: 10
+    read_timeout: 60
+    enabled: false
+
+####################################################
+# Provider 9
+# Example Configuration for Provider 9
+####################################################
+  - name: "Provider_9"
+    host: "127.0.0.9"
+    port: 2775
+    system_id: "admin9"
+    password: "password1"
+    system_type: "SMPP"
+    mode: "receiver"
+    interface_version: 34
+    ton: 0
+    npi: 0
+    address_range: ""
+    heartbeat_interval: 30
+    auto_reconnect: true
+    reconnect_delay: 5
+    connection_timeout: 10
+    read_timeout: 60
+    enabled: false
+
+####################################################
+# Provider 10
+# Example Configuration for Provider 10
+####################################################
+  - name: "Provider_10"
+    host: "127.0.0.10"
+    port: 2775
+    system_id: "admin10"
+    password: "password1"
+    system_type: "SMPP"
+    mode: "receiver"
+    interface_version: 34
+    ton: 0
+    npi: 0
+    address_range: ""
+    heartbeat_interval: 30
+    auto_reconnect: true
+    reconnect_delay: 5
+    connection_timeout: 10
+    read_timeout: 60
+    enabled: false

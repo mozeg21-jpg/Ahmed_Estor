@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Settings - FURY SMS</title>
+</head>
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="breadcrumb">
+            <h4><i class="fa fa-key"></i> API Settings</h4>
+        </div>
+    </div>
+</div>
+
+<div class="widget-block">
+    <div class="widget-head">
+        <h5><i class="fa fa-key"></i> Your API Configuration</h5>
+    </div>
+    <div class="widget-content">
+        <div class="alert alert-info">
+            <i class="fa fa-info-circle"></i>
+            Use your API token to access SMS services programmatically. Keep your token secure and never share it publicly.
+        </div>
+
+        <!-- API Token Section -->
+        <div class="form-group">
+            <label><i class="fa fa-key"></i> Your API Token</label>
+            <div class="input-group">
+                <input type="text" class="form-control" id="apiToken" value="{{ current_user.api_token }}" readonly>
+                <span class="input-group-btn">
+                    <button class="btn btn-default" type="button" onclick="copyToken()">
+                        <i class="fa fa-copy"></i> Copy
+                    </button>
+                    <button class="btn btn-warning" type="button" onclick="regenerateToken()">
+                        <i class="fa fa-refresh"></i> Regenerate
+                    </button>
+                </span>
+            </div>
+            <small class="text-muted">Use this token in your API requests as `Authorization: Bearer <token>`</small>
+        </div>
+
+        <hr>
+
+        <!-- Bot Configuration Section -->
+        <div class="widget-block" style="margin-top: 20px;">
+            <div class="widget-head">
+                <h5><i class="fa fa-robot"></i> Bot Configuration</h5>
+            </div>
+            <div class="widget-content">
+                <form method="POST" action="{{ url_for('main.agent_bot_settings') }}">
+                    <div class="form-group">
+                        <label>Bot Token (Telegram)</label>
+                        <input type="text" name="bot_token" class="form-control"
+                               placeholder="123456789:ABCdefGHIjklMNOpqrsTUVwxyz"
+                               value="{{ agent_bot_token }}">
+                        <small class="text-muted">Get your bot token from @BotFather on Telegram</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Admin Chat ID</label>
+                        <input type="text" name="admin_chat_id" class="form-control"
+                               placeholder="123456789"
+                               value="{{ agent_admin_chat_id }}">
+                        <small class="text-muted">Your Telegram chat ID for receiving notifications</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" name="bot_enabled" {% if agent_bot_enabled %}checked{% endif %}>
+                            Enable Bot Notifications
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa fa-save"></i> Save Bot Settings
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="testBotConnection()">
+                        <i class="fa fa-paper-plane"></i> Test Connection
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <hr>
+
+        <!-- API Documentation -->
+        <div class="widget-block mt-4">
+            <div class="widget-head">
+                <h5><i class="fa fa-book"></i> API Documentation</h5>
+            </div>
+            <div class="widget-content">
+                <h6><strong>Base URL</strong></h6>
+                <code>{{ request.host_url }}api/</code>
+
+                <h6 style="margin-top: 15px;"><strong>Authentication</strong></h6>
+                <p>Include your API token in the request header:</p>
+                <pre style="background: var(--hover); padding: 10px; border-radius: 4px;">Authorization: Bearer YOUR_API_TOKEN</pre>
+
+                <h6 style="margin-top: 15px;"><strong>Endpoints</strong></h6>
+                <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>Method</th>
+                            <th>Endpoint</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="label label-success">GET</span></td>
+                            <td><code>/numbers</code></td>
+                            <td>Get your SMS numbers</td>
+                        </tr>
+                        <tr>
+                            <td><span class="label label-primary">POST</span></td>
+                            <td><code>/send</code></td>
+                            <td>Send SMS message</td>
+                        </tr>
+                        <tr>
+                            <td><span class="label label-primary">POST</span></td>
+                            <td><code>/receive</code></td>
+                            <td>Receive incoming SMS (webhook)</td>
+                        </tr>
+                        <tr>
+                            <td><span class="label label-success">GET</span></td>
+                            <td><code>/balance</code></td>
+                            <td>Check your balance</td>
+                        </tr>
+                        <tr>
+                            <td><span class="label label-success">GET</span></td>
+                            <td><code>/status</code></td>
+                            <td>Get account status</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyToken() {
+    const token = document.getElementById('apiToken').value;
+    navigator.clipboard.writeText(token).then(function() {
+        alert('API Token copied to clipboard!');
+    }, function(err) {
+        console.error('Failed to copy:', err);
+    });
+}
+
+function regenerateToken() {
+    if (confirm('Are you sure? Your current token will stop working immediately.')) {
+        fetch('{{ url_for("main.agent_regenerate_token") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('apiToken').value = data.token;
+                alert('New API token generated successfully!');
+            } else {
+                alert('Error: ' + (data.error || 'Failed to regenerate token'));
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error);
+        });
+    }
+}
+
+function testBotConnection() {
+    const botToken = document.querySelector('input[name="bot_token"]').value;
+    const adminChatId = document.querySelector('input[name="admin_chat_id"]').value;
+
+    if (!botToken || !adminChatId) {
+        alert('Please enter both bot token and admin chat ID first.');
+        return;
+    }
+
+    fetch('{{ url_for("main.agent_test_bot") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'bot_token=' + encodeURIComponent(botToken) + '&chat_id=' + encodeURIComponent(adminChatId)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Test message sent successfully!');
+        } else {
+            alert('Test failed: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        alert('Error: ' + error);
+    });
+}
+</script>
+{% endblock %}

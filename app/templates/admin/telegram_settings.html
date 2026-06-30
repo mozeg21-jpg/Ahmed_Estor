@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Bot Settings - FURY SMS</title>
+</head>
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="breadcrumb">
+            <h4><i class="fa fa-telegram"></i> Telegram Bot Settings</h4>
+        </div>
+    </div>
+</div>
+
+<div class="widget-block">
+    <div class="widget-head">
+        <h5><i class="fa fa-cog"></i> Configure Telegram Bot Connection</h5>
+    </div>
+    <div class="widget-content">
+        <div class="alert alert-info">
+            <i class="fa fa-info-circle"></i>
+            Connect your Telegram bot to receive OTP codes and system notifications.
+            You need a bot token from <strong>@BotFather</strong> on Telegram.
+        </div>
+
+        <form method="POST" class="form-horizontal">
+            <div class="form-group">
+                <label class="col-md-3 control-label">Enable Telegram</label>
+                <div class="col-md-9">
+                    <input type="checkbox" name="enabled" {% if enabled %}checked{% endif %}>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-md-3 control-label">Bot Token</label>
+                <div class="col-md-9">
+                    <input type="text" name="bot_token" class="form-control"
+                           placeholder="Enter your Telegram bot token (e.g., 123456789:ABCdef...)"
+                           value="{{ bot_token }}">
+                    <small class="text-muted">Get this from @BotFather on Telegram</small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-md-3 control-label">Admin Chat ID</label>
+                <div class="col-md-9">
+                    <input type="text" name="admin_chat_id" class="form-control"
+                           placeholder="Enter your Telegram Chat ID (e.g., 123456789)"
+                           value="{{ admin_chat_id }}">
+                    <small class="text-muted">Send a message to @userinfobot to get your Chat ID</small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-md-offset-3 col-md-9">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa fa-save"></i> Save Settings
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="testConnection()">
+                        <i class="fa fa-paper-plane"></i> Test Connection
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <hr>
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h5><i class="fa fa-key"></i> Send OTP Test</h5>
+            </div>
+            <div class="panel-body">
+                <p>Click the button below to send a test OTP to the configured admin chat:</p>
+                <button type="button" class="btn btn-warning" onclick="sendOTP()">
+                    <i class="fa fa-send"></i> Send OTP Code
+                </button>
+                <div id="otp-result" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function testConnection() {
+    var chatId = $('input[name="admin_chat_id"]').val();
+    $.ajax({
+        url: '{{ url_for("admin.telegram_test") }}',
+        method: 'POST',
+        data: { chat_id: chatId, message: 'FURY SMS Connection Test' },
+        success: function(response) {
+            if (response.success) {
+                alert('Test message sent successfully!');
+            } else {
+                alert('Failed: ' + response.error);
+            }
+        },
+        error: function() {
+            alert('Connection test failed');
+        }
+    });
+}
+
+function sendOTP() {
+    $.ajax({
+        url: '{{ url_for("admin.telegram_send_otp") }}',
+        method: 'POST',
+        success: function(response) {
+            if (response.success) {
+                $('#otp-result').html('<div class="alert alert-success"><i class="fa fa-check"></i> OTP Code: ' + response.code + '</div>');
+            } else {
+                $('#otp-result').html('<div class="alert alert-danger"><i class="fa fa-times"></i> Error: ' + response.error + '</div>');
+            }
+        },
+        error: function() {
+            $('#otp-result').html('<div class="alert alert-danger">Request failed</div>');
+        }
+    });
+}
+</script>
+{% endblock %}

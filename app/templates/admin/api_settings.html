@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Settings - FURY SMS</title>
+</head>
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="breadcrumb">
+            <h4><i class="fa fa-key"></i> API Settings</h4>
+        </div>
+    </div>
+</div>
+
+<div class="widget-block">
+    <div class="widget-head">
+        <h5><i class="fa fa-cog"></i> Configure API Settings</h5>
+    </div>
+    <div class="widget-content">
+        <div class="alert alert-info">
+            <i class="fa fa-info-circle"></i>
+            These settings control the API endpoints and webhook security for FURY SMS.
+        </div>
+
+        <form method="POST" class="form-horizontal">
+            <div class="form-group">
+                <label class="col-md-3 control-label">Webhook Secret</label>
+                <div class="col-md-9">
+                    <input type="text" name="webhook_secret" class="form-control"
+                           placeholder="Enter a secure webhook secret key"
+                           value="{{ webhook_secret }}">
+                    <small class="text-muted">Used to secure incoming webhooks at /api/sms/receive</small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-md-3 control-label">API Rate Limit</label>
+                <div class="col-md-9">
+                    <input type="number" name="api_rate_limit" class="form-control"
+                           placeholder="100" value="{{ api_rate_limit }}" min="1" max="10000">
+                    <small class="text-muted">Maximum requests per minute per user</small>
+                </div>
+            </div>
+
+            <hr>
+            <h4><i class="fa fa-telegram"></i> Telegram OTP Settings</h4>
+
+            <div class="form-group">
+                <label class="col-md-3 control-label">Send OTP to Channel/Group</label>
+                <div class="col-md-9">
+                    <label class="checkbox-inline" style="padding-top:6px;">
+                        <input type="checkbox" name="telegram_otp_to_channel"
+                               {% if telegram_otp_to_channel %}checked{% endif %}>
+                        &nbsp;Forward OTP messages to Telegram
+                    </label>
+                    <small class="text-muted" style="display:block;margin-top:5px;">
+                        When enabled, every OTP code received will be forwarded to the configured channel/group.
+                    </small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-md-3 control-label">Destination Type</label>
+                <div class="col-md-9">
+                    <select name="telegram_destination_type" class="form-control">
+                        <option value="channel" {% if telegram_destination_type == 'channel' %}selected{% endif %}>Channel</option>
+                        <option value="group" {% if telegram_destination_type == 'group' %}selected{% endif %}>Group</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-md-3 control-label">Channel/Group ID</label>
+                <div class="col-md-9">
+                    <input type="text" name="telegram_otp_channel_id" class="form-control"
+                           placeholder="-1001234567890"
+                           value="{{ telegram_otp_channel_id }}">
+                    <small class="text-muted">
+                        For channels: <code>@channel_username</code> or <code>-1001234567890</code><br>
+                        For groups: <code>-1001234567890</code> (use negative number for groups)
+                    </small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-md-offset-3 col-md-9">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa fa-save"></i> Save Settings
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <hr>
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h5><i class="fa fa-code"></i> API Documentation</h5>
+            </div>
+            <div class="panel-body">
+                <h6>Send SMS</h6>
+                <pre>POST /api/sms/send
+Headers: X-API-Token: &lt;your_token&gt;
+Body: { number, destination, cli, message }</pre>
+
+                <h6>Bulk SMS</h6>
+                <pre>POST /api/sms/send-bulk
+Headers: X-API-Token: &lt;your_token&gt;
+Body: { number, destinations: [], cli, message }</pre>
+
+                <h6>Receive SMS Webhook</h6>
+                <pre>POST /api/sms/receive
+Headers: X-Webhook-Secret: &lt;your_secret&gt;
+Body: { number, from, cli, message }</pre>
+
+                <h6>Get Numbers</h6>
+                <pre>GET /api/sms/numbers
+Headers: X-API-Token: &lt;your_token&gt;</pre>
+
+                <h6>SMS Inbox</h6>
+                <pre>GET /api/sms/inbox
+Headers: X-API-Token: &lt;your_token&gt;</pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Settings - {{ client.username }} - FURY SMS</title>
+</head>
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="breadcrumb">
+            <h4><i class="fa fa-cog"></i> Client Settings: {{ client.username }}</h4>
+            <a href="{{ url_for('main.clients') }}" class="btn btn-default btn-sm pull-right">
+                <i class="fa fa-arrow-left"></i> Back to Clients
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Client Info Card -->
+    <div class="col-md-4">
+        <div class="widget-block">
+            <div class="widget-head">
+                <h5><i class="fa fa-user"></i> Client Information</h5>
+            </div>
+            <div class="widget-content">
+                <form method="POST">
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" class="form-control" value="{{ client.username }}" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" class="form-control" name="email" value="{{ client.email }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" class="form-control" name="name" value="{{ client.name or '' }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Company</label>
+                        <input type="text" class="form-control" name="company" value="{{ client.company or '' }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Country</label>
+                        <input type="text" class="form-control" name="country" value="{{ client.country or '' }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Numbers Limit</label>
+                        <input type="number" class="form-control" name="sms_limit" value="{{ client.sms_limit or 0 }}" min="0">
+                        <small class="text-muted">Maximum numbers this client can have (0 = unlimited)</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">
+                        <i class="fa fa-save"></i> Save Settings
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Numbers Management Card -->
+    <div class="col-md-8">
+        <!-- Stats Cards -->
+        <div class="row">
+            <div class="col-md-4">
+                <div class="widget-block stat-card">
+                    <div class="stat-icon bg-primary">
+                        <i class="fa fa-phone"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ client_numbers|length }}</h3>
+                        <p>Assigned Numbers</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="widget-block stat-card">
+                    <div class="stat-icon bg-success">
+                        <i class="fa fa-check-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ available_numbers }}</h3>
+                        <p>Available Numbers</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="widget-block stat-card">
+                    <div class="stat-icon bg-info">
+                        <i class="fa fa-key"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ client.api_token[:8] }}...</h3>
+                        <p>API Token</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add/Remove Numbers -->
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <div class="widget-block">
+                    <div class="widget-head">
+                        <h5><i class="fa fa-plus-circle text-success"></i> Add Numbers to Client</h5>
+                    </div>
+                    <div class="widget-content">
+                        <form method="POST" action="{{ url_for('main.add_numbers_to_client', client_id=client.id) }}">
+                            <div class="form-group">
+                                <label>How many numbers to add?</label>
+                                <input type="number" name="numbers_count" class="form-control" min="1" max="{{ available_numbers }}" placeholder="Enter count">
+                                <small class="text-muted">{{ available_numbers }} numbers available</small>
+                            </div>
+                            <button type="submit" class="btn btn-success btn-block" {% if available_numbers == 0 %}disabled{% endif %}>
+                                <i class="fa fa-plus"></i> Add Numbers
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="widget-block">
+                    <div class="widget-head">
+                        <h5><i class="fa fa-minus-circle text-danger"></i> Remove Numbers from Client</h5>
+                    </div>
+                    <div class="widget-content">
+                        <form method="POST" action="{{ url_for('main.remove_numbers_from_client', client_id=client.id) }}">
+                            <div class="form-group">
+                                <label>How many numbers to remove?</label>
+                                <input type="number" name="numbers_count" class="form-control" min="1" max="{{ client_numbers|length }}" placeholder="Enter count">
+                                <small class="text-muted">{{ client_numbers|length }} numbers assigned to client</small>
+                            </div>
+                            <button type="submit" class="btn btn-danger btn-block" {% if client_numbers|length == 0 %}disabled{% endif %}>
+                                <i class="fa fa-trash"></i> Remove Numbers
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Client Numbers List -->
+        <div class="widget-block mt-3">
+            <div class="widget-head">
+                <h5><i class="fa fa-list"></i> Client's Numbers ({{ client_numbers|length }})</h5>
+            </div>
+            <div class="widget-content">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Number</th>
+                                <th>Range</th>
+                                <th>Status</th>
+                                <th>Assigned</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if client_numbers %}
+                            {% for num in client_numbers %}
+                            <tr>
+                                <td><strong>{{ num.number }}</strong></td>
+                                <td>{{ num.sms_range.country if num.sms_range else 'N/A' }}</td>
+                                <td>
+                                    {% if num.is_active %}
+                                    <span class="label label-success">Active</span>
+                                    {% else %}
+                                    <span class="label label-danger">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ num.assigned_at.strftime('%Y-%m-%d %H:%M') if num.assigned_at else 'N/A' }}</td>
+                            </tr>
+                            {% endfor %}
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted">No numbers assigned to this client.</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.stat-card {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+}
+.stat-card .stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+}
+.stat-card .stat-icon i {
+    font-size: 24px;
+    color: white;
+}
+.stat-card .stat-icon.bg-primary { background: var(--accent, #00d4ff); }
+.stat-card .stat-icon.bg-success { background: var(--success, #2ed573); }
+.stat-card .stat-icon.bg-info { background: #5bc0de; }
+.stat-card h3 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: bold;
+}
+.stat-card p {
+    margin: 0;
+    font-size: 12px;
+    color: var(--muted, #888);
+}
+</style>
+{% endblock %}
