@@ -266,6 +266,9 @@ def register():
 
 @auth_bp.app_errorhandler(401)
 def unauthorized(e):
+    login_url = url_for('auth.login')
+    if request.path == login_url or request.path.startswith('/static'):
+        return redirect(login_url)
     flash('Please log in to access this page.', 'warning')
     return redirect(url_for('auth.login', next=request.path))
 
