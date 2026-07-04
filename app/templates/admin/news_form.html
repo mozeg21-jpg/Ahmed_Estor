@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit News' if news else 'Create News' }} - DREEM SMS{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="breadcrumb" style="background: var(--card); border: 1px solid var(--border); padding: 15px 20px; border-radius: 8px; margin-bottom: 24px;">
+            <h4 style="margin: 0; font-weight: 700; color: var(--txt);"><i class="fa fa-bullhorn"></i> {{ 'Edit News Announcement' if news else 'Create News Announcement' }}</h4>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 col-md-offset-2">
+        <div class="panel" style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow);">
+            <div class="panel-heading" style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border); padding: 16px 20px; font-weight: 600; color: var(--txt);">
+                <h5><i class="fa fa-edit"></i> Announcement Details</h5>
+            </div>
+            <div class="panel-body" style="padding: 24px;">
+                <form method="POST" action="{{ url_for('admin.create_news') if not news else url_for('admin.edit_news', news_id=news.id) }}">
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; font-weight: 600; color: var(--txt); margin-bottom: 8px;">Headline / Title *</label>
+                        <input type="text" name="headline" class="form-control" value="{{ news.headline if news else '' }}" placeholder="Enter news title or headline" required style="width: 100%; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--txt);">
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; font-weight: 600; color: var(--txt); margin-bottom: 8px;">Content / Details</label>
+                        <textarea name="content" class="form-control" rows="8" placeholder="Enter announcement body text" style="width: 100%; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--txt); resize: vertical;">{{ news.content if news else '' }}</textarea>
+                    </div>
+
+                    {% if news %}
+                    <div class="form-group" style="margin-bottom: 24px;">
+                        <label style="display: block; font-weight: 600; color: var(--txt); margin-bottom: 8px;">Status</label>
+                        <select name="is_active" class="form-control" style="width: 100%; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--txt);">
+                            <option value="1" {% if news.is_active %}selected{% endif %}>Active</option>
+                            <option value="0" {% if not news.is_active %}selected{% endif %}>Inactive</option>
+                        </select>
+                    </div>
+                    {% endif %}
+
+                    <div style="display: flex; gap: 12px; margin-top: 10px;">
+                        <button type="submit" class="btn btn-primary" style="padding: 10px 20px; font-weight: 600;"><i class="fa fa-save"></i> Save Announcement</button>
+                        <a href="{{ url_for('admin.news') }}" class="btn btn-default" style="padding: 10px 20px; font-weight: 600;"><i class="fa fa-arrow-left"></i> Back to List</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

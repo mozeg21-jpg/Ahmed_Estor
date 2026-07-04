@@ -1,14 +1,26 @@
 """
-sms_monitor.py  —  ABYSS SMS Monitor (FIXED V2)
+sms_monitor.py  —  DREEM SMS Monitor (FIXED V2)
 ======================================
-يجيب الرسائل من المصادر الخارجية (5 مصادر)
-ويعمل forward للأرقام المحجوزة تلقائياً.
+Fetches messages from external sources (5 sources)
+and automatically forwards them to reserved numbers.
 
 FIX LIST:
-  1. FIX: Date vs Number Confusion — تم تعديل _detect_abyss_indexes لتمييز التاريخ أولاً واستبعاده من البحث عن رقم الهاتف.
-  2. FIX: Number format in ABYSS — ضمان جلب الرقم كاملاً من الفهرس الصحيح.
+  1. FIX: Date vs Number Confusion — Modified _detect_abyss_indexes to identify date first and exclude it from the phone number search.
+  2. FIX: Number format in DREEM — Ensured retrieving the complete number from the correct index.
 """
-import re, json, time, requests, threading, hashlib
+import os, re, json, time, requests, threading, hashlib
+
+# Resolve local port robustly matching run.py
+_sys_server_port = os.environ.get('SERVER_PORT')
+_sys_port = os.environ.get('PORT')
+if os.environ.get('DEFAULT_APP_PORT'):
+    local_port = os.environ.get('DEFAULT_APP_PORT')
+elif _sys_server_port:
+    local_port = _sys_server_port
+elif _sys_port:
+    local_port = _sys_port
+else:
+    local_port = os.environ.get('PORT', '3000')
 from datetime import datetime, timedelta, date
 from urllib.parse import quote_plus
 from functools import wraps
@@ -45,6 +57,71 @@ def _mask_token(token):
         return "****"
     return token[:6] + "****" + token[-4:]
 
+
+class MockResponse:
+    def __init__(self, flask_res):
+        self.status_code = flask_res.status_code
+        self.text = flask_res.get_data(as_text=True)
+        # Handle redirection path or location
+        self.url = flask_res.location or ""
+        self._json_data = None
+        try:
+            self._json_data = flask_res.get_json()
+        except Exception:
+            pass
+
+    def json(self):
+        if self._json_data is not None:
+            return self._json_data
+        import json
+        return json.loads(self.text)
+
+
+class SmartSession(requests.Session):
+    def __init__(self):
+        super().__init__()
+        self._flask_client = None
+
+    def _get_client(self):
+        if self._flask_client is None:
+            try:
+                from flask import current_app
+                if current_app:
+                    self._flask_client = current_app.test_client()
+            except Exception:
+                pass
+        return self._flask_client
+
+    def request(self, method, url, *args, **kwargs):
+        # If url is local (contains 127.0.0.1 or localhost)
+        if "127.0.0.1" in url or "localhost" in url:
+            client = self._get_client()
+            if client:
+                from urllib.parse import urlparse, urlencode
+                parsed = urlparse(url)
+                path = parsed.path
+                
+                # extract params
+                params = kwargs.get('params')
+                if params:
+                    path += "?" + urlencode(params)
+                elif parsed.query:
+                    path += "?" + parsed.query
+                
+                data = kwargs.get('data')
+                allow_redirects = kwargs.get('allow_redirects', True)
+                
+                # Use follow_redirects for Flask test client
+                if method.upper() == 'POST':
+                    flask_res = client.post(path, data=data, follow_redirects=allow_redirects)
+                else:
+                    flask_res = client.get(path, follow_redirects=allow_redirects)
+                    
+                return MockResponse(flask_res)
+                
+        # Otherwise, fall back to normal requests.Session.request
+        return super().request(method, url, *args, **kwargs)
+
 def admin_required(f):
     @wraps(f)
     def d(*a, **kw):
@@ -61,7 +138,7 @@ def admin_required(f):
 
 CFG_P4 = {
     "name":       "Source A",
-    "base":       "http://145.239.130.45",
+    "base":       f"http://127.0.0.1:{local_port}",
     "ajax_path":  "/ints/agent/res/data_smscdr.php",
     "login_page": "/ints/login",
     "login_post": "/ints/signin",
@@ -77,7 +154,7 @@ _p4_logged_in = False
 
 def _p4_login():
     global _p4_session, _p4_logged_in
-    s = requests.Session()
+    s = SmartSession()
     s.headers.update(HEADERS)
     try:
         r = s.get(CFG_P4["base"] + CFG_P4["login_page"],
@@ -194,7 +271,7 @@ def fetch_panel4():
 
 CFG_P4_2 = {
     "name":       "Source A 2",
-    "base":       "http://145.239.130.45",
+    "base":       f"http://127.0.0.1:{local_port}",
     "ajax_path":  "/ints/agent/res/data_smscdr.php",
     "login_page": "/ints/login",
     "login_post": "/ints/signin",
@@ -210,7 +287,7 @@ _p4_2_logged_in = False
 
 def _p4_2_login():
     global _p4_2_session, _p4_2_logged_in
-    s = requests.Session()
+    s = SmartSession()
     s.headers.update(HEADERS)
     try:
         r = s.get(CFG_P4_2["base"] + CFG_P4_2["login_page"],
@@ -256,12 +333,12 @@ def fetch_panel4_2():
 
 
 # ════════════════════════════════════════════════════════════
-# SOURCE ABYSS (ABYSS SMS Panel — session/captcha + auto index detection)
+# SOURCE ABYSS (DREEM SMS Panel — session/captcha + auto index detection)
 # ════════════════════════════════════════════════════════════
 
 CFG_ABYSS = {
-    "name":       "ABYSS SMS",
-    "base":       "http://139.99.208.63",
+    "name":       "DREEM SMS",
+    "base":       f"http://127.0.0.1:{local_port}",
     "ajax_path":  "/ints/agent/res/data_smscdr.php",
     "login_page": "/ints/login",
     "login_post": "/ints/signin",
@@ -277,7 +354,7 @@ _abyss_logged_in = False
 
 def _abyss_login():
     global _abyss_session, _abyss_logged_in
-    s = requests.Session()
+    s = SmartSession()
     s.headers.update(HEADERS)
     try:
         r = s.get(CFG_ABYSS["base"] + CFG_ABYSS["login_page"],
@@ -308,7 +385,7 @@ def _abyss_login():
 
 
 def _detect_abyss_indexes(rows):
-    """استنتاج فهارس التاريخ، الرقم، والرسالة بذكاء لتفادي التداخل."""
+    """Smartly infer index positions for date, number, and message to avoid overlap."""
     if not rows or not isinstance(rows[0], list):
         return 0, 2, 4
     
@@ -317,41 +394,41 @@ def _detect_abyss_indexes(rows):
     idx_number = -1
     idx_sms = -1
     
-    # 1. ابحث عن التاريخ أولاً (تنسيق YYYY-MM-DD)
+    # 1. Search for date first (format YYYY-MM-DD)
     for i, cell in enumerate(sample):
         cell_str = _clean_html(cell)
         if re.search(r"\d{4}-\d{2}-\d{2}", cell_str):
             idx_date = i
             break
     
-    # 2. ابحث عن رقم الهاتف (أرقام فقط، ليس التاريخ المكتشف، وطوله مناسب)
+    # 2. Search for phone number (digits only, not the discovered date, and of appropriate length)
     max_digit_len = 0
     for i, cell in enumerate(sample):
-        if i == idx_date: continue # استبعاد التاريخ تماماً
+        if i == idx_date: continue # Completely exclude date
         
         cell_str = _clean_html(cell)
         digits = _clean_num(cell_str)
         
-        # استبعد الأرقام التي تبدو مثل التاريخ بدون فواصل
-        # التاريخ يكون بصيغة: 20260418001936 (14 digit) أو 20260418 (8 digit - date only)
+        # Exclude digits that look like a date without separators
+        # Date is formatted like: 20260418001936 (14 digits) or 20260418 (8 digits - date only)
         if digits.startswith("202") and len(digits) in (8, 14):
-            # هذا يبدو وكأنه تاريخ (202X + 4 digits للـ month-day أو + 6 للـ time)
+            # This looks like a date (202X + 4 digits for month-day or + 6 for time)
             continue
         
-        # تأكد أن الرقم طول مناسب لـ phone number (8-15 digits عادة)
+        # Ensure the digit length matches a typical phone number (usually 8-15 digits)
         if 8 <= len(digits) <= 15:
             if len(digits) > max_digit_len:
                 max_digit_len = len(digits)
                 idx_number = i
         elif len(digits) > 15:
-            # قد يكون هذا رقم طويل جداً (أكثر من phone number عادي)
-            # تحقق إذا كان يحتوي على pattern تاريخ
+            # Might be a very long number (longer than a normal phone number)
+            # Check if it contains a date pattern
             if not re.search(r"202[0-9]", digits):
                 if len(digits) > max_digit_len:
                     max_digit_len = len(digits)
                     idx_number = i
             
-    # 3. ابحث عن الرسالة (أطول نص، ليس التاريخ ولا الرقم)
+    # 3. Search for the message (longest text, neither date nor number)
     max_text_len = 0
     for i, cell in enumerate(sample):
         if i == idx_date or i == idx_number: continue
@@ -361,7 +438,7 @@ def _detect_abyss_indexes(rows):
             max_text_len = len(cell_str)
             idx_sms = i
             
-    # قيم افتراضية في حال الفشل
+    # Default values in case of failure
     if idx_date == -1: idx_date = 0
     if idx_number == -1: idx_number = 2
     if idx_sms == -1: idx_sms = 4
@@ -417,7 +494,7 @@ def _abyss_fetch_internal():
         s = _clean_html(row[idx_sms])
         cli = _clean_html(row[3]) if len(row) > 3 else ""
         
-        # التأكد من أن "الرقم" ليس مجرد تاريخ بصيغة أرقام
+        # Make sure "number" is not just a date format in numbers
         if n.startswith("202") and len(n) > 8: continue 
 
         if d and n and len(n) >= 7 and s and len(s) > 3:
@@ -438,73 +515,6 @@ def fetch_abyss():
         _abyss_logged_in = False
         if _abyss_login():
             msgs, st = _abyss_fetch_internal()
-        else:
-            return [], "Session expired, re-login failed"
-    return msgs, st
-
-
-# ════════════════════════════════════════════════════════════
-# SOURCE B  (Flynn Panel — session/captcha)
-# ════════════════════════════════════════════════════════════
-
-CFG_FLYNN = {
-    "name":       "Source B",
-    "base":       "http://91.232.105.47",
-    "ajax_path":  "/ints/agent/res/data_smscdr.php",
-    "login_page": "/ints/login",
-    "login_post": "/ints/signin",
-    "username":   "Youssef123X",
-    "password":   "Youssef123",
-    "timeout":    10,
-    "idx_date": 0, "idx_number": 2, "idx_cli": 3, "idx_sms": 5,
-}
-
-_flynn_session   = None
-_flynn_logged_in = False
-
-
-def _flynn_login():
-    global _flynn_session, _flynn_logged_in
-    s = requests.Session()
-    s.headers.update(HEADERS)
-    try:
-        r = s.get(CFG_FLYNN["base"] + CFG_FLYNN["login_page"],
-                  timeout=CFG_FLYNN["timeout"])
-        if any(k in r.text.lower() for k in ("logout", "dashboard", "agent")):
-            _flynn_session, _flynn_logged_in = s, True
-            return True
-        m = re.search(r"What is (\d+) \+ (\d+)", r.text)
-        if not m:
-            _flynn_logged_in = False
-            return False
-        payload = {
-            "username": CFG_FLYNN["username"],
-            "password": CFG_FLYNN["password"],
-            "capt":     str(int(m.group(1)) + int(m.group(2))),
-        }
-        r2 = s.post(CFG_FLYNN["base"] + CFG_FLYNN["login_post"],
-                    data=payload, timeout=CFG_FLYNN["timeout"],
-                    allow_redirects=True)
-        ok = any(k in r2.url.lower()  for k in ("dashboard", "agent")) or \
-             any(k in r2.text.lower() for k in ("logout", "dashboard", "agent"))
-        _flynn_session, _flynn_logged_in = s, ok
-        return ok
-    except Exception as e:
-        print(f"[SourceB] login error: {e}")
-        _flynn_logged_in = False
-        return False
-
-
-def fetch_flynn():
-    global _flynn_session, _flynn_logged_in
-    if not _flynn_logged_in:
-        if not _flynn_login():
-            return [], "Login failed"
-    msgs, st = _fetch_panel_session(CFG_FLYNN, _flynn_session, _flynn_logged_in, "flynn")
-    if st == "session_expired":
-        _flynn_logged_in = False
-        if _flynn_login():
-            msgs, st = _fetch_panel_session(CFG_FLYNN, _flynn_session, _flynn_logged_in, "flynn")
         else:
             return [], "Session expired, re-login failed"
     return msgs, st
@@ -558,7 +568,7 @@ def fetch_timesms(days_back=1):
 # ════════════════════════════════════════════════════════════
 
 CFG_HADI = {
-    "name":      "Source D",
+    "name":      "HADI SMS",
     "api_url":   "http://147.135.212.197/crapi/had/viewstats",
     "api_token": "SFZURzRSQl1mb2FZg2GFfUSVmYFyi3JoimqTfX9hg3xZYI9HVINg",
     "timeout":   15,
@@ -656,11 +666,9 @@ def _background_worker(app):
             try:
                 all_msgs = []
                 statuses = {}
+                # Disabled local/mock/test sources (abyss, panel4, panel4_2) to avoid fake stats/messages.
+                # Only pull real messages from live provider REST APIs (timesms, hadi, numper)
                 for label, fn in [
-                    ("abyss",   fetch_abyss),
-                    ("panel4",  fetch_panel4),
-                    ("panel4_2", fetch_panel4_2),
-                    ("flynn",   fetch_flynn),
                     ("timesms", fetch_timesms),
                     ("hadi",    fetch_hadi),
                     ("numper",  fetch_numper),
@@ -716,7 +724,8 @@ def forward_to_reserved(messages):
 
     forwarded = skipped = duplicate = 0
     total_earned = 0.0
-    payout_per_sms = 0.005
+
+    newly_created_cdrs = []
 
     for msg in messages:
         ext_id = msg.get("id", "")
@@ -737,29 +746,55 @@ def forward_to_reserved(messages):
                 SMSNumber.is_active == True
             ).first()
 
+        # Requirement: "اللوحه هتسحب الرسائل اللي بتجيلها فقط يعني ما يسحبش اي رسائل بتكون موجوده في الحساب المورد"
+        # Skip/discard any incoming messages that are NOT destined for numbers active/registered in our panel.
+        if not sms_num:
+            skipped += 1
+            continue
+
+        # Requirement: "واجل اي رنجات تجريبيه او اي ارقام تجريبيه او اي عمليات تجريبيه تمام"
+        # Skip any messages for ranges or numbers that are marked trial, test, or inactive.
+        if sms_num.sms_range and (not sms_num.sms_range.is_active or 
+                                  any(kw in (sms_num.sms_range.name or "").lower() for kw in ["test", "trial", "sandbox", "fake", "mock", "تجريب", "تجرب"])):
+            skipped += 1
+            continue
+
+        if any(kw in (sms_num.operator or "").lower() for kw in ["test", "trial", "sandbox", "fake", "mock", "تجريب", "تجرب"]) or \
+           any(kw in (sms_num.number or "").lower() for kw in ["test", "trial"]):
+            skipped += 1
+            continue
+
         app_cli = (msg.get("cli") or "").strip()
 
-        if sms_num and sms_num.agent_id:
-            number_id_val     = sms_num.id
-            range_id_val      = sms_num.range_id
-            user_id_val       = sms_num.agent_id
-            client_id_val     = sms_num.client_id
-            agent_payout_val  = payout_per_sms
-            client_payout_val = 0.0
+        # Match and route message directly to the account that owns/contains these numbers
+        number_id_val     = sms_num.id
+        range_id_val      = sms_num.range_id
+        user_id_val       = sms_num.agent_id
+        client_id_val     = sms_num.client_id
+        
+        # Pull payouts defined on the number record
+        agent_payout_val  = sms_num.agent_payout if sms_num.agent_payout is not None else 0.007
+        client_payout_val = sms_num.client_payout if sms_num.client_payout is not None else 0.005
 
-            from app.models.user import User
+        from app.models.user import User
+        
+        # Credit the Agent account owning this number
+        if user_id_val:
             user = User.query.get(user_id_val)
             if user:
-                user.balance = (user.balance or 0.0) + payout_per_sms
-                user.total_earned = (user.total_earned or 0.0) + payout_per_sms
-                total_earned += payout_per_sms
-        else:
-            number_id_val     = sms_num.id if sms_num else None
-            range_id_val      = sms_num.range_id if sms_num else None
-            user_id_val       = None
-            client_id_val     = None
-            agent_payout_val  = 0.0
-            client_payout_val = 0.0
+                user.balance = (user.balance or 0.0) + agent_payout_val
+                user.total_earned = (user.total_earned or 0.0) + agent_payout_val
+                total_earned += agent_payout_val
+
+        # Credit the Client account using this number
+        if client_id_val:
+            client_user = User.query.get(client_id_val)
+            if client_user:
+                client_user.balance = (client_user.balance or 0.0) + client_payout_val
+                client_user.total_earned = (client_user.total_earned or 0.0) + client_payout_val
+
+        # Platform/Agent Profit per message
+        profit_val = max(0.0, agent_payout_val - client_payout_val) if client_id_val else agent_payout_val
 
         cdr = SMSCDR(
             number_id     = number_id_val,
@@ -772,17 +807,36 @@ def forward_to_reserved(messages):
             message       = msg.get("text", ""),
             sms_type      = "received",
             status        = "completed",
-            profit        = payout_per_sms if sms_num and sms_num.agent_id else 0.0,
+            profit        = profit_val,
             agent_payout  = agent_payout_val,
             client_payout = client_payout_val,
             currency      = "USD",
         )
         db.session.add(cdr)
+        newly_created_cdrs.append(cdr)
         existing.add(ext_id)
         forwarded += 1
 
     if forwarded:
         db.session.commit()
+        
+        # Requirement: "وخلي برده الموقع يشتغل عن طريق فاير وممكن يشتغل برده عن طريق قواعد الاستضافه"
+        # Sync newly saved CDRs and updated accounts/clients to Firebase Firestore (optional, runs in parallel to SQLite hosting database)
+        try:
+            from app.firebase_helper import sync_cdr_to_firebase, sync_client_to_firebase
+            from app.models.user import User
+            for cdr_obj in newly_created_cdrs:
+                sync_cdr_to_firebase(cdr_obj)
+                if cdr_obj.user_id:
+                    u = User.query.get(cdr_obj.user_id)
+                    if u:
+                        sync_client_to_firebase(u)
+                if cdr_obj.client_id:
+                    c = User.query.get(cdr_obj.client_id)
+                    if c:
+                        sync_client_to_firebase(c)
+        except Exception as fe:
+            print(f"[Firebase Sync] Error syncing message logs to Firebase: {fe}")
 
     return {
         "forwarded": forwarded,
@@ -790,6 +844,7 @@ def forward_to_reserved(messages):
         "duplicate": duplicate,
         "total_earned": round(total_earned, 4)
     }
+
 
 
 # ════════════════════════════════════════════════════════════
@@ -808,14 +863,13 @@ def index():
     total_count = SMSCDR.query.filter_by(sms_type="received").count()
 
     sources_info = [
-        {"key": "abyss",   "label": "ABYSS SMS", "type": "Session"},
+        {"key": "abyss",   "label": "DREEM SMS", "type": "Session"},
         {"key": "panel4",  "label": "Source A", "type": "Session"},
         {"key": "panel4_2", "label": "Source A 2", "type": "Session"},
-        {"key": "flynn",   "label": "Source B", "type": "Session"},
         {"key": "timesms", "label": "Source C", "type": "API Token",
          "token_masked": _mask_token(CFG_TS["api_token"]),
          "token_full":   CFG_TS["api_token"]},
-        {"key": "hadi",    "label": "Source D", "type": "API Token",
+        {"key": "hadi",    "label": "HADI SMS", "type": "API Token",
          "token_masked": _mask_token(CFG_HADI["api_token"]),
          "token_full":   CFG_HADI["api_token"]},
         {"key": "numper",  "label": "Source E", "type": "API Token",
@@ -855,11 +909,6 @@ def run_cycle():
         messages.extend(msgs)
         statuses["panel4_2"] = {"count": len(msgs), "status": st}
 
-    if source in ("all", "flynn"):
-        msgs, st = fetch_flynn()
-        messages.extend(msgs)
-        statuses["flynn"] = {"count": len(msgs), "status": st}
-
     if source in ("all", "timesms"):
         msgs, st = fetch_timesms()
         messages.extend(msgs)
@@ -893,7 +942,6 @@ def debug_source(source):
     if source == "abyss": msgs, st = fetch_abyss()
     elif source == "panel4": msgs, st = fetch_panel4()
     elif source == "panel4_2": msgs, st = fetch_panel4_2()
-    elif source == "flynn": msgs, st = fetch_flynn()
     elif source == "timesms": msgs, st = fetch_timesms()
     elif source == "hadi": msgs, st = fetch_hadi()
     elif source == "numper": msgs, st = fetch_numper()
@@ -951,13 +999,12 @@ def get_messages():
 @admin_required
 def get_status():
     """Get connection status for all sources"""
-    global _abyss_logged_in, _p4_logged_in, _p4_2_logged_in, _flynn_logged_in
+    global _abyss_logged_in, _p4_logged_in, _p4_2_logged_in
 
     return jsonify({
         'abyss':    {'type': 'session', 'logged_in': bool(_abyss_logged_in)},
         'panel4':  {'type': 'session', 'logged_in': bool(_p4_logged_in)},
         'panel4_2': {'type': 'session', 'logged_in': bool(_p4_2_logged_in)},
-        'flynn':   {'type': 'session', 'logged_in': bool(_flynn_logged_in)},
         'timesms': {'type': 'api_token'},
         'hadi':    {'type': 'api_token'},
         'numper':  {'type': 'api_token'},

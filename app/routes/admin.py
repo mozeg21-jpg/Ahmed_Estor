@@ -97,7 +97,7 @@ def users():
         page=page, per_page=per_page, error_out=False
     )
 
-    roles = Role.query.filter(Role.name != 'admin').all()
+    roles = Role.query.all()
     agents = User.query.filter(User.role.has(name='agent')).all()
 
     return render_template('admin/users.html',
@@ -129,7 +129,7 @@ def create_user():
             return redirect(url_for('admin.create_user'))
 
         role = Role.query.get(role_id)
-        if not role or role.name == 'admin':
+        if not role:
             flash('Invalid role selected.', 'danger')
             return redirect(url_for('admin.create_user'))
 
@@ -160,7 +160,7 @@ def create_user():
         flash(f'User {username} created successfully.', 'success')
         return redirect(url_for('admin.users'))
 
-    roles = Role.query.filter(Role.name != 'admin').all()
+    roles = Role.query.all()
     agents = User.query.filter(User.role.has(name='agent')).all()
     return render_template('admin/user_form.html', roles=roles, agents=agents, user=None)
 
@@ -184,7 +184,7 @@ def edit_user(user_id):
         role_id = request.form.get('role_id', type=int)
         if role_id:
             role = Role.query.get(role_id)
-            if role and not (user.is_admin() and role.name != 'admin') and not (not user.is_admin() and role.name == 'admin'):
+            if role:
                 user.role_id = role.id
 
         is_active = request.form.get('is_active')
@@ -206,7 +206,7 @@ def edit_user(user_id):
         flash(f'User {user.username} updated successfully.', 'success')
         return redirect(url_for('admin.users'))
 
-    roles = Role.query.filter(Role.name != 'admin').all()
+    roles = Role.query.all()
     agents = User.query.filter(User.role.has(name='agent')).all()
     return render_template('admin/user_form.html', roles=roles, agents=agents, user=user)
 
@@ -298,6 +298,52 @@ def sms_ranges():
 
     return render_template('admin/sms_ranges.html', ranges=ranges_list)
 
+def generate_150_test_numbers(range_id, base_number=None):
+    from app.models.sms import SMSNumber
+    from app import db
+    import re
+    
+    if not base_number:
+        first_num = SMSNumber.query.filter_by(range_id=range_id).first()
+        if first_num:
+            base_number = first_num.number
+        else:
+            base_number = "+447123456789"
+
+    is_plus = base_number.startswith('+')
+    digits_only = re.sub(r'\D', '', base_number)
+    
+    if len(digits_only) < 5:
+        digits_only = "447123456789"
+        is_plus = True
+
+    prefix_digits = digits_only[:-3] if len(digits_only) > 3 else digits_only
+    start_suffix = 100
+    
+    added_count = 0
+    existing_numbers = set(num[0] for num in db.session.query(SMSNumber.number).all())
+    
+    for i in range(150):
+        suffix = start_suffix + i
+        candidate = f"{'+' if is_plus else ''}{prefix_digits}{suffix}"
+        
+        while candidate in existing_numbers:
+            suffix += 1
+            candidate = f"{'+' if is_plus else ''}{prefix_digits}{suffix}"
+            
+        test_num = SMSNumber(
+            range_id=range_id,
+            number=candidate,
+            status='test',
+            is_active=True
+        )
+        db.session.add(test_num)
+        existing_numbers.add(candidate)
+        added_count += 1
+        
+    db.session.commit()
+    return added_count
+
 @admin_bp.route('/ranges/create', methods=['GET', 'POST'])
 @admin_required
 def create_sms_range():
@@ -310,7 +356,7 @@ def create_sms_range():
         billing_cycle = request.form.get('billing_cycle', 'monthly')
         manual_price = request.form.get('manual_price', 0.0, type=float)
 
-        # التحقق من ملف TXT أو CSV
+        # Verify TXT or CSV file
         csv_file = request.files.get('csv_file')
         csv_numbers = []
         if csv_file and csv_file.filename:
@@ -329,7 +375,7 @@ def create_sms_range():
                 flash(f'Error reading file: {str(e)}', 'danger')
                 return redirect(url_for('admin.create_sms_range'))
 
-        # إنشاء الـ range
+        # Create range
         sms_range = SMDRange(
             name=name,
             country=country,
@@ -343,7 +389,7 @@ def create_sms_range():
         db.session.add(sms_range)
         db.session.commit()
 
-        # إضافة أرقام من CSV فقط
+        # Add numbers from CSV only
         created_count = 0
         skip_count = 0
         if csv_numbers:
@@ -371,6 +417,12 @@ def create_sms_range():
                 existing_numbers.add(num_clean)
 
             db.session.commit()
+
+            # Automatically generate 150 test numbers for this range
+            try:
+                generate_150_test_numbers(sms_range.id, test_number or (csv_numbers[0] if csv_numbers else None))
+            except Exception as e:
+                print(f"Error generating test numbers: {e}")
 
         ActivityLog.log(
             current_user.id,
@@ -469,6 +521,13 @@ def create_sms_ranges_multiple():
                     existing_numbers.add(num_clean)
 
                 db.session.commit()
+
+                # Automatically generate 150 test numbers for this range
+                try:
+                    generate_150_test_numbers(sms_range.id, csv_numbers[0] if csv_numbers else None)
+                except Exception as e:
+                    print(f"Error generating test numbers for multiple ranges: {e}")
+
                 created_ranges.append({'name': name, 'count': created_count})
                 total_numbers += created_count
 
@@ -769,14 +828,14 @@ def edit_news(news_id):
 
     return render_template('admin/news_form.html', news=news)
 
-@admin_bp.route('/news/<int:news_id>/delete', methods=['POST'])
+@admin_bp.route('/news/<int:news_id>/delete', methods=['GET', 'POST'])
 @admin_required
 def delete_news(news_id):
     news = News.query.get_or_404(news_id)
     db.session.delete(news)
     db.session.commit()
 
-    flash('News deleted.', 'success')
+    flash('News deleted successfully.', 'success')
     return redirect(url_for('admin.news'))
 
 # ============ SETTINGS ============
@@ -802,13 +861,13 @@ def update_sms_limit():
     return jsonify({'success': True})
 
 # ============ AGENT MANAGEMENT ============
-# هذه الـ routes خاصة بالـ Agent لإدارة أرقامه و clients الخاصة به
+# These routes are for Agent management of their numbers and clients
 
 @admin_bp.route('/agent/add-numbers', methods=['GET', 'POST'])
 @login_required
 def agent_add_numbers():
-    """Agent يضيف أرقام لنفسه"""
-    # التحقق أن المستخدم agent
+    """Agent adds numbers to their account"""
+    # Verify user is an agent
     if not (current_user.is_agent() or current_user.is_admin()):
         flash('Access denied. Agent account required.', 'danger')
         return redirect(url_for('main.dashboard'))
@@ -821,7 +880,7 @@ def agent_add_numbers():
             flash('Please select a range.', 'danger')
             return redirect(url_for('admin.agent_add_numbers'))
 
-        # حساب عدد الأرقام اللي عند agent حالياً والتحقق من الحد المخصص له
+        # Calculate current count of agent's numbers and verify against limit
         current_count = SMSNumber.query.filter_by(agent_id=current_user.id).count()
         max_total = current_user.sms_limit if current_user.sms_limit > 0 else 1
         remaining = max_total - current_count
@@ -834,13 +893,13 @@ def agent_add_numbers():
             flash(f'You can only add {remaining} more numbers. Adjusting to {remaining}.', 'warning')
             numbers_count = remaining
 
-        # الحصول على الـ range
+        # Get range
         sms_range = SMDRange.query.get(range_id)
         if not sms_range:
             flash('Invalid range selected.', 'danger')
             return redirect(url_for('admin.agent_add_numbers'))
 
-        # الحصول على أرقام متاحة من الـ range
+        # Get available numbers from range
         available_numbers = SMSNumber.query.filter_by(
             range_id=range_id,
             agent_id=None,
@@ -851,7 +910,7 @@ def agent_add_numbers():
             flash('No available numbers in this range.', 'warning')
             return redirect(url_for('admin.agent_add_numbers'))
 
-        # حجز الأرقام للagent
+        # Reserve numbers for the agent
         numbers_added = 0
         for num in available_numbers:
             num.agent_id = current_user.id
@@ -861,7 +920,7 @@ def agent_add_numbers():
 
         db.session.commit()
 
-        # تسجيل النشاط
+        # Log activity
         ActivityLog.log(
             current_user.id,
             'agent_add_numbers',
@@ -872,10 +931,10 @@ def agent_add_numbers():
         flash(f'{numbers_added} numbers added to your account successfully!', 'success')
         return redirect(url_for('admin.sms_numbers'))
 
-    # الحصول على الـ ranges المتاحة
+    # Get available ranges
     ranges = SMDRange.query.filter_by(is_active=True).all()
 
-    # حساب عدد الأرقام الحالية
+    # Calculate current numbers count
     current_numbers = SMSNumber.query.filter_by(agent_id=current_user.id).count()
 
     return render_template('admin/agent_add_numbers.html',
@@ -887,8 +946,8 @@ def agent_add_numbers():
 @admin_bp.route('/agent/create-client', methods=['GET', 'POST'])
 @login_required
 def agent_create_client():
-    """Agent يضيف client جديد"""
-    # التحقق أن المستخدم agent
+    """Agent creates a new client"""
+    # Verify user is an agent
     if not (current_user.is_agent() or current_user.is_admin()):
         flash('Access denied. Agent account required.', 'danger')
         return redirect(url_for('main.dashboard'))
@@ -906,7 +965,7 @@ def agent_create_client():
             flash('Username, email, and password are required.', 'danger')
             return redirect(url_for('admin.agent_create_client'))
 
-        # التحقق من عدم وجود username أو email
+        # Check that username and email do not already exist
         if User.query.filter_by(username=username).first():
             flash('Username already exists.', 'danger')
             return redirect(url_for('admin.agent_create_client'))
@@ -915,13 +974,13 @@ def agent_create_client():
             flash('Email already registered.', 'danger')
             return redirect(url_for('admin.agent_create_client'))
 
-        # الحصول على role client
+        # Get client role
         client_role = Role.query.filter_by(name='client').first()
         if not client_role:
             flash('Client role not found. Please contact admin.', 'danger')
             return redirect(url_for('admin.agent_create_client'))
 
-        # إنشاء الـ client
+        # Create client
         client = User(
             username=username,
             email=email,
@@ -929,7 +988,7 @@ def agent_create_client():
             name=name,
             company=company,
             country=country,
-            agent_id=current_user.id,  # ربط الـ client بالـ agent
+            agent_id=current_user.id,  # Associate client with agent
             is_active=True
         )
         client.set_password(password)
@@ -938,9 +997,9 @@ def agent_create_client():
         db.session.add(client)
         db.session.commit()
 
-        # إضافة أرقام للـ client إذا طُلب
+        # Assign numbers to client if requested
         if numbers_count > 0:
-            # الحصول على أرقام الـ agent
+            # Get agent's numbers
             agent_numbers = SMSNumber.query.filter_by(
                 agent_id=current_user.id,
                 client_id=None,
@@ -954,7 +1013,7 @@ def agent_create_client():
             db.session.commit()
             flash(f'{len(agent_numbers)} numbers assigned to client.', 'success')
 
-        # تسجيل النشاط
+        # Log activity
         ActivityLog.log(
             current_user.id,
             'agent_create_client',
@@ -970,8 +1029,8 @@ def agent_create_client():
 @admin_bp.route('/agent/clients')
 @login_required
 def agent_clients():
-    """عرض clients الخاصة بالـ agent"""
-    # التحقق أن المستخدم agent
+    """Display agent's clients"""
+    # Verify user is an agent
     if not (current_user.is_agent() or current_user.is_admin()):
         flash('Access denied. Agent account required.', 'danger')
         return redirect(url_for('main.dashboard'))
@@ -1026,7 +1085,7 @@ def agent_edit_client(user_id):
 
         ActivityLog.log(current_user.id, 'agent_edit_client', f'Edited client {client.username}', ip_address=request.remote_addr)
         flash(f'Client {client.username} updated successfully.', 'success')
-        return redirect(url_for('admin.agent_clients'))
+        return redirect(url_for('main.clients'))
 
     return render_template('admin/agent_edit_client.html', client=client)
 
@@ -1040,7 +1099,7 @@ def agent_delete_client(user_id):
     client = User.query.get_or_404(user_id)
     if client.agent_id != current_user.id and not current_user.is_admin():
         flash('Access denied. This is not your client.', 'danger')
-        return redirect(url_for('admin.agent_clients'))
+        return redirect(url_for('main.clients'))
 
     SMSNumber.query.filter_by(client_id=client.id).update({'client_id': None})
     username = client.username
@@ -1049,7 +1108,26 @@ def agent_delete_client(user_id):
 
     ActivityLog.log(current_user.id, 'agent_delete_client', f'Deleted client {username}', ip_address=request.remote_addr)
     flash(f'Client {username} deleted.', 'success')
-    return redirect(url_for('admin.agent_clients'))
+    return redirect(url_for('main.clients'))
+
+@admin_bp.route('/agent/clients/<int:user_id>/toggle-status', methods=['POST'])
+@login_required
+def agent_toggle_client_status(user_id):
+    if not (current_user.is_agent() or current_user.is_admin()):
+        flash('Access denied.', 'danger')
+        return redirect(url_for('main.dashboard'))
+
+    client = User.query.get_or_404(user_id)
+    if client.agent_id != current_user.id and not current_user.is_admin():
+        flash('Access denied. This is not your client.', 'danger')
+        return redirect(url_for('main.clients'))
+
+    client.is_active = not client.is_active
+    db.session.commit()
+
+    ActivityLog.log(current_user.id, 'agent_toggle_client_status', f'Toggled status of client {client.username} to {client.is_active}', ip_address=request.remote_addr)
+    flash(f'Client {client.username} status updated.', 'success')
+    return redirect(url_for('main.clients'))
 
 @admin_bp.route('/agent/clients/<int:user_id>/manage-numbers', methods=['GET', 'POST'])
 @login_required
@@ -1113,8 +1191,8 @@ def agent_manage_client_numbers(user_id):
 @admin_bp.route('/agent/my-numbers')
 @login_required
 def agent_my_numbers():
-    """عرض أرقام الـ agent"""
-    # التحقق أن المستخدم agent
+    """Display agent's numbers"""
+    # Verify user is an agent
     if not (current_user.is_agent() or current_user.is_admin()):
         flash('Access denied. Agent account required.', 'danger')
         return redirect(url_for('main.dashboard'))
@@ -1132,7 +1210,7 @@ def agent_my_numbers():
         page=page, per_page=per_page, error_out=False
     )
 
-    # حساب الإحصائيات
+    # Calculate statistics
     total_numbers = SMSNumber.query.filter_by(agent_id=current_user.id).count()
     assigned_to_clients = SMSNumber.query.filter(
         SMSNumber.agent_id == current_user.id,
@@ -1197,7 +1275,7 @@ def delete_number(number_id):
 def admin_add_numbers_to_agent():
     """Admin adds numbers to a specific agent"""
     if request.method == 'POST':
-        # البحث عن agent باليوزرنيم
+        # Search for agent by username
         agent_username = request.form.get('agent_username', '').strip()
         range_id = request.form.get('range_id', type=int)
         numbers_count = request.form.get('numbers_count', 0, type=int)
@@ -1214,7 +1292,7 @@ def admin_add_numbers_to_agent():
             flash('Please enter a valid number of numbers.', 'danger')
             return redirect(url_for('admin.admin_add_numbers_to_agent'))
 
-        # البحث عن الـ agent باليوزرنيم
+        # Search for agent by username
         agent = User.query.filter_by(username=agent_username).first()
         if not agent:
             flash(f'Agent "{agent_username}" not found.', 'danger')
@@ -1249,7 +1327,7 @@ def admin_add_numbers_to_agent():
             num.agent_id = agent.id
             num.status = 'reserved'
             num.assigned_at = datetime.utcnow()
-            added_numbers.append(num.number)
+            added_numbers.append(f"{num.number} | {sms_range.name} | ${sms_range.cost_per_sms if sms_range.cost_per_sms else 0.0}")
             numbers_added += 1
 
         db.session.commit()
@@ -1264,7 +1342,7 @@ def admin_add_numbers_to_agent():
 
         flash(f'{numbers_added} numbers added to agent {agent.username} successfully!', 'success')
 
-        # تنزيل ملف الأرقام المضافة
+        # Download the added numbers file
         return download_added_numbers(added_numbers, agent.username)
 
     # Get all active ranges
@@ -1276,7 +1354,7 @@ def admin_add_numbers_to_agent():
 
 
 def download_added_numbers(numbers_list, agent_username):
-    """تنزيل ملف نصي بالأرقام المضافة"""
+    """Download text file with added numbers"""
     content = "\n".join(numbers_list)
 
     response = make_response(content)
@@ -1314,7 +1392,9 @@ def agent_download_numbers():
     # Generate text content
     content = ""
     for num in numbers:
-        content += f"{num.number}\n"
+        range_name = num.sms_range.name if num.sms_range else 'Unknown'
+        price = num.sms_range.cost_per_sms if num.sms_range and num.sms_range.cost_per_sms else 0.0
+        content += f"{num.number} | {range_name} | ${price}\n"
 
     # Create response
     response = make_response(content)
@@ -1522,7 +1602,9 @@ def admin_add_numbers_to_client():
         for num in available_numbers:
             num.client_id = client.id
             num.status = 'activated'
-            numbers_added.append(num.number)
+            range_name = num.sms_range.name if num.sms_range else 'Unknown'
+            price = num.sms_range.cost_per_sms if num.sms_range and num.sms_range.cost_per_sms else 0.0
+            numbers_added.append(f"{num.number} | {range_name} | ${price}")
 
         db.session.commit()
 
@@ -1593,7 +1675,7 @@ def admin_remove_numbers_from_client():
 
 
 def download_client_numbers(numbers_list, client_username):
-    """تنزيل ملف نصي بأرقام العميل"""
+    """Download text file with client's numbers"""
     content = "\n".join(numbers_list)
 
     response = make_response(content)
@@ -1743,7 +1825,7 @@ def telegram_test():
         return jsonify({'success': False, 'error': 'Bot token not configured'})
 
     chat_id = request.form.get('chat_id', '').strip()
-    message = request.form.get('message', 'Test message from FURY SMS').strip()
+    message = request.form.get('message', 'Test message from DREEM SMS').strip()
 
     try:
         url = f'https://api.telegram.org/bot{bot_token}/sendMessage'
@@ -1779,7 +1861,7 @@ def telegram_send_otp():
         url = f'https://api.telegram.org/bot{bot_token}/sendMessage'
         response = requests.post(url, json={
             'chat_id': admin_chat_id,
-            'text': f'Your FURY SMS OTP Code: {code}'
+            'text': f'Your DREEM SMS OTP Code: {code}'
         }, timeout=10)
 
         if response.status_code == 200:
@@ -1927,6 +2009,13 @@ def smpp_settings():
         smpp_session_timeout = request.form.get('smpp_session_timeout', 60, type=int)
         smpp_enquire_interval = request.form.get('smpp_enquire_interval', 30, type=int)
 
+        # API settings
+        smpp_api_enabled = request.form.get('smpp_api_enabled') == 'on'
+        smpp_api_url = request.form.get('smpp_api_url', '').strip()
+        smpp_api_username = request.form.get('smpp_api_username', '').strip()
+        smpp_api_key = request.form.get('smpp_api_key', '').strip()
+        smpp_api_gateway_type = request.form.get('smpp_api_gateway_type', 'JASMIN').strip()
+
         settings_map = {
             'smpp_host': smpp_host,
             'smpp_port': str(smpp_port),
@@ -1937,7 +2026,14 @@ def smpp_settings():
             'smpp_bind_type': smpp_bind_type,
             'smpp_system_type': smpp_system_type,
             'smpp_session_timeout': str(smpp_session_timeout),
-            'smpp_enquire_interval': str(smpp_enquire_interval)
+            'smpp_enquire_interval': str(smpp_enquire_interval),
+            
+            # API
+            'smpp_api_enabled': 'true' if smpp_api_enabled else 'false',
+            'smpp_api_url': smpp_api_url,
+            'smpp_api_username': smpp_api_username,
+            'smpp_api_key': smpp_api_key,
+            'smpp_api_gateway_type': smpp_api_gateway_type
         }
 
         for key, value in settings_map.items():
@@ -1959,22 +2055,38 @@ def smpp_settings():
         return redirect(url_for('admin.smpp_settings'))
 
     smpp_settings = {}
-    for key in ['smpp_host', 'smpp_port', 'smpp_username', 'smpp_password',
-                'smpp_system_id', 'smpp_enabled', 'smpp_bind_type',
-                'smpp_system_type', 'smpp_session_timeout', 'smpp_enquire_interval']:
+    setting_keys = [
+        'smpp_host', 'smpp_port', 'smpp_username', 'smpp_password',
+        'smpp_system_id', 'smpp_enabled', 'smpp_bind_type',
+        'smpp_system_type', 'smpp_session_timeout', 'smpp_enquire_interval',
+        'smpp_api_enabled', 'smpp_api_url', 'smpp_api_username',
+        'smpp_api_key', 'smpp_api_gateway_type'
+    ]
+    for key in setting_keys:
         setting = News.query.filter_by(title=key).first()
         default_values = {
             'smpp_port': '2775',
             'smpp_bind_type': 'transceiver',
             'smpp_system_type': 'SMPP',
             'smpp_session_timeout': '60',
-            'smpp_enquire_interval': '30'
+            'smpp_enquire_interval': '30',
+            'smpp_api_gateway_type': 'JASMIN',
+            'smpp_api_url': 'http://localhost:1401/send'
         }
         smpp_settings[key] = setting.content if setting else default_values.get(key, '')
 
     smpp_settings['smpp_enabled'] = smpp_settings.get('smpp_enabled', 'false') == 'true'
+    smpp_settings['smpp_api_enabled'] = smpp_settings.get('smpp_api_enabled', 'false') == 'true'
 
-    return render_template('admin/smpp_settings.html', **smpp_settings)
+    from smpp.providers import load_providers
+    from dataclasses import asdict
+    providers_dicts = []
+    try:
+        providers_dicts = [asdict(p) for p in load_providers()]
+    except Exception as e:
+        print(f"Error loading suppliers: {e}")
+
+    return render_template('admin/smpp_settings.html', providers=providers_dicts, **smpp_settings)
 
 @admin_bp.route('/smpp/test', methods=['POST'])
 @admin_required
@@ -2001,6 +2113,172 @@ def smpp_test():
             return jsonify({'success': False, 'error': 'Connection refused'})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
+
+# ============ SUPPLIER MANAGEMENT ENDPOINTS ============
+
+def _get_providers_yaml_data():
+    from smpp.config import PROVIDERS_FILE
+    import yaml
+    if not os.path.exists(PROVIDERS_FILE):
+        return {'providers': []}
+    try:
+        with open(PROVIDERS_FILE, 'r', encoding='utf-8') as f:
+            data = yaml.safe_load(f)
+            if not data or 'providers' not in data:
+                return {'providers': []}
+            return data
+    except Exception as e:
+        print(f"Error reading YAML: {e}")
+        return {'providers': []}
+
+def _save_providers_yaml_data(data):
+    from smpp.config import PROVIDERS_FILE
+    import yaml
+    try:
+        with open(PROVIDERS_FILE, 'w', encoding='utf-8') as f:
+            yaml.dump(data, f, default_flow_style=False, sort_keys=False)
+        return True
+    except Exception as e:
+        print(f"Error saving YAML: {e}")
+        return False
+
+@admin_bp.route('/smpp-settings/add-supplier', methods=['POST'])
+@admin_required
+def add_supplier():
+    name = request.form.get('name', '').strip()
+    host = request.form.get('host', '').strip()
+    port = request.form.get('port', 2775, type=int)
+    system_id = request.form.get('system_id', '').strip()
+    password = request.form.get('password', '').strip()
+    system_type = request.form.get('system_type', 'SMPP').strip()
+    mode = request.form.get('mode', 'receiver').strip()
+    ton = request.form.get('ton', 0, type=int)
+    npi = request.form.get('npi', 0, type=int)
+    address_range = request.form.get('address_range', '').strip()
+    enabled = request.form.get('enabled') == 'on'
+    auto_reconnect = request.form.get('auto_reconnect') == 'on'
+
+    if not name or not host:
+        flash('Supplier Name and Host are required.', 'danger')
+        return redirect(url_for('admin.smpp_settings'))
+
+    data = _get_providers_yaml_data()
+    # Check if name already exists
+    for p in data['providers']:
+        if p.get('name') == name:
+            flash(f'Supplier name "{name}" already exists.', 'danger')
+            return redirect(url_for('admin.smpp_settings'))
+
+    new_p = {
+        'name': name,
+        'host': host,
+        'port': port,
+        'system_id': system_id,
+        'password': password,
+        'system_type': system_type,
+        'mode': mode,
+        'interface_version': 34,
+        'ton': ton,
+        'npi': npi,
+        'address_range': address_range,
+        'heartbeat_interval': 30,
+        'auto_reconnect': auto_reconnect,
+        'reconnect_delay': 5,
+        'connection_timeout': 10,
+        'read_timeout': 60,
+        'enabled': enabled
+    }
+    data['providers'].append(new_p)
+    if _save_providers_yaml_data(data):
+        flash(f'Supplier "{name}" added successfully.', 'success')
+    else:
+        flash('Failed to save supplier to configuration.', 'danger')
+    return redirect(url_for('admin.smpp_settings'))
+
+@admin_bp.route('/smpp-settings/edit-supplier', methods=['POST'])
+@admin_required
+def edit_supplier():
+    name = request.form.get('name', '').strip()
+    host = request.form.get('host', '').strip()
+    port = request.form.get('port', 2775, type=int)
+    system_id = request.form.get('system_id', '').strip()
+    password = request.form.get('password', '').strip()
+    system_type = request.form.get('system_type', 'SMPP').strip()
+    mode = request.form.get('mode', 'receiver').strip()
+    ton = request.form.get('ton', 0, type=int)
+    npi = request.form.get('npi', 0, type=int)
+    address_range = request.form.get('address_range', '').strip()
+    enabled = request.form.get('enabled') == 'on'
+    auto_reconnect = request.form.get('auto_reconnect') == 'on'
+
+    if not name or not host:
+        flash('Supplier Name and Host are required.', 'danger')
+        return redirect(url_for('admin.smpp_settings'))
+
+    data = _get_providers_yaml_data()
+    found = False
+    for p in data['providers']:
+        if p.get('name') == name:
+            p['host'] = host
+            p['port'] = port
+            p['system_id'] = system_id
+            p['password'] = password
+            p['system_type'] = system_type
+            p['mode'] = mode
+            p['ton'] = ton
+            p['npi'] = npi
+            p['address_range'] = address_range
+            p['enabled'] = enabled
+            p['auto_reconnect'] = auto_reconnect
+            found = True
+            break
+
+    if not found:
+        flash(f'Supplier "{name}" not found.', 'danger')
+        return redirect(url_for('admin.smpp_settings'))
+
+    if _save_providers_yaml_data(data):
+        flash(f'Supplier "{name}" updated successfully.', 'success')
+    else:
+        flash('Failed to save supplier to configuration.', 'danger')
+    return redirect(url_for('admin.smpp_settings'))
+
+@admin_bp.route('/smpp-settings/toggle-supplier/<name>', methods=['POST'])
+@admin_required
+def toggle_supplier(name):
+    data = _get_providers_yaml_data()
+    found = False
+    for p in data['providers']:
+        if p.get('name') == name:
+            p['enabled'] = not p.get('enabled', False)
+            found = True
+            break
+
+    if not found:
+        flash(f'Supplier "{name}" not found.', 'danger')
+        return redirect(url_for('admin.smpp_settings'))
+
+    if _save_providers_yaml_data(data):
+        flash(f'Supplier state toggled successfully.', 'success')
+    else:
+        flash('Failed to update supplier state.', 'danger')
+    return redirect(url_for('admin.smpp_settings'))
+
+@admin_bp.route('/smpp-settings/delete-supplier/<name>', methods=['POST'])
+@admin_required
+def delete_supplier(name):
+    data = _get_providers_yaml_data()
+    new_providers = [p for p in data['providers'] if p.get('name') != name]
+    if len(new_providers) == len(data['providers']):
+        flash(f'Supplier "{name}" not found.', 'danger')
+        return redirect(url_for('admin.smpp_settings'))
+
+    data['providers'] = new_providers
+    if _save_providers_yaml_data(data):
+        flash(f'Supplier "{name}" deleted successfully.', 'success')
+    else:
+        flash('Failed to delete supplier.', 'danger')
+    return redirect(url_for('admin.smpp_settings'))
 
 @admin_bp.route('/smpp/messages')
 @admin_required

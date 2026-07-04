@@ -38,7 +38,7 @@
                                 <option value="">-- Select Range --</option>
                                 {% for range in ranges %}
                                 <option value="{{ range.id }}">
-                                    {{ range.prefix }} - {{ range.country }}
+                                    {{ range.name }} - {{ range.country }}
                                     ({{ range.numbers.filter_by(agent_id=None).count() }} available)
                                 </option>
                                 {% endfor %}

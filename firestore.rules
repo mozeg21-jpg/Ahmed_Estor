@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global safety net - Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Reusable, hardened helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(clientId) {
+      return isSignedIn() && request.auth.uid == clientId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function isValidClient(data) {
+      return data.username is string && data.username.size() <= 100 &&
+             data.email is string && data.email.size() <= 150 &&
+             data.is_active is bool &&
+             data.balance is number && data.balance >= 0.0 &&
+             data.credit_limit is number;
+    }
+
+    // 2. Clients Collection Matches
+    match /clients/{clientId} {
+      allow get: if isSignedIn() && isValidId(clientId);
+      allow list: if isSignedIn() && resource.data.username == request.auth.token.name;
+      
+      allow create: if isSignedIn() && isValidId(clientId) && isValidClient(incoming()) &&
+                     incoming().username == clientId;
+                     
+      allow update: if isSignedIn() && isValidId(clientId) && isValidClient(incoming()) &&
+                     incoming().username == clientId && (
+                       // Immutable fields enforcement
+                       incoming().created_at == resource.data.created_at
+                     );
+                     
+      allow delete: if isSignedIn() && isValidId(clientId);
+    }
+  }
+}

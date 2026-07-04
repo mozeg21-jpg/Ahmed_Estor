@@ -6,7 +6,7 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">إضافة أرقام لليوزر</h3>
+                    <h3 class="card-title">Add Numbers to User / Agent</h3>
                 </div>
                 <div class="card-body">
                     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -19,43 +19,43 @@
 
                     <form method="POST" id="addNumbersForm">
                         <div class="form-group">
-                            <label for="agent_username">يوزر اليوزر (اكتبه وسيقوم بالبحث)</label>
+                            <label for="agent_username">User / Agent Username (Type to search)</label>
                             <input type="text" name="agent_username" id="agent_username"
-                                   class="form-control" placeholder="اكتب يوزر اليوزر هنا..."
+                                   class="form-control" placeholder="Enter username..."
                                    autocomplete="off" required>
                             <small class="form-text text-muted">
-                                سيقوم بالبحث عن اليوزر تلقائياً
+                                Search is performed automatically
                             </small>
                             <div id="userSearchResult" class="mt-2"></div>
                         </div>
 
                         <div class="form-group">
-                            <label for="range_id">اختر الرينج (Range)</label>
+                            <label for="range_id">Select Range</label>
                             <select name="range_id" id="range_id" class="form-control" required>
-                                <option value="">-- اختر الرينج --</option>
+                                <option value="">-- Select Range --</option>
                                 {% for range in ranges %}
                                 <option value="{{ range.id }}">
-                                    {{ range.prefix }} - {{ range.country }}
-                                    ({{ range.numbers.filter_by(agent_id=None).count() }} متاح)
+                                    {{ range.name }} - {{ range.country }}
+                                    ({{ range.numbers.filter_by(agent_id=None).count() }} available)
                                 </option>
                                 {% endfor %}
                             </select>
                         </div>
 
                         <div class="form-group">
-                            <label for="numbers_count">عدد الأرقام للإضافة</label>
+                            <label for="numbers_count">Number of Numbers to Add</label>
                             <input type="number" name="numbers_count" id="numbers_count"
                                    class="form-control" value="1" min="1" required>
                             <small class="form-text text-muted">
-                                أدخل عدد الأرقام المراد إضافتها (بدون حد أقصى)
+                                Enter the number of numbers you want to add
                             </small>
                         </div>
 
                         <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-plus"></i> إضافة الأرقام وتنزيل الملف
+                            <i class="fas fa-plus"></i> Add Numbers & Download File
                         </button>
                         <a href="{{ url_for('admin.index') }}" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left"></i> العودة للوحة التحكم
+                            <i class="fas fa-arrow-left"></i> Back to Dashboard
                         </a>
                     </form>
                 </div>
@@ -74,18 +74,18 @@ document.getElementById('agent_username').addEventListener('input', function() {
         return;
     }
 
-    // البحث عن اليوزر
+    // Search for user
     fetch(`/admin/search-user?username=${encodeURIComponent(username)}`)
         .then(response => response.json())
         .then(data => {
             if (data.found) {
                 resultDiv.innerHTML = `<div class="alert alert-success">
-                    <i class="fas fa-check-circle"></i> تم العثور على اليوزر: <strong>${data.username}</strong>
+                    <i class="fas fa-check-circle"></i> User found: <strong>${data.username}</strong>
                     (${data.email}) - ${data.role}
                 </div>`;
             } else {
                 resultDiv.innerHTML = `<div class="alert alert-warning">
-                    <i class="fas fa-exclamation-triangle"></i> لم يتم العثور على يوزر بهذا الاسم
+                    <i class="fas fa-exclamation-triangle"></i> No user found with this username.
                 </div>`;
             }
         })

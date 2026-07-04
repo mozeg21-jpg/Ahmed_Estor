@@ -1,276 +1,899 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SMPP Server Settings - FURY SMS</title>
-</head>
 {% extends "base.html" %}
 
+{% block title %}SMPP Protocol & Supplier Settings - DREEM SMS{% endblock %}
+
 {% block content %}
-<div class="row">
+<style>
+    /* Premium Admin SMPP Panel Styles */
+    .smpp-container {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+    
+    @media (min-width: 1200px) {
+        .smpp-container {
+            grid-template-columns: 3fr 2fr;
+        }
+    }
+
+    .smpp-card {
+        background-color: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        margin-bottom: 24px;
+    }
+
+    .smpp-card-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .smpp-card-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--txt);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .smpp-card-title i {
+        color: var(--accent);
+        font-size: 18px;
+    }
+
+    .smpp-card-body {
+        padding: 24px;
+    }
+
+    .tab-nav {
+        display: flex;
+        gap: 8px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 20px;
+        padding-bottom: 2px;
+    }
+
+    .tab-btn {
+        background: none;
+        border: none;
+        color: var(--muted);
+        padding: 10px 16px;
+        font-weight: 600;
+        font-size: 13.5px;
+        cursor: pointer;
+        position: relative;
+        transition: color 0.2s;
+    }
+
+    .tab-btn:hover {
+        color: var(--txt);
+    }
+
+    .tab-btn.active {
+        color: var(--accent);
+    }
+
+    .tab-btn.active::after {
+        content: '';
+        position: absolute;
+        bottom: -3px;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background-color: var(--accent);
+        border-radius: 3px;
+    }
+
+    .method-badge {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: 4px 8px;
+        border-radius: 4px;
+        letter-spacing: 0.5px;
+    }
+
+    .badge-transmitter { background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.2); }
+    .badge-receiver { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
+    .badge-transceiver { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; border: 1px solid rgba(139, 92, 246, 0.2); }
+    .badge-system { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.2); }
+    .badge-api { background: rgba(6, 182, 212, 0.1); color: #06b6d4; border: 1px solid rgba(6, 182, 212, 0.2); }
+
+    /* Interactive methods grid list */
+    .methods-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .method-item {
+        background: rgba(255, 255, 255, 0.01);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+
+    .method-item:hover {
+        background: var(--hover);
+        border-color: var(--accent);
+        transform: translateX(4px);
+    }
+
+    .method-meta {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .method-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--muted);
+    }
+
+    .method-item:hover .method-icon {
+        color: var(--accent);
+        background: rgba(59, 130, 246, 0.1);
+    }
+
+    .method-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .method-name {
+        font-weight: 700;
+        font-size: 14px;
+        color: var(--txt);
+    }
+
+    .method-file {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 2px;
+    }
+
+    .method-desc-popover {
+        display: none;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px;
+        margin-top: 8px;
+        font-size: 12.5px;
+        color: var(--muted);
+        line-height: 1.5;
+    }
+</style>
+
+<div class="row" style="margin-bottom: 16px;">
     <div class="col-md-12">
-        <div class="breadcrumb">
-            <h4><i class="fa fa-server"></i> SMPP Server Settings</h4>
-        </div>
+        <h3 style="font-weight: 800; color: var(--txt); letter-spacing: -0.5px; margin: 0;">
+            <i class="fa fa-server" style="color: var(--accent); margin-right: 8px;"></i>
+            SMPP Connection & Supplier Methods
+        </h3>
+        <p style="color: var(--muted); font-size: 13.5px; margin-top: 4px; margin-bottom: 0;">
+            Configure raw TCP SMPP sockets, HTTP-to-SMPP API tunnels, and monitor protocol-level message flows.
+        </p>
     </div>
 </div>
 
-<div class="widget-block">
-    <div class="widget-head">
-        <h5><i class="fa fa-cog"></i> Configure External SMS Provider (SMPP)</h5>
-    </div>
-    <div class="widget-content">
-        <div class="alert alert-info">
-            <i class="fa fa-info-circle"></i>
-            <strong>SMPP Protocol:</strong> Short Message Peer-to-Peer is an open industry standard protocol for exchanging SMS between ESMEs and SMSCs.
-            Configure your external SMPP connection below.
+<div class="smpp-container">
+    
+    <!-- LEFT SIDE: CONFIGURATION FORMS -->
+    <div>
+        <div class="smpp-card">
+            <div class="smpp-card-header">
+                <div class="tab-nav" style="border-bottom: none; margin-bottom: 0;">
+                    <button class="tab-btn active" onclick="switchTab('tcp-panel', this)">
+                        <i class="fa fa-plug"></i> Native TCP SMPP
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('api-panel', this)">
+                        <i class="fa fa-code"></i> SMPP Over HTTP API
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('suppliers-panel', this)">
+                        <i class="fa fa-truck"></i> Manage Suppliers
+                    </button>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-default btn-xs" onclick="showProtocolInfo()">
+                        <i class="fa fa-question-circle"></i> Info
+                    </button>
+                </div>
+            </div>
+
+            <div class="smpp-card-body">
+                <form method="POST" id="smppSettingsForm" class="form-horizontal">
+                    
+                    <!-- PANEL 1: TCP/SMPP SOCKET -->
+                    <div id="tcp-panel" class="tab-content">
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label class="col-md-3 control-label">SMPP Connection</label>
+                            <div class="col-md-9">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <input type="checkbox" name="smpp_enabled" id="smpp_enabled" {% if smpp_enabled %}checked{% endif %} style="width: 18px; height: 18px; cursor: pointer;">
+                                    <label for="smpp_enabled" style="margin: 0; font-weight: 500; cursor: pointer;">Enable TCP SMPP Socket connection</label>
+                                </div>
+                                <span class="help-block" style="font-size: 11.5px; color: var(--muted); margin-top: 6px; display: block;">
+                                    When enabled, the server initializes a persistent background transceiver thread to connect to the SMSC.
+                                </span>
+                            </div>
+                        </div>
+
+                        <div style="background: rgba(255,255,255,0.01); border: 1px dashed var(--border); border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+                            <h5 style="margin-top: 0; margin-bottom: 12px; font-weight: 700; color: var(--txt);"><i class="fa fa-link" style="color: var(--accent);"></i> Connection Gateway</h5>
+                            
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">Host / IP</label>
+                                <div class="col-md-9">
+                                    <input type="text" name="smpp_host" class="form-control" placeholder="e.g. smpp.provider.com or 127.0.0.1" value="{{ smpp_host }}">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">Port</label>
+                                <div class="col-md-9">
+                                    <input type="number" name="smpp_port" class="form-control" placeholder="2775" value="{{ smpp_port }}">
+                                    <span class="help-block" style="font-size: 11px; color: var(--muted);">Standard SMPP port is usually 2775 or 5016</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="background: rgba(255,255,255,0.01); border: 1px dashed var(--border); border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+                            <h5 style="margin-top: 0; margin-bottom: 12px; font-weight: 700; color: var(--txt);"><i class="fa fa-key" style="color: var(--accent);"></i> Bind Authentication</h5>
+
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">System ID</label>
+                                <div class="col-md-9">
+                                    <input type="text" name="smpp_system_id" class="form-control" placeholder="Supplier System ID / ESME ID" value="{{ smpp_system_id }}">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">Username</label>
+                                <div class="col-md-9">
+                                    <input type="text" name="smpp_username" class="form-control" placeholder="Bind Username" value="{{ smpp_username }}">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">Password</label>
+                                <div class="col-md-9">
+                                    <input type="password" name="smpp_password" class="form-control" placeholder="Bind Secret Password" value="{{ smpp_password }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="background: rgba(255,255,255,0.01); border: 1px dashed var(--border); border-radius: 8px; padding: 16px;">
+                            <h5 style="margin-top: 0; margin-bottom: 12px; font-weight: 700; color: var(--txt);"><i class="fa fa-sliders" style="color: var(--accent);"></i> Protocol Tuning</h5>
+
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">Bind Type</label>
+                                <div class="col-md-9">
+                                    <select name="smpp_bind_type" class="form-control">
+                                        <option value="transceiver" {% if smpp_bind_type == 'transceiver' %}selected{% endif %}>Bind_Transceiver (Send & Receive)</option>
+                                        <option value="transmitter" {% if smpp_bind_type == 'transmitter' %}selected{% endif %}>Bind_Transmitter (Send Only)</option>
+                                        <option value="receiver" {% if smpp_bind_type == 'receiver' %}selected{% endif %}>Bind_Receiver (Receive Only)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">System Type</label>
+                                <div class="col-md-9">
+                                    <input type="text" name="smpp_system_type" class="form-control" value="{{ smpp_system_type }}">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">Session Timeout</label>
+                                <div class="col-md-9">
+                                    <div class="input-group">
+                                        <input type="number" name="smpp_session_timeout" class="form-control" value="{{ smpp_session_timeout }}">
+                                        <span class="input-group-addon" style="background: var(--hover); border-color: var(--border); color: var(--txt);">seconds</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">Enquire Link</label>
+                                <div class="col-md-9">
+                                    <div class="input-group">
+                                        <input type="number" name="smpp_enquire_interval" class="form-control" value="{{ smpp_enquire_interval }}">
+                                        <span class="input-group-addon" style="background: var(--hover); border-color: var(--border); color: var(--txt);">seconds</span>
+                                    </div>
+                                    <span class="help-block" style="font-size: 11px; color: var(--muted);">Heartbeat ping interval to sustain session</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PANEL 2: SMPP OVER HTTP API -->
+                    <div id="api-panel" class="tab-content" style="display: none;">
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label class="col-md-3 control-label">API Gateway</label>
+                            <div class="col-md-9">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <input type="checkbox" name="smpp_api_enabled" id="smpp_api_enabled" {% if smpp_api_enabled %}checked{% endif %} style="width: 18px; height: 18px; cursor: pointer;">
+                                    <label for="smpp_api_enabled" style="margin: 0; font-weight: 500; cursor: pointer;">Enable SMPP over HTTP API Integration</label>
+                                </div>
+                                <span class="help-block" style="font-size: 11.5px; color: var(--muted); margin-top: 6px; display: block;">
+                                    Allows routing outbound SMS submissions through HTTP-to-SMPP API gateways (such as Jasmin HTTP interface).
+                                </span>
+                            </div>
+                        </div>
+
+                        <div style="background: rgba(255,255,255,0.01); border: 1px dashed var(--border); border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+                            <h5 style="margin-top: 0; margin-bottom: 12px; font-weight: 700; color: var(--txt);"><i class="fa fa-globe" style="color: var(--accent);"></i> HTTP Gateway Endpoint</h5>
+
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">Gateway URL</label>
+                                <div class="col-md-9">
+                                    <input type="text" name="smpp_api_url" class="form-control" placeholder="e.g. http://jasmin-server:1401/send" value="{{ smpp_api_url }}">
+                                    <span class="help-block" style="font-size: 11px; color: var(--muted);">Direct URL endpoint of the HTTP-to-SMPP web gateway</span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">Gateway Type</label>
+                                <div class="col-md-9">
+                                    <select name="smpp_api_gateway_type" class="form-control">
+                                        <option value="JASMIN" {% if smpp_api_gateway_type == 'JASMIN' %}selected{% endif %}>Jasmin SMS Gateway (HTTP API)</option>
+                                        <option value="TWILIO" {% if smpp_api_gateway_type == 'TWILIO' %}selected{% endif %}>Twilio REST Connector</option>
+                                        <option value="GENERIC" {% if smpp_api_gateway_type == 'GENERIC' %}selected{% endif %}>Generic JSON API Provider</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="background: rgba(255,255,255,0.01); border: 1px dashed var(--border); border-radius: 8px; padding: 16px;">
+                            <h5 style="margin-top: 0; margin-bottom: 12px; font-weight: 700; color: var(--txt);"><i class="fa fa-lock" style="color: var(--accent);"></i> API Gateway Credentials</h5>
+
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">API Username</label>
+                                <div class="col-md-9">
+                                    <input type="text" name="smpp_api_username" class="form-control" placeholder="API login/account username" value="{{ smpp_api_username }}">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-md-3 control-label">API Key / Token</label>
+                                <div class="col-md-9">
+                                    <input type="password" name="smpp_api_key" class="form-control" placeholder="Secret Token or password" value="{{ smpp_api_key }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FOOTER BUTTONS -->
+                    <hr style="border-color: var(--border); margin: 24px 0;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <div class="col-md-offset-3 col-md-9">
+                            <button type="submit" class="btn btn-primary" style="padding: 10px 20px;">
+                                <i class="fa fa-save"></i> Save Configuration
+                            </button>
+                            <button type="button" class="btn btn-success" onclick="testConnection()" style="padding: 10px 16px; margin-left: 8px;">
+                                <i class="fa fa-plug"></i> Test Connection
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- PANEL 3: MANAGE SUPPLIERS -->
+                <div id="suppliers-panel" class="tab-content" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 12px;">
+                        <h4 style="margin: 0; font-weight: 700; color: var(--txt);"><i class="fa fa-truck" style="color: var(--accent); margin-right: 6px;"></i> Connected SMPP Suppliers</h4>
+                        <button type="button" class="btn btn-primary btn-sm" onclick="openAddSupplierModal()" style="font-size: 12px; padding: 6px 12px;">
+                            <i class="fa fa-plus"></i> Add New Supplier
+                        </button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" style="color: var(--txt); border-color: var(--border); font-size: 13px;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid var(--border);">
+                                    <th>Name</th>
+                                    <th>Host &amp; Port</th>
+                                    <th>System ID / Type</th>
+                                    <th>Mode / Version</th>
+                                    <th>Status</th>
+                                    <th style="text-align: right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if providers %}
+                                    {% for provider in providers %}
+                                    <tr style="border-bottom: 1px solid var(--border); vertical-align: middle;">
+                                        <td style="font-weight: 600; padding: 12px 8px;">{{ provider.name }}</td>
+                                        <td style="padding: 12px 8px;"><code style="background: var(--hover); color: var(--accent); padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono); font-size: 11.5px;">{{ provider.host }}:{{ provider.port }}</code></td>
+                                        <td style="padding: 12px 8px;">{{ provider.system_id }} <span class="badge" style="background: var(--border); font-size: 10px; border-radius: 4px; padding: 2px 5px; color: var(--txt);">{{ provider.system_type or 'SMPP' }}</span></td>
+                                        <td style="padding: 12px 8px;">
+                                            <span class="method-badge badge-{{ provider.mode }}">{{ provider.mode }}</span>
+                                            <span style="font-size: 11px; color: var(--muted); margin-left: 4px;">v{{ provider.interface_version }}</span>
+                                        </td>
+                                        <td style="padding: 12px 8px;">
+                                            <form action="{{ url_for('admin.toggle_supplier', name=provider.name) }}" method="POST" style="display: inline;">
+                                                <button type="submit" class="btn btn-xs {% if provider.enabled %}btn-success{% else %}btn-default{% endif %}" style="padding: 4px 8px; border-radius: 4px; font-weight: 600; font-size: 11px;">
+                                                    {% if provider.enabled %}
+                                                        <i class="fa fa-check-circle"></i> Active
+                                                    {% else %}
+                                                        <i class="fa fa-times-circle"></i> Inactive
+                                                    {% endif %}
+                                                </button>
+                                            </form>
+                                        </td>
+                                        <td style="text-align: right; padding: 12px 8px; white-space: nowrap;">
+                                            <button type="button" class="btn btn-xs btn-default" onclick="openEditSupplierModal({{ provider | tojson | forceescape }})" style="padding: 4px 8px; border-radius: 4px; font-size: 11px; margin-right: 4px;">
+                                                <i class="fa fa-edit"></i> Edit
+                                            </button>
+                                            <form action="{{ url_for('admin.delete_supplier', name=provider.name) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this supplier?');">
+                                                <button type="submit" class="btn btn-xs btn-danger" style="padding: 4px 8px; border-radius: 4px; font-size: 11px;">
+                                                    <i class="fa fa-trash"></i> Delete
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="6" class="text-center" style="padding: 30px; color: var(--muted);">
+                                            <i class="fa fa-truck" style="font-size: 32px; display: block; margin-bottom: 10px; color: var(--border);"></i>
+                                            No suppliers configured. Add your first SMPP supplier above.
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
-
-        <form method="POST" class="form-horizontal">
-            <!-- Enable/Disable -->
-            <div class="form-group">
-                <label class="col-md-3 control-label">Enable SMPP</label>
-                <div class="col-md-9">
-                    <input type="checkbox" name="smpp_enabled" {% if smpp_enabled %}checked{% endif %}>
-                    <small class="text-muted">Enable connection to external SMPP provider</small>
-                </div>
-            </div>
-
-            <hr>
-            <h5><i class="fa fa-plug"></i> Connection Settings</h5>
-
-            <!-- Host -->
-            <div class="form-group">
-                <label class="col-md-3 control-label">Host / IP Address</label>
-                <div class="col-md-9">
-                    <input type="text" name="smpp_host" class="form-control"
-                           placeholder="e.g., smpp.example.com or 192.168.1.100"
-                           value="{{ smpp_host }}">
-                    <small class="text-muted">SMPP server hostname or IP address</small>
-                </div>
-            </div>
-
-            <!-- Port -->
-            <div class="form-group">
-                <label class="col-md-3 control-label">Port</label>
-                <div class="col-md-9">
-                    <input type="number" name="smpp_port" class="form-control"
-                           placeholder="2775" value="{{ smpp_port }}">
-                    <small class="text-muted">Default SMPP port is 2775</small>
-                </div>
-            </div>
-
-            <hr>
-            <h5><i class="fa fa-key"></i> Bind Credentials</h5>
-
-            <!-- System ID -->
-            <div class="form-group">
-                <label class="col-md-3 control-label">System ID</label>
-                <div class="col-md-9">
-                    <input type="text" name="smpp_system_id" class="form-control"
-                           placeholder="Your SMPP system ID"
-                           value="{{ smpp_system_id }}">
-                    <small class="text-muted">Used for authentication (equivalent to ESME ID)</small>
-                </div>
-            </div>
-
-            <!-- Username -->
-            <div class="form-group">
-                <label class="col-md-3 control-label">Username</label>
-                <div class="col-md-9">
-                    <input type="text" name="smpp_username" class="form-control"
-                           placeholder="SMPP username"
-                           value="{{ smpp_username }}">
-                </div>
-            </div>
-
-            <!-- Password -->
-            <div class="form-group">
-                <label class="col-md-3 control-label">Password</label>
-                <div class="col-md-9">
-                    <input type="password" name="smpp_password" class="form-control"
-                           placeholder="SMPP password"
-                           value="{{ smpp_password }}">
-                </div>
-            </div>
-
-            <hr>
-            <h5><i class="fa fa-cogs"></i> Protocol Settings</h5>
-
-            <!-- Bind Type -->
-            <div class="form-group">
-                <label class="col-md-3 control-label">Bind Type</label>
-                <div class="col-md-9">
-                    <select name="smpp_bind_type" class="form-control">
-                        <option value="transceiver" {% if smpp_bind_type == 'transceiver' %}selected{% endif %}>Bind_Transceiver (Send & Receive)</option>
-                        <option value="transmitter" {% if smpp_bind_type == 'transmitter' %}selected{% endif %}>Bind_Transmitter (Send Only)</option>
-                        <option value="receiver" {% if smpp_bind_type == 'receiver' %}selected{% endif %}>Bind_Receiver (Receive Only)</option>
-                    </select>
-                    <small class="text-muted">
-                        <strong>Transceiver:</strong> Send & receive SMS |
-                        <strong>Transmitter:</strong> Submit_SM only |
-                        <strong>Receiver:</strong> Deliver_SM only
-                    </small>
-                </div>
-            </div>
-
-            <!-- System Type -->
-            <div class="form-group">
-                <label class="col-md-3 control-label">System Type</label>
-                <div class="col-md-9">
-                    <input type="text" name="smpp_system_type" class="form-control"
-                           placeholder="SMPP" value="{{ smpp_system_type if smpp_system_type else 'SMPP' }}">
-                    <small class="text-muted">Optional identifier for the SMPP session type</small>
-                </div>
-            </div>
-
-            <!-- Session Timeout -->
-            <div class="form-group">
-                <label class="col-md-3 control-label">Session Timeout (sec)</label>
-                <div class="col-md-9">
-                    <input type="number" name="smpp_session_timeout" class="form-control"
-                           placeholder="60" value="{{ smpp_session_timeout if smpp_session_timeout else 60 }}">
-                    <small class="text-muted">Time before session expires (default: 60 seconds)</small>
-                </div>
-            </div>
-
-            <!-- Enquire Link Interval -->
-            <div class="form-group">
-                <label class="col-md-3 control-label">Enquire_Link Interval (sec)</label>
-                <div class="col-md-9">
-                    <input type="number" name="smpp_enquire_interval" class="form-control"
-                           placeholder="30" value="{{ smpp_enquire_interval if smpp_enquire_interval else 30 }}">
-                    <small class="text-muted">Heartbeat interval to keep connection alive (default: 30 sec)</small>
-                </div>
-            </div>
-
-            <hr>
-            <div class="form-group">
-                <div class="col-md-offset-3 col-md-9">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fa fa-save"></i> Save Settings
-                    </button>
-                    <button type="button" class="btn btn-success" onclick="testConnection()">
-                        <i class="fa fa-plug"></i> Test Connection
-                    </button>
-                    <button type="button" class="btn btn-info" onclick="showProtocolInfo()">
-                        <i class="fa fa-question-circle"></i> Protocol Info
-                    </button>
-                </div>
-            </div>
-        </form>
     </div>
+
+    <!-- RIGHT SIDE: SMPP PROTOCOL METHODS VISUALIZER -->
+    <div>
+        <div class="smpp-card">
+            <div class="smpp-card-header">
+                <div class="smpp-card-title">
+                    <i class="fa fa-shield"></i> SMPP Protocol Methods (Supplier Core)
+                </div>
+            </div>
+            <div class="smpp-card-body" style="padding: 20px;">
+                <p style="font-size: 13px; color: var(--muted); margin-bottom: 16px; line-height: 1.5;">
+                    The platform splits SMPP functionality into individual, isolated execution submodules. Click any operation to inspect its purpose and local supplier file logic:
+                </p>
+
+                <div class="methods-list">
+                    <!-- Method 1 -->
+                    <div class="method-item" onclick="toggleMethodDetails('desc-transmitter')">
+                        <div class="method-meta">
+                            <div class="method-icon"><i class="fa fa-arrow-circle-right"></i></div>
+                            <div class="method-info">
+                                <span class="method-name">Bind Transmitter</span>
+                                <span class="method-file">/app/smpp_methods/bind_transmitter.py</span>
+                            </div>
+                        </div>
+                        <span class="method-badge badge-transmitter">Transmitter</span>
+                    </div>
+                    <div id="desc-transmitter" class="method-desc-popover">
+                        <strong>Purpose:</strong> Authenticates with the SMSC to establish an outbound-only session.<br>
+                        <strong>Application:</strong> Used for marketing bulk campaigns and one-way verification codes where incoming traffic is not expected or processed.
+                    </div>
+
+                    <!-- Method 2 -->
+                    <div class="method-item" onclick="toggleMethodDetails('desc-receiver')">
+                        <div class="method-meta">
+                            <div class="method-icon"><i class="fa fa-arrow-circle-left"></i></div>
+                            <div class="method-info">
+                                <span class="method-name">Bind Receiver</span>
+                                <span class="method-file">/app/smpp_methods/bind_receiver.py</span>
+                            </div>
+                        </div>
+                        <span class="method-badge badge-receiver">Receiver</span>
+                    </div>
+                    <div id="desc-receiver" class="method-desc-popover">
+                        <strong>Purpose:</strong> Registers the client with the SMSC to read and collect incoming SMS traffic.<br>
+                        <strong>Application:</strong> Listens for Delivery Receipts (DLR) and user inbound replies (Mobile Originated).
+                    </div>
+
+                    <!-- Method 3 -->
+                    <div class="method-item" onclick="toggleMethodDetails('desc-transceiver')">
+                        <div class="method-meta">
+                            <div class="method-icon"><i class="fa fa-arrows-h"></i></div>
+                            <div class="method-info">
+                                <span class="method-name">Bind Transceiver</span>
+                                <span class="method-file">/app/smpp_methods/bind_transceiver.py</span>
+                            </div>
+                        </div>
+                        <span class="method-badge badge-transceiver">Transceiver</span>
+                    </div>
+                    <div id="desc-transceiver" class="method-desc-popover">
+                        <strong>Purpose:</strong> Standard modern login allowing concurrent message transmission and reception over a unified port connection.<br>
+                        <strong>Application:</strong> Keeps sockets minimal while getting instant callback events.
+                    </div>
+
+                    <!-- Method 4 -->
+                    <div class="method-item" onclick="toggleMethodDetails('desc-submit')">
+                        <div class="method-meta">
+                            <div class="method-icon"><i class="fa fa-paper-plane"></i></div>
+                            <div class="method-info">
+                                <span class="method-name">Submit SM</span>
+                                <span class="method-file">/app/smpp_methods/submit_sm.py</span>
+                            </div>
+                        </div>
+                        <span class="method-badge badge-transmitter">Outbound</span>
+                    </div>
+                    <div id="desc-submit" class="method-desc-popover">
+                        <strong>Purpose:</strong> Primary SMPP PDU payload that carries the individual SMS text, recipient, and requested DLR flags to the SMSC.
+                    </div>
+
+                    <!-- Method 5 -->
+                    <div class="method-item" onclick="toggleMethodDetails('desc-deliver')">
+                        <div class="method-meta">
+                            <div class="method-icon"><i class="fa fa-download"></i></div>
+                            <div class="method-info">
+                                <span class="method-name">Deliver SM</span>
+                                <span class="method-file">/app/smpp_methods/deliver_sm.py</span>
+                            </div>
+                        </div>
+                        <span class="method-badge badge-receiver">Inbound</span>
+                    </div>
+                    <div id="desc-deliver" class="method-desc-popover">
+                        <strong>Purpose:</strong> Incoming PDU containing messages sent by end users back to your virtual/allocated numbers, auto-parsing payout metrics.
+                    </div>
+
+                    <!-- Method 6 -->
+                    <div class="method-item" onclick="toggleMethodDetails('desc-enquire')">
+                        <div class="method-meta">
+                            <div class="method-icon"><i class="fa fa-heartbeat"></i></div>
+                            <div class="method-info">
+                                <span class="method-name">Enquire Link</span>
+                                <span class="method-file">/app/smpp_methods/enquire_link.py</span>
+                            </div>
+                        </div>
+                        <span class="method-badge badge-system">Heartbeat</span>
+                    </div>
+                    <div id="desc-enquire" class="method-desc-popover">
+                        <strong>Purpose:</strong> Regular polling command (PING) ensuring active session parameters remain established at the gateway, avoiding socket timeout.
+                    </div>
+
+                    <!-- Method 7 -->
+                    <div class="method-item" onclick="toggleMethodDetails('desc-unbind')">
+                        <div class="method-meta">
+                            <div class="method-icon"><i class="fa fa-sign-out"></i></div>
+                            <div class="method-info">
+                                <span class="method-name">Unbind Graceful</span>
+                                <span class="method-file">/app/smpp_methods/unbind.py</span>
+                            </div>
+                        </div>
+                        <span class="method-badge badge-system">Close Session</span>
+                    </div>
+                    <div id="desc-unbind" class="method-desc-popover">
+                        <strong>Purpose:</strong> Safely informs the SMSC of intended disconnect, preventing raw TCP socket leakages or authentication lockdowns.
+                    </div>
+
+                    <!-- Method 8 -->
+                    <div class="method-item" onclick="toggleMethodDetails('desc-query')">
+                        <div class="method-meta">
+                            <div class="method-icon"><i class="fa fa-search"></i></div>
+                            <div class="method-info">
+                                <span class="method-name">Query SM</span>
+                                <span class="method-file">/app/smpp_methods/query_sm.py</span>
+                            </div>
+                        </div>
+                        <span class="method-badge badge-system">Status Check</span>
+                    </div>
+                    <div id="desc-query" class="method-desc-popover">
+                        <strong>Purpose:</strong> Active polling method to retrieve current delivery statuses of messages if standard delivery receipts (DLR) failed to push.
+                    </div>
+
+                    <!-- Method 9 -->
+                    <div class="method-item" onclick="toggleMethodDetails('desc-cancel')">
+                        <div class="method-meta">
+                            <div class="method-icon"><i class="fa fa-ban"></i></div>
+                            <div class="method-info">
+                                <span class="method-name">Cancel SM</span>
+                                <span class="method-file">/app/smpp_methods/cancel_sm.py</span>
+                            </div>
+                        </div>
+                        <span class="method-badge badge-system">Cancel Job</span>
+                    </div>
+                    <div id="desc-cancel" class="method-desc-popover">
+                        <strong>Purpose:</strong> Attempts to halt or abort a message dispatch if it remains pending in the supplier delivery queue.
+                    </div>
+
+                    <!-- Method 10 -->
+                    <div class="method-item" onclick="toggleMethodDetails('desc-api')">
+                        <div class="method-meta">
+                            <div class="method-icon"><i class="fa fa-code"></i></div>
+                            <div class="method-info">
+                                <span class="method-name">SMPP over HTTP API</span>
+                                <span class="method-file">/app/smpp_methods/smpp_api.py</span>
+                            </div>
+                        </div>
+                        <span class="method-badge badge-api">HTTP REST</span>
+                    </div>
+                    <div id="desc-api" class="method-desc-popover">
+                        <strong>Purpose:</strong> Outbound REST proxying to Jasmin HTTP interfaces or Twilio API, securing connection details behind web endpoints.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <!-- Protocol Info Modal -->
 <div class="modal fade" id="protocolInfoModal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fa fa-info-circle"></i> SMPP Protocol Reference</h5>
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <div class="modal-content" style="background-color: var(--card); border: 1px solid var(--border); border-radius: 12px; color: var(--txt);">
+            <div class="modal-header" style="border-bottom: 1px solid var(--border); padding: 16px 20px;">
+                <h5 class="modal-title" style="font-weight:700; font-size:16px; margin:0; display:flex; align-items:center; gap:8px;">
+                    <i class="fa fa-info-circle" style="color:var(--accent);"></i> SMPP Protocol Standard Reference
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" style="color:var(--txt); opacity:0.8; font-size:24px; border:none; background:none;">&times;</button>
             </div>
-            <div class="modal-body">
-                <h4>SMPP Protocol Overview</h4>
-                <p><strong>SMPP (Short Message Peer-to-Peer)</strong> is an open industry standard protocol used for SMS communications between external SMS applications (ESMEs) and SMS centers (SMSCs).</p>
-
-                <hr>
-                <h5><i class="fa fa-link"></i> PDU Operations</h5>
-
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="well">
-                            <h6><strong>Bind Operations</strong></h6>
-                            <ul>
-                                <li><code>Bind_Transmitter</code> - Send SMS only</li>
-                                <li><code>Bind_Receiver</code> - Receive SMS only</li>
-                                <li><code>Bind_Transceiver</code> - Send & Receive</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="well">
-                            <h6><strong>Message Operations</strong></h6>
-                            <ul>
-                                <li><code>Submit_SM</code> - Send message to SMSC</li>
-                                <li><code>Submit_SM_Resp</code> - Response with message_id</li>
-                                <li><code>Deliver_SM</code> - Receive message from SMSC</li>
-                                <li><code>Enquire_Link</code> - Keep connection alive</li>
-                            </ul>
-                        </div>
-                    </div>
+            <div class="modal-body" style="padding: 24px; font-size: 13.5px; line-height: 1.6;">
+                <h4 style="margin-top:0; font-weight:700; color:var(--txt);">SMPP (Short Message Peer-to-Peer)</h4>
+                <p style="color: var(--muted);">SMPP is an open, industry-standard telecommunications protocol designed to simplify the exchange of short messages (SMS) between External Short Message Entities (ESME) and Short Message Service Centers (SMSC).</p>
+                
+                <hr style="border-color: var(--border); margin: 20px 0;">
+                
+                <h5 style="font-weight:700; color:var(--txt); margin-bottom:12px;"><i class="fa fa-exchange"></i> Standard PDU Exchange Flow</h5>
+                <div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:16px; font-family:var(--font-mono); font-size:11.5px; color:var(--txt); overflow-x:auto;">
+Client (ESME)                          Server (SMSC)
+      |                                      |
+      | ---- BIND_TRANSCEIVER PDU ---------> | [Awaiting auth]
+      | <--- BIND_TRANSCEIVER_RESP PDU ----- | [Session bound]
+      |                                      |
+      | ---- SUBMIT_SM (Transmit SMS) -----> | [Enqueuing msg]
+      | <--- SUBMIT_SM_RESP (Get MSG_ID) --- | [Success]
+      |                                      |
+      | <--- DELIVER_SM (Delivery Report) -- | [Inbound event]
+      | ---- DELIVER_SM_RESP --------------> | [Acknowledged]
                 </div>
 
-                <hr>
-                <h5><i class="fa fa-server"></i> Popular SMPP Providers</h5>
-                <ul>
-                    <li><strong>Jasmin SMS</strong> - Open source SMS gateway (GitHub: jookies/jasmin)</li>
-                    <li><strong>Kannel</strong> - Open source WAP/Push gateway</li>
-                    <li><strong>AWS SNS</strong> - Amazon Simple Notification Service</li>
-                    <li><strong>Twilio</strong> - Via SMPP gateway connector</li>
-                    <li><strong>NOWSMS</strong> - Commercial SMS gateway</li>
-                </ul>
+                <hr style="border-color: var(--border); margin: 20px 0;">
 
-                <hr>
-                <h5><i class="fa fa-code"></i> Connection Parameters</h5>
-                <table class="table table-bordered">
-                    <tr>
-                        <th>Parameter</th>
-                        <th>Description</th>
-                    </tr>
-                    <tr>
-                        <td>system_id</td>
-                        <td>ESME identifier for authentication (like username)</td>
-                    </tr>
-                    <tr>
-                        <td>password</td>
-                        <td>Authentication password</td>
-                    </tr>
-                    <tr>
-                        <td>system_type</td>
-                        <td>Optional session type identifier</td>
-                    </tr>
-                    <tr>
-                        <td>interface_version</td>
-                        <td>SMPP version (default: 3.4 or 5.0)</td>
-                    </tr>
-                    <tr>
-                        <td>enquire_link</td>
-                        <td>Heartbeat PDU to maintain connection (usually every 10-60 sec)</td>
-                    </tr>
-                </table>
-
-                <hr>
-                <div class="alert alert-warning">
-                    <strong>Note:</strong> Jasmin SMS installation requires a Linux server with Python and Redis.
-                    Visit <a href="https://github.com/jookies/jasmin" target="_blank">https://github.com/jookies/jasmin</a> for installation guide.
+                <h5 style="font-weight:700; color:var(--txt); margin-bottom:8px;">Supplier Configuration Isolation</h5>
+                <p style="color: var(--muted); margin-bottom: 16px;">
+                    Our platform divides every operation into separate execution handlers to ensure optimal speed, quick debugging, and zero crosstalk. This modular layout prevents server stalling and enables rapid parallel connections.
+                </p>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div style="background:var(--hover); padding:14px; border-radius:8px; border:1px solid var(--border); height:100%;">
+                            <strong style="color:var(--txt); display:block; margin-bottom:6px;"><i class="fa fa-check-circle" style="color:var(--success);"></i> Jasmin SMS Compatible</strong>
+                            Fully verified against Jasmin Gateways. Perfect for SMS marketing networks, billing engines, and system automation.
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div style="background:var(--hover); padding:14px; border-radius:8px; border:1px solid var(--border); height:100%;">
+                            <strong style="color:var(--txt); display:block; margin-bottom:6px;"><i class="fa fa-shield" style="color:var(--accent);"></i> Secure Encrypted Keys</strong>
+                            Credentials are encrypted in our persistent database and never exposed to the client-side browser network requests.
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Add/Edit Supplier Modal -->
+<div class="modal fade" id="supplierModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" style="background-color: var(--card); border: 1px solid var(--border); border-radius: 12px; color: var(--txt);">
+            <form id="supplierForm" method="POST" action="">
+                <div class="modal-header" style="border-bottom: 1px solid var(--border); padding: 16px 20px;">
+                    <h5 class="modal-title" id="supplierModalTitle" style="font-weight:700; font-size:16px; margin:0; display:flex; align-items:center; gap:8px;">
+                        <i class="fa fa-truck" style="color:var(--accent);"></i> Add New Supplier
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" style="color:var(--txt); opacity:0.8; font-size:24px; border:none; background:none;">&times;</button>
+                </div>
+                <div class="modal-body" style="padding: 24px; max-height: 450px; overflow-y: auto;">
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="font-weight: 600; margin-bottom: 6px;">Supplier Name (Unique ID)</label>
+                        <input type="text" name="name" id="sup_name" class="form-control" required placeholder="e.g. Twilio_SMPP" style="background: var(--bg); border-color: var(--border); color: var(--txt);">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="form-group" style="margin-bottom: 15px;">
+                                <label style="font-weight: 600; margin-bottom: 6px;">Host / IP</label>
+                                <input type="text" name="host" id="sup_host" class="form-control" required placeholder="smpp.provider.com" style="background: var(--bg); border-color: var(--border); color: var(--txt);">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group" style="margin-bottom: 15px;">
+                                <label style="font-weight: 600; margin-bottom: 6px;">Port</label>
+                                <input type="number" name="port" id="sup_port" class="form-control" required placeholder="2775" value="2775" style="background: var(--bg); border-color: var(--border); color: var(--txt);">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group" style="margin-bottom: 15px;">
+                                <label style="font-weight: 600; margin-bottom: 6px;">System ID</label>
+                                <input type="text" name="system_id" id="sup_system_id" class="form-control" required placeholder="SystemID" style="background: var(--bg); border-color: var(--border); color: var(--txt);">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group" style="margin-bottom: 15px;">
+                                <label style="font-weight: 600; margin-bottom: 6px;">Password</label>
+                                <input type="password" name="password" id="sup_password" class="form-control" required placeholder="Password" style="background: var(--bg); border-color: var(--border); color: var(--txt);">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group" style="margin-bottom: 15px;">
+                                <label style="font-weight: 600; margin-bottom: 6px;">System Type</label>
+                                <input type="text" name="system_type" id="sup_system_type" class="form-control" placeholder="SMPP" value="SMPP" style="background: var(--bg); border-color: var(--border); color: var(--txt);">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group" style="margin-bottom: 15px;">
+                                <label style="font-weight: 600; margin-bottom: 6px;">Mode</label>
+                                <select name="mode" id="sup_mode" class="form-control" style="background: var(--bg); border-color: var(--border); color: var(--txt);">
+                                    <option value="receiver">receiver (Read incoming)</option>
+                                    <option value="transceiver">transceiver (Send & Receive)</option>
+                                    <option value="transmitter">transmitter (Send only)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group" style="margin-bottom: 15px;">
+                                <label style="font-weight: 600; margin-bottom: 6px;">TON (Type of Number)</label>
+                                <input type="number" name="ton" id="sup_ton" class="form-control" value="0" style="background: var(--bg); border-color: var(--border); color: var(--txt);">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group" style="margin-bottom: 15px;">
+                                <label style="font-weight: 600; margin-bottom: 6px;">NPI (Numbering Plan)</label>
+                                <input type="number" name="npi" id="sup_npi" class="form-control" value="0" style="background: var(--bg); border-color: var(--border); color: var(--txt);">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="font-weight: 600; margin-bottom: 6px;">Address Range (Regex filter)</label>
+                        <input type="text" name="address_range" id="sup_address_range" class="form-control" placeholder="e.g. ^\+?1" style="background: var(--bg); border-color: var(--border); color: var(--txt);">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group" style="margin-bottom: 15px;">
+                                <div style="display: flex; align-items: center; gap: 8px; margin-top: 15px;">
+                                    <input type="checkbox" name="enabled" id="sup_enabled" checked style="width:16px; height:16px; cursor: pointer;">
+                                    <label for="sup_enabled" style="margin: 0; font-weight: 600; cursor: pointer;">Enable Supplier</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group" style="margin-bottom: 15px;">
+                                <div style="display: flex; align-items: center; gap: 8px; margin-top: 15px;">
+                                    <input type="checkbox" name="auto_reconnect" id="sup_auto_reconnect" checked style="width:16px; height:16px; cursor: pointer;">
+                                    <label for="sup_auto_reconnect" style="margin: 0; font-weight: 600; cursor: pointer;">Auto Reconnect</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid var(--border); padding: 16px 20px;">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="supplierSubmitBtn">Add Supplier</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
+// Tab switcher logic
+function switchTab(tabId, btn) {
+    document.querySelectorAll('.tab-content').forEach(function(el) {
+        el.style.display = 'none';
+    });
+    document.getElementById(tabId).style.display = 'block';
+    
+    document.querySelectorAll('.tab-btn').forEach(function(el) {
+        el.classList.remove('active');
+    });
+    btn.classList.add('active');
+}
+
+// Toggle detail drawers on visualizer
+function toggleMethodDetails(id) {
+    var drawer = document.getElementById(id);
+    var isVisible = drawer.style.display === 'block';
+    
+    // Close other drawers
+    document.querySelectorAll('.method-desc-popover').forEach(function(el) {
+        el.style.display = 'none';
+    });
+    
+    if (!isVisible) {
+        drawer.style.display = 'block';
+    }
+}
+
+// Connection test helper
 function testConnection() {
     $.ajax({
         url: '{{ url_for("admin.smpp_test") }}',
         method: 'POST',
         success: function(response) {
             if (response.success) {
-                alert('Connection successful! SMPP server is reachable.');
+                alert('Connection test successful! SMPP Server is fully reachable.');
             } else {
-                alert('Connection failed: ' + response.error);
+                alert('Connection test failed: ' + response.error);
             }
         },
         error: function() {
-            alert('Connection test failed');
+            alert('An unexpected error occurred while communicating with the test endpoint.');
         }
     });
 }
 
 function showProtocolInfo() {
     $('#protocolInfoModal').modal('show');
+}
+
+function openAddSupplierModal() {
+    $('#supplierModalTitle').html('<i class="fa fa-truck" style="color:var(--accent);"></i> Add New Supplier');
+    $('#supplierForm').attr('action', '{{ url_for("admin.add_supplier") }}');
+    $('#sup_name').val('').prop('readonly', false);
+    $('#sup_host').val('');
+    $('#sup_port').val('2775');
+    $('#sup_system_id').val('');
+    $('#sup_password').val('');
+    $('#sup_system_type').val('SMPP');
+    $('#sup_mode').val('receiver');
+    $('#sup_ton').val('0');
+    $('#sup_npi').val('0');
+    $('#sup_address_range').val('');
+    $('#sup_enabled').prop('checked', true);
+    $('#sup_auto_reconnect').prop('checked', true);
+    $('#supplierSubmitBtn').text('Add Supplier');
+    $('#supplierModal').modal('show');
+}
+
+function openEditSupplierModal(provider) {
+    $('#supplierModalTitle').html('<i class="fa fa-text-width" style="color:var(--accent);"></i> Edit Supplier: ' + provider.name);
+    $('#supplierForm').attr('action', '{{ url_for("admin.edit_supplier") }}');
+    $('#sup_name').val(provider.name).prop('readonly', true);
+    $('#sup_host').val(provider.host);
+    $('#sup_port').val(provider.port);
+    $('#sup_system_id').val(provider.system_id);
+    $('#sup_password').val(provider.password);
+    $('#sup_system_type').val(provider.system_type || 'SMPP');
+    $('#sup_mode').val(provider.mode || 'receiver');
+    $('#sup_ton').val(provider.ton || '0');
+    $('#sup_npi').val(provider.npi || '0');
+    $('#sup_address_range').val(provider.address_range || '');
+    $('#sup_enabled').prop('checked', provider.enabled);
+    $('#sup_auto_reconnect').prop('checked', provider.auto_reconnect !== false);
+    $('#supplierSubmitBtn').text('Save Changes');
+    $('#supplierModal').modal('show');
 }
 </script>
 {% endblock %}

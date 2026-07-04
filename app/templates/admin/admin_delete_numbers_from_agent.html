@@ -6,7 +6,7 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">حذف أرقام من اليوزر</h3>
+                    <h3 class="card-title">Delete Numbers from Agent</h3>
                 </div>
                 <div class="card-body">
                     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -19,47 +19,47 @@
 
                     <div class="alert alert-danger">
                         <i class="fa fa-exclamation-triangle"></i>
-                        <strong>تحذير:</strong> الأرقام المحذوفة ستُحذف نهائياً من قاعدة البيانات ولا يمكن استعادتها!
+                        <strong>Warning:</strong> Deleted numbers will be permanently removed from the database and cannot be recovered!
                     </div>
 
                     <form method="POST" id="deleteNumbersForm">
                         <div class="form-group">
-                            <label for="agent_username">يوزر اليوزر (اكتبه وسيقوم بالبحث)</label>
+                            <label for="agent_username">Agent Username (Type to search)</label>
                             <input type="text" name="agent_username" id="agent_username"
-                                   class="form-control" placeholder="اكتب يوزر اليوزر هنا..."
+                                   class="form-control" placeholder="Enter agent username..."
                                    autocomplete="off" required>
                             <small class="form-text text-muted">
-                                سيقوم بالبحث عن اليوزر تلقائياً
+                                Search is performed automatically
                             </small>
                             <div id="userSearchResult" class="mt-2"></div>
                         </div>
 
                         <div class="form-group">
-                            <label for="range_id">اختر الرينج (Range)</label>
+                            <label for="range_id">Select Range</label>
                             <select name="range_id" id="range_id" class="form-control" required>
-                                <option value="">-- اختر الرينج --</option>
+                                <option value="">-- Select Range --</option>
                             </select>
-                            <small class="form-text text-muted">اكتب يوزر اليوزر أولاً لرؤية الرينجات المتاحة</small>
+                            <small class="form-text text-muted">Type agent username first to see available ranges</small>
                         </div>
 
                         <div class="form-group">
                             <div class="custom-control custom-checkbox">
                                 <input type="checkbox" class="custom-control-input" id="confirm_delete" required>
                                 <label class="custom-control-label" for="confirm_delete">
-                                    أنا أفهم أن هذا الإجراء لا رجعة فيه وأن الأرقام ستُحذف نهائياً
+                                    I understand that this action is irreversible and numbers will be permanently deleted.
                                 </label>
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label>الأرقام في هذا الرينج لليوزر: <strong id="numbers_count">0</strong></label>
+                            <label>Numbers in this range for agent: <strong id="numbers_count">0</strong></label>
                         </div>
 
                         <button type="submit" class="btn btn-danger">
-                            <i class="fas fa-trash"></i> حذف الأرقام من اليوزر
+                            <i class="fas fa-trash"></i> Delete Numbers from Agent
                         </button>
                         <a href="{{ url_for('admin.index') }}" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left"></i> العودة للوحة التحكم
+                            <i class="fas fa-arrow-left"></i> Back to Dashboard
                         </a>
                     </form>
                 </div>
@@ -79,35 +79,35 @@ document.getElementById('agent_username').addEventListener('input', function() {
 
     if (username.length < 2) {
         resultDiv.innerHTML = '';
-        rangeSelect.innerHTML = '<option value="">-- اختر الرينج --</option>';
+        rangeSelect.innerHTML = '<option value="">-- Select Range --</option>';
         currentAgentId = null;
         return;
     }
 
-    // البحث عن اليوزر
+    // Search for agent
     fetch(`/admin/search-user?username=${encodeURIComponent(username)}`)
         .then(response => response.json())
         .then(data => {
             if (data.found) {
                 if (data.role === 'agent') {
                     resultDiv.innerHTML = `<div class="alert alert-success">
-                        <i class="fas fa-check-circle"></i> تم العثور على اليوزر: <strong>${data.username}</strong>
+                        <i class="fas fa-check-circle"></i> Agent found: <strong>${data.username}</strong>
                         (${data.email})
                     </div>`;
                     currentAgentId = data.id;
                     loadAgentRanges(username);
                 } else {
                     resultDiv.innerHTML = `<div class="alert alert-warning">
-                        <i class="fas fa-exclamation-triangle"></i> هذا اليوزر ليس وكيلاً (${data.role})
+                        <i class="fas fa-exclamation-triangle"></i> This user is not an agent (${data.role})
                     </div>`;
-                    rangeSelect.innerHTML = '<option value="">-- اختر رينج --</option>';
+                    rangeSelect.innerHTML = '<option value="">-- Select Range --</option>';
                     currentAgentId = null;
                 }
             } else {
                 resultDiv.innerHTML = `<div class="alert alert-danger">
-                    <i class="fas fa-times-circle"></i> لم يتم العثور على يوزر بهذا الاسم
+                    <i class="fas fa-times-circle"></i> No agent found with this username.
                 </div>`;
-                rangeSelect.innerHTML = '<option value="">-- اختر رينج --</option>';
+                rangeSelect.innerHTML = '<option value="">-- Select Range --</option>';
                 currentAgentId = null;
             }
         })
@@ -120,10 +120,9 @@ function loadAgentRanges(username) {
     const rangeSelect = document.getElementById('range_id');
     const numbersCount = document.getElementById('numbers_count');
 
-    rangeSelect.innerHTML = '<option value="">-- جاري التحميل --</option>';
+    rangeSelect.innerHTML = '<option value="">-- Loading... --</option>';
     numbersCount.textContent = '0';
 
-    // Get agent by username first
     fetch(`/admin/search-user?username=${encodeURIComponent(username)}`)
         .then(response => response.json())
         .then(data => {
@@ -135,21 +134,21 @@ function loadAgentRanges(username) {
         })
         .then(response => response.json())
         .then(data => {
-            rangeSelect.innerHTML = '<option value="">-- اختر الرينج --</option>';
+            rangeSelect.innerHTML = '<option value="">-- Select Range --</option>';
             if (data.ranges && data.ranges.length > 0) {
                 data.ranges.forEach(function(range) {
                     const option = document.createElement('option');
                     option.value = range.id;
-                    option.textContent = range.prefix + ' - ' + range.country + ' (' + range.count + ' رقم)';
+                    option.textContent = range.name + ' - ' + range.country + ' (' + range.count + ' numbers)';
                     rangeSelect.appendChild(option);
                 });
             } else {
-                rangeSelect.innerHTML = '<option value="">-- لا توجد رينجات --</option>';
+                rangeSelect.innerHTML = '<option value="">-- No ranges found --</option>';
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            rangeSelect.innerHTML = '<option value="">خطأ في التحميل</option>';
+            rangeSelect.innerHTML = '<option value="">Loading error</option>';
         });
 }
 

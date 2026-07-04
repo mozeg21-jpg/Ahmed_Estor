@@ -5,7 +5,7 @@
 </head>
 {% extends "base.html" %}
 
-{% block title %}SMS CDR Reports - ABYSS SMS{% endblock %}
+{% block title %}SMS CDR Reports - DREEM SMS{% endblock %}
 
 {% block content %}
 <div class="row">
@@ -62,7 +62,7 @@
                 <select name="frange" class="form-control">
                     <option value="">All Ranges</option>
                     {% for range in ranges %}
-                    <option value="{{ range.id }}" {% if request.args.get('frange') == range.id|string %}selected{% endif %}>{{ range.prefix }} - {{ range.country }}</option>
+                    <option value="{{ range.id }}" {% if request.args.get('frange') == range.id|string %}selected{% endif %}>{{ range.name }} - {{ range.country }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -111,7 +111,7 @@
                         <td>{{ cdr.sms_number.number if cdr.sms_number else (cdr.destination if cdr.destination else 'N/A') }}</td>
                         <td>{{ cdr.created_at.strftime('%Y-%m-%d %H:%M') if cdr.created_at else 'N/A' }}</td>
                         <td>{{ cdr.cli or 'N/A' }}</td>
-                        <td>{{ cdr.range_info.name if cdr.range_info and cdr.range_info.name else (cdr.range_info.prefix if cdr.range_info else 'N/A') }}</td>
+                        <td>{{ cdr.range_info.name if cdr.range_info and cdr.range_info.name else (cdr.range_info.name if cdr.range_info else 'N/A') }}</td>
                         <td>{{ cdr.message or 'N/A' }}</td>
                         <td>{{ "%.4f"|format(cdr.agent_payout|float if cdr.agent_payout else 0) }}</td>
                     </tr>

@@ -1,0 +1,60 @@
+{
+  "entities": {
+    "Client": {
+      "title": "Client",
+      "description": "DREEM SMS Portal Client Account synced database record",
+      "type": "object",
+      "properties": {
+        "username": {
+          "type": "string",
+          "description": "Uniquely identifying username of the client user account"
+        },
+        "name": {
+          "type": "string",
+          "description": "Full display name of the client user"
+        },
+        "email": {
+          "type": "string",
+          "description": "Contact email address of the client"
+        },
+        "is_active": {
+          "type": "boolean",
+          "description": "Flag to mark if client is active or suspended"
+        },
+        "balance": {
+          "type": "number",
+          "description": "Remaining account balance in credits for sending SMS"
+        },
+        "credit_limit": {
+          "type": "number",
+          "description": "Allowed credit borrowing limit"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Phone number with international country code"
+        },
+        "role": {
+          "type": "string",
+          "description": "User privilege role classification"
+        },
+        "last_login": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of the last login session"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of account registration date"
+        }
+      },
+      "required": ["username", "email", "is_active", "balance"]
+    }
+  },
+  "firestore": {
+    "clients/{clientId}": {
+      "schema": "Client",
+      "description": "Primary document path for client accounts in Firebase Firestore"
+    }
+  }
+}

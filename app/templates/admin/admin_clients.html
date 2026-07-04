@@ -6,18 +6,18 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">إدارة العملاء (Client Management)</h3>
+                    <h3 class="card-title">Client Management</h3>
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
                         <a href="{{ url_for('admin.admin_add_numbers_to_client') }}" class="btn btn-success">
-                            <i class="fas fa-plus"></i> إضافة أرقام للعميل
+                            <i class="fas fa-plus"></i> Assign Numbers to Client
                         </a>
                         <a href="{{ url_for('admin.admin_remove_numbers_from_client') }}" class="btn btn-danger">
-                            <i class="fas fa-minus"></i> إزالة أرقام من العميل
+                            <i class="fas fa-minus"></i> Remove Numbers from Client
                         </a>
                         <a href="{{ url_for('admin.message_settings') }}" class="btn btn-info">
-                            <i class="fas fa-cog"></i> إعدادات حذف الرسائل
+                            <i class="fas fa-cog"></i> Auto-Delete Message Settings
                         </a>
                     </div>
 
@@ -25,12 +25,12 @@
                         <div class="row">
                             <div class="col-md-4">
                                 <input type="text" name="search" class="form-control"
-                                       placeholder="بحث باليوزر أو الإيميل أو الاسم..."
+                                       placeholder="Search by username, email, or name..."
                                        value="{{ request.args.get('search', '') }}">
                             </div>
                             <div class="col-md-3">
                                 <select name="agent" class="form-control">
-                                    <option value="">-- جميع الوكلاء --</option>
+                                    <option value="">-- All Agents --</option>
                                     {% for agent in agents %}
                                     <option value="{{ agent.id }}" {% if request.args.get('agent')|string == agent.id|string %}selected{% endif %}>
                                         {{ agent.username }}
@@ -40,7 +40,7 @@
                             </div>
                             <div class="col-md-2">
                                 <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-search"></i> بحث
+                                    <i class="fas fa-search"></i> Search
                                 </button>
                             </div>
                         </div>
@@ -59,13 +59,13 @@
                             <thead>
                                 <tr>
                                     <th>#</th>
-                                    <th>يوزر العميل</th>
-                                    <th>الإيميل</th>
-                                    <th>الاسم</th>
-                                    <th>الوكيل</th>
-                                    <th>عدد الأرقام</th>
-                                    <th>تاريخ الإنشاء</th>
-                                    <th>الإجراءات</th>
+                                    <th>Client Username</th>
+                                    <th>Email</th>
+                                    <th>Name</th>
+                                    <th>Agent</th>
+                                    <th>Number of Numbers</th>
+                                    <th>Created At</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -79,7 +79,7 @@
                                         {% if client.agent %}
                                             <span class="badge badge-info">{{ client.agent.username }}</span>
                                         {% else %}
-                                            <span class="badge badge-secondary">لا يوجد</span>
+                                            <span class="badge badge-secondary">None</span>
                                         {% endif %}
                                     </td>
                                     <td>
@@ -90,13 +90,13 @@
                                     <td>
                                         <button type="button" class="btn btn-sm btn-info"
                                                 onclick="viewClientNumbers('{{ client.username }}')">
-                                            <i class="fas fa-eye"></i> عرض الأرقام
+                                            <i class="fas fa-eye"></i> View Numbers
                                         </button>
                                     </td>
                                 </tr>
                                 {% else %}
                                 <tr>
-                                    <td colspan="8" class="text-center">لا يوجد عملاء</td>
+                                    <td colspan="8" class="text-center">No clients found.</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -108,7 +108,7 @@
                         <ul class="pagination justify-content-center">
                             {% if clients.has_prev %}
                             <li class="page-item">
-                                <a class="page-link" href="{{ url_for('admin.admin_clients', page=clients.prev_num, search=request.args.get('search', ''), agent=request.args.get('agent', '')) }}">السابق</a>
+                                <a class="page-link" href="{{ url_for('admin.admin_clients', page=clients.prev_num, search=request.args.get('search', ''), agent=request.args.get('agent', '')) }}">Previous</a>
                             </li>
                             {% endif %}
 
@@ -126,7 +126,7 @@
 
                             {% if clients.has_next %}
                             <li class="page-item">
-                                <a class="page-link" href="{{ url_for('admin.admin_clients', page=clients.next_num, search=request.args.get('search', ''), agent=request.args.get('agent', '')) }}">التالي</a>
+                                <a class="page-link" href="{{ url_for('admin.admin_clients', page=clients.next_num, search=request.args.get('search', ''), agent=request.args.get('agent', '')) }}">Next</a>
                             </li>
                             {% endif %}
                         </ul>
@@ -143,7 +143,7 @@
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">أرقام العميل: <span id="modalClientName"></span></h5>
+                <h5 class="modal-title">Client Numbers: <span id="modalClientName"></span></h5>
                 <button type="button" class="close" data-dismiss="modal">
                     <span>&times;</span>
                 </button>
@@ -151,12 +151,12 @@
             <div class="modal-body">
                 <div id="clientNumbersContent">
                     <div class="text-center">
-                        <i class="fas fa-spinner fa-spin"></i> جاري التحميل...
+                        <i class="fas fa-spinner fa-spin"></i> Loading...
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">إغلاق</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -165,26 +165,26 @@
 <script>
 function viewClientNumbers(username) {
     document.getElementById('modalClientName').textContent = username;
-    document.getElementById('clientNumbersContent').innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>';
+    document.getElementById('clientNumbersContent').innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
     $('#clientNumbersModal').modal('show');
 
     fetch(`/admin/get-client-numbers?username=${encodeURIComponent(username)}`)
         .then(response => response.json())
         .then(data => {
             if (data.numbers && data.numbers.length > 0) {
-                let html = '<table class="table table-sm"><thead><tr><th>الرقم</th><th>الرينج</th><th>الحالة</th></tr></thead><tbody>';
+                let html = '<table class="table table-sm"><thead><tr><th>Number</th><th>Range</th><th>Status</th></tr></thead><tbody>';
                 data.numbers.forEach(num => {
                     html += `<tr><td>${num.number}</td><td>${num.range}</td><td>${num.status}</td></tr>`;
                 });
                 html += '</tbody></table>';
-                html += `<div class="mt-3"><strong>الإجمالي: ${data.count} رقم</strong></div>`;
+                html += `<div class="mt-3"><strong>Total: ${data.count} numbers</strong></div>`;
                 document.getElementById('clientNumbersContent').innerHTML = html;
             } else {
-                document.getElementById('clientNumbersContent').innerHTML = '<div class="alert alert-info">لا يوجد أرقام لهذا العميل</div>';
+                document.getElementById('clientNumbersContent').innerHTML = '<div class="alert alert-info">No numbers found for this client.</div>';
             }
         })
         .catch(error => {
-            document.getElementById('clientNumbersContent').innerHTML = '<div class="alert alert-danger">حدث خطأ في جلب الأرقام</div>';
+            document.getElementById('clientNumbersContent').innerHTML = '<div class="alert alert-danger">An error occurred while fetching numbers.</div>';
         });
 }
 </script>

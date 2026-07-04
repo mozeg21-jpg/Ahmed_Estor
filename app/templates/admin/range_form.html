@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{% if range_obj %}Edit{% else %}Create{% endif %} SMS Range — ABYSS SMS{% endblock %}
+{% block title %}{% if range_obj %}Edit{% else %}Create{% endif %} SMS Range — DREEM SMS{% endblock %}
 
 {% block content %}
 <div class="breadcrumb">
@@ -113,7 +113,7 @@
                             <option value="USD" {% if not range_obj or range_obj.currency == 'USD' %}selected{% endif %}>USD ($)</option>
                             <option value="EUR" {% if range_obj and range_obj.currency == 'EUR' %}selected{% endif %}>EUR (€)</option>
                             <option value="GBP" {% if range_obj and range_obj.currency == 'GBP' %}selected{% endif %}>GBP (£)</option>
-                            <option value="EGP" {% if range_obj and range_obj.currency == 'EGP' %}selected{% endif %}>EGP (ج.م)</option>
+                            <option value="EGP" {% if range_obj and range_obj.currency == 'EGP' %}selected{% endif %}>EGP (EGP)</option>
                         </select>
                     </div>
                 </div>

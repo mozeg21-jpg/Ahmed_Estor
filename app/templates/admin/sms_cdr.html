@@ -5,7 +5,7 @@
 </head>
 {% extends "base.html" %}
 
-{% block title %}SMS CDR - ABYSS SMS{% endblock %}
+{% block title %}SMS CDR - DREEM SMS{% endblock %}
 
 {% block content %}
 <div class="row">
@@ -40,7 +40,7 @@
                         <td><strong>{{ cdr.sms_number.number if cdr.sms_number else (cdr.destination if cdr.destination else 'N/A') }}</strong></td>
                         <td>{{ cdr.created_at.strftime('%Y-%m-%d %H:%M') if cdr.created_at else 'N/A' }}</td>
                         <td>{{ cdr.cli or 'N/A' }}</td>
-                        <td>{{ cdr.range_info.name if cdr.range_info and cdr.range_info.name else (cdr.range_info.prefix if cdr.range_info else 'N/A') }}</td>
+                        <td>{{ cdr.range_info.name if cdr.range_info and cdr.range_info.name else (cdr.range_info.name if cdr.range_info else 'N/A') }}</td>
                         <td>
                             {% if cdr.message %}
                             <span title="{{ cdr.message }}">{{ cdr.message[:50] }}{% if cdr.message|length > 50 %}...{% endif %}</span>

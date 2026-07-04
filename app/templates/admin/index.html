@@ -1,207 +1,512 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-</head>
 {% extends "base.html" %}
 
-{% block title %}Admin Panel - ABYSS SMS{% endblock %}
+{% block title %}Admin Panel - DREEM SMS{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-12">
-        <div class="breadcrumb">
-            <h4><i class="fa fa-shield"></i> Admin Panel</h4>
+<style>
+    /* ── Beautiful Admin Bento Dashboard Styles ── */
+    .admin-header-card {
+        background: linear-gradient(135deg, rgba(17, 24, 39, 0.8), rgba(31, 41, 55, 0.8));
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        backdrop-filter: blur(10px);
+    }
+
+    .admin-title-badge {
+        background: rgba(59, 130, 246, 0.1);
+        color: var(--accent);
+        padding: 6px 12px;
+        border-radius: 99px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 8px;
+    }
+
+    /* KPI Stats Grid */
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        margin-bottom: 30px;
+    }
+
+    .kpi-card {
+        background-color: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .kpi-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--accent);
+        box-shadow: 0 12px 24px -10px rgba(59, 130, 246, 0.3);
+    }
+
+    .kpi-card::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .kpi-card:hover::after {
+        opacity: 1;
+    }
+
+    .kpi-icon-wrap {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 12px;
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .kpi-label {
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .kpi-value {
+        font-size: 24px;
+        font-weight: 800;
+        color: var(--txt);
+        margin-top: 4px;
+    }
+
+    /* Modern Admin Modules Grid */
+    .module-section-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .module-section-title i {
+        color: var(--accent);
+    }
+
+    .admin-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+        margin-bottom: 30px;
+    }
+
+    .admin-module-card {
+        background-color: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        text-decoration: none !important;
+        transition: all 0.2s ease-in-out;
+    }
+
+    .admin-module-card:hover {
+        border-color: var(--accent);
+        transform: translateY(-2px);
+        background: var(--hover);
+        box-shadow: var(--shadow);
+    }
+
+    .module-icon-box {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: transform 0.2s;
+    }
+
+    .admin-module-card:hover .module-icon-box {
+        transform: scale(1.08);
+    }
+
+    .module-icon-box i {
+        font-size: 20px;
+        color: white;
+    }
+
+    .module-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .module-name {
+        color: var(--txt);
+        font-size: 15px;
+        font-weight: 700;
+    }
+
+    .module-desc {
+        color: var(--muted);
+        font-size: 12px;
+        margin-top: 2px;
+    }
+
+    /* Sidebar Divider/Layout custom */
+    .row-flex {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+    }
+
+    .col-flex-left {
+        flex: 2;
+        min-width: 300px;
+    }
+
+    .col-flex-right {
+        flex: 1;
+        min-width: 300px;
+    }
+
+    /* News and Log section */
+    .news-panel {
+        background-color: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 24px;
+    }
+
+    .news-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .news-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--txt);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .news-item {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: background-color 0.2s;
+    }
+
+    .news-item:last-child {
+        border-bottom: none;
+    }
+
+    .news-item:hover {
+        background-color: var(--hover);
+    }
+</style>
+
+<!-- ══ HEADER ════════════════════════════════════════════════════════════ -->
+<div class="admin-header-card">
+    <div>
+        <div class="admin-title-badge">
+            <i class="fa fa-shield"></i> SECURED CONTROL PANEL
+        </div>
+        <h3 style="font-weight: 800; margin: 0; color: var(--txt); letter-spacing: -0.5px;">DREEM SMS Administrator Dashboard</h3>
+        <p style="color: var(--muted); margin-top: 6px; margin-bottom: 0; font-size: 13.5px;">Real-time overview, short message delivery monitoring, and routing configuration.</p>
+    </div>
+</div>
+
+<!-- ══ KEY PERFORMANCE INDICATORS ════════════════════════════════════════ -->
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <div class="kpi-icon-wrap" style="color: #3b82f6; background: rgba(59, 130, 246, 0.1);">
+            <i class="fa fa-users" style="font-size: 18px;"></i>
+        </div>
+        <div class="kpi-label">Active / Total Users</div>
+        <div class="kpi-value">
+            <span style="color: var(--success);">{{ stats.active_users }}</span>
+            <span style="color: var(--muted); font-size: 16px; font-weight: 500;">/ {{ stats.total_users }}</span>
         </div>
     </div>
-</div>
-
-<div class="row">
-    <div class="col-md-3">
-        <a href="{{ url_for('admin.users') }}" class="widget-block" style="display: block; text-decoration: none; color: inherit;">
-            <div class="widget-content text-center" style="padding: 30px;">
-                <i class="fa fa-users" style="font-size: 48px; color: #e94560;"></i>
-                <h4 style="margin-top: 15px;">Manage Users</h4>
-                <p class="text-muted">View and edit user accounts</p>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-3">
-        <a href="{{ url_for('admin.sms_ranges') }}" class="widget-block" style="display: block; text-decoration: none; color: inherit;">
-            <div class="widget-content text-center" style="padding: 30px;">
-                <i class="fa fa-flag" style="font-size: 48px; color: #28a745;"></i>
-                <h4 style="margin-top: 15px;">SMS Ranges</h4>
-                <p class="text-muted">Manage SMS ranges</p>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-3">
-        <a href="{{ url_for('admin.create_sms_ranges_multiple') }}" class="widget-block" style="display: block; text-decoration: none; color: inherit;">
-            <div class="widget-content text-center" style="padding: 30px;">
-                <i class="fa fa-layer-group" style="font-size: 48px; color: #9b59b6;"></i>
-                <h4 style="margin-top: 15px;">Multi-Range Add</h4>
-                <p class="text-muted">Add multiple ranges at once</p>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-3">
-        <a href="{{ url_for('admin.sms_numbers') }}" class="widget-block" style="display: block; text-decoration: none; color: inherit;">
-            <div class="widget-content text-center" style="padding: 30px;">
-                <i class="fa fa-phone" style="font-size: 48px; color: #007bff;"></i>
-                <h4 style="margin-top: 15px;">SMS Numbers</h4>
-                <p class="text-muted">Manage SMS numbers</p>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-3">
-        <a href="{{ url_for('admin.sms_send') }}" class="widget-block" style="display: block; text-decoration: none; color: inherit;">
-            <div class="widget-content text-center" style="padding: 30px;">
-                <i class="fa fa-paper-plane" style="font-size: 48px; color: #6f42c1;"></i>
-                <h4 style="margin-top: 15px;">Send SMS</h4>
-                <p class="text-muted">Send SMS to numbers</p>
-            </div>
-        </a>
-    </div>
-</div>
-
-<div class="row" style="margin-top: 20px;">
-    <div class="col-md-3">
-        <a href="{{ url_for('admin.activity_logs') }}" class="widget-block" style="display: block; text-decoration: none; color: inherit;">
-            <div class="widget-content text-center" style="padding: 30px;">
-                <i class="fa fa-history" style="font-size: 48px; color: #fd7e14;"></i>
-                <h4 style="margin-top: 15px;">Activity Logs</h4>
-                <p class="text-muted">View all activity logs</p>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-3">
-        <a href="{{ url_for('admin.sms_cdr') }}" class="widget-block" style="display: block; text-decoration: none; color: inherit;">
-            <div class="widget-content text-center" style="padding: 30px;">
-                <i class="fa fa-file-text" style="font-size: 48px; color: #17a2b8;"></i>
-                <h4 style="margin-top: 15px;">SMS CDR</h4>
-                <p class="text-muted">View SMS call records</p>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-3">
-        <a href="{{ url_for('admin.admin_add_numbers_to_agent') }}" class="widget-block" style="display: block; text-decoration: none; color: inherit;">
-            <div class="widget-content text-center" style="padding: 30px;">
-                <i class="fa fa-user-plus" style="font-size: 48px; color: #20c997;"></i>
-                <h4 style="margin-top: 15px;">Add Numbers to Agent</h4>
-                <p class="text-muted">Assign numbers to agents</p>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-3">
-        <a href="{{ url_for('admin.admin_delete_numbers_from_agent') }}" class="widget-block" style="display: block; text-decoration: none; color: inherit;">
-            <div class="widget-content text-center" style="padding: 30px;">
-                <i class="fa fa-trash-alt" style="font-size: 48px; color: #dc3545;"></i>
-                <h4 style="margin-top: 15px;">Delete Numbers</h4>
-                <p class="text-muted">Remove numbers from agent</p>
-            </div>
-        </a>
-    </div>
-</div>
-
-<div class="row" style="margin-top: 20px;">
-    <div class="col-md-3">
-        <a href="{{ url_for('admin.admin_clients') }}" class="widget-block" style="display: block; text-decoration: none; color: inherit;">
-            <div class="widget-content text-center" style="padding: 30px;">
-                <i class="fa fa-user-tie" style="font-size: 48px; color: #e83e8c;"></i>
-                <h4 style="margin-top: 15px;">إدارة العملاء</h4>
-                <p class="text-muted">Manage Clients & Numbers</p>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-3">
-        <a href="{{ url_for('admin.admin_add_numbers_to_client') }}" class="widget-block" style="display: block; text-decoration: none; color: inherit;">
-            <div class="widget-content text-center" style="padding: 30px;">
-                <i class="fa fa-plus-circle" style="font-size: 48px; color: #28a745;"></i>
-                <h4 style="margin-top: 15px;">إضافة أرقام للعميل</h4>
-                <p class="text-muted">Add numbers to client</p>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-3">
-        <a href="{{ url_for('admin.admin_remove_numbers_from_client') }}" class="widget-block" style="display: block; text-decoration: none; color: inherit;">
-            <div class="widget-content text-center" style="padding: 30px;">
-                <i class="fa fa-minus-circle" style="font-size: 48px; color: #dc3545;"></i>
-                <h4 style="margin-top: 15px;">إزالة أرقام من العميل</h4>
-                <p class="text-muted">Remove numbers from client</p>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-3">
-        <a href="{{ url_for('admin.message_settings') }}" class="widget-block" style="display: block; text-decoration: none; color: inherit;">
-            <div class="widget-content text-center" style="padding: 30px;">
-                <i class="fa fa-clock" style="font-size: 48px; color: #6f42c1;"></i>
-                <h4 style="margin-top: 15px;">إعدادات حذف الرسائل</h4>
-                <p class="text-muted">Message auto-delete settings</p>
-            </div>
-        </a>
-    </div>
-</div>
-
-<div class="row" style="margin-top: 20px;">
-    <div class="col-md-6">
-        <div class="widget-block">
-            <div class="widget-head">
-                <h5><i class="fa fa-bar-chart"></i> System Statistics</h5>
-            </div>
-            <div class="widget-content">
-                <table class="table">
-                    <tr>
-                        <th>Total Users:</th>
-                        <td><strong>{{ stats.total_users }}</strong></td>
-                    </tr>
-                    <tr>
-                        <th>Active Users:</th>
-                        <td><span class="label label-success">{{ stats.active_users }}</span></td>
-                    </tr>
-                    <tr>
-                        <th>Total SMS Ranges:</th>
-                        <td><strong>{{ stats.total_ranges }}</strong></td>
-                    </tr>
-                    <tr>
-                        <th>Total SMS Numbers:</th>
-                        <td><strong>{{ stats.total_numbers }}</strong></td>
-                    </tr>
-                    <tr>
-                        <th>Total CDR Records:</th>
-                        <td><strong>{{ stats.total_cdr }}</strong></td>
-                    </tr>
-                    <tr>
-                        <th>SMS Today:</th>
-                        <td><strong>{{ stats.today_sms }}</strong></td>
-                    </tr>
-                </table>
-            </div>
+    
+    <div class="kpi-card">
+        <div class="kpi-icon-wrap" style="color: #10b981; background: rgba(16, 185, 129, 0.1);">
+            <i class="fa fa-globe" style="font-size: 18px;"></i>
         </div>
+        <div class="kpi-label">Total SMS Ranges</div>
+        <div class="kpi-value">{{ stats.total_ranges }}</div>
     </div>
 
-    <div class="col-md-6">
-        <div class="widget-block">
-            <div class="widget-head">
-                <h5><i class="fa fa-bullhorn"></i> News Management</h5>
-                <a href="{{ url_for('admin.create_news') }}" class="btn btn-primary btn-sm"><i class="fa fa-plus"></i> Add News</a>
+    <div class="kpi-card">
+        <div class="kpi-icon-wrap" style="color: #06b6d4; background: rgba(6, 182, 212, 0.1);">
+            <i class="fa fa-hashtag" style="font-size: 18px;"></i>
+        </div>
+        <div class="kpi-label">Total Active Numbers</div>
+        <div class="kpi-value">{{ stats.total_numbers }}</div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-icon-wrap" style="color: #f59e0b; background: rgba(245, 158, 11, 0.1);">
+            <i class="fa fa-paper-plane" style="font-size: 18px;"></i>
+        </div>
+        <div class="kpi-label">Sent Messages (Today)</div>
+        <div class="kpi-value" style="color: var(--accent);">{{ stats.today_sms }}</div>
+    </div>
+</div>
+
+<!-- ══ MODULES & NEWS ROW ════════════════════════════════════════════════ -->
+<div class="row-flex">
+    
+    <!-- LEFT SIDE: ADMIN MODULES -->
+    <div class="col-flex-left">
+        
+        <!-- Section 1: User & Agent Management -->
+        <div class="module-section-title">
+            <i class="fa fa-user-circle"></i> User &amp; Client Administration
+        </div>
+        <div class="admin-grid">
+            <a href="{{ url_for('admin.users') }}" class="admin-module-card">
+                <div class="module-icon-box" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+                    <i class="fa fa-users"></i>
+                </div>
+                <div class="module-info">
+                    <span class="module-name">Manage Users</span>
+                    <span class="module-desc">Add, edit, or deactivate user roles</span>
+                </div>
+            </a>
+
+            <a href="{{ url_for('admin.admin_clients') }}" class="admin-module-card">
+                <div class="module-icon-box" style="background: linear-gradient(135deg, #ec4899, #be185d);">
+                    <i class="fa fa-user-tie"></i>
+                </div>
+                <div class="module-info">
+                    <span class="module-name">Manage Clients</span>
+                    <span class="module-desc">Review connected clients & accounts</span>
+                </div>
+            </a>
+
+            <a href="{{ url_for('admin.admin_add_numbers_to_agent') }}" class="admin-module-card">
+                <div class="module-icon-box" style="background: linear-gradient(135deg, #14b8a6, #0f766e);">
+                    <i class="fa fa-user-plus"></i>
+                </div>
+                <div class="module-info">
+                    <span class="module-name">Assign Agent</span>
+                    <span class="module-desc">Associate SMS pools to agents</span>
+                </div>
+            </a>
+
+            <a href="{{ url_for('admin.admin_delete_numbers_from_agent') }}" class="admin-module-card">
+                <div class="module-icon-box" style="background: linear-gradient(135deg, #e11d48, #9f1239);">
+                    <i class="fa fa-user-minus"></i>
+                </div>
+                <div class="module-info">
+                    <span class="module-name">Unassign Agent</span>
+                    <span class="module-desc">Revoke SMS pools from agents</span>
+                </div>
+            </a>
+        </div>
+
+        <!-- Section 2: SMS & Routing -->
+        <div class="module-section-title">
+            <i class="fa fa-rss"></i> SMS &amp; Routing Operations
+        </div>
+        <div class="admin-grid">
+            <a href="{{ url_for('admin.sms_ranges') }}" class="admin-module-card">
+                <div class="module-icon-box" style="background: linear-gradient(135deg, #10b981, #047857);">
+                    <i class="fa fa-flag"></i>
+                </div>
+                <div class="module-info">
+                    <span class="module-name">SMS Ranges</span>
+                    <span class="module-desc">Configure operator routes & rates</span>
+                </div>
+            </a>
+
+            <a href="{{ url_for('admin.create_sms_ranges_multiple') }}" class="admin-module-card">
+                <div class="module-icon-box" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">
+                    <i class="fa fa-layer-group"></i>
+                </div>
+                <div class="module-info">
+                    <span class="module-name">Multi-Range Add</span>
+                    <span class="module-desc">Upload bulk range tables safely</span>
+                </div>
+            </a>
+
+            <a href="{{ url_for('admin.sms_numbers') }}" class="admin-module-card">
+                <div class="module-icon-box" style="background: linear-gradient(135deg, #06b6d4, #0e7490);">
+                    <i class="fa fa-phone"></i>
+                </div>
+                <div class="module-info">
+                    <span class="module-name">SMS Numbers</span>
+                    <span class="module-desc">Review live numbers in pool</span>
+                </div>
+            </a>
+
+            <a href="{{ url_for('admin.admin_add_numbers_to_client') }}" class="admin-module-card">
+                <div class="module-icon-box" style="background: linear-gradient(135deg, #22c55e, #15803d);">
+                    <i class="fa fa-plus-circle"></i>
+                </div>
+                <div class="module-info">
+                    <span class="module-name">Assign Numbers</span>
+                    <span class="module-desc">Route active numbers to clients</span>
+                </div>
+            </a>
+
+            <a href="{{ url_for('admin.admin_remove_numbers_from_client') }}" class="admin-module-card">
+                <div class="module-icon-box" style="background: linear-gradient(135deg, #ef4444, #b91c1c);">
+                    <i class="fa fa-minus-circle"></i>
+                </div>
+                <div class="module-info">
+                    <span class="module-name">Unassign Numbers</span>
+                    <span class="module-desc">Remove numbers from client pool</span>
+                </div>
+            </a>
+        </div>
+
+        <!-- Section 3: Monitoring & Configuration -->
+        <div class="module-section-title">
+            <i class="fa fa-sliders"></i> Systems, Monitoring &amp; Logs
+        </div>
+        <div class="admin-grid">
+            <a href="{{ url_for('admin.activity_logs') }}" class="admin-module-card">
+                <div class="module-icon-box" style="background: linear-gradient(135deg, #f59e0b, #b45309);">
+                    <i class="fa fa-history"></i>
+                </div>
+                <div class="module-info">
+                    <span class="module-name">Activity Logs</span>
+                    <span class="module-desc">Audit actions and session logins</span>
+                </div>
+            </a>
+
+            <a href="{{ url_for('admin.sms_cdr') }}" class="admin-module-card">
+                <div class="module-icon-box" style="background: linear-gradient(135deg, #6366f1, #4338ca);">
+                    <i class="fa fa-file-text-o"></i>
+                </div>
+                <div class="module-info">
+                    <span class="module-name">SMS CDR Logs</span>
+                    <span class="module-desc">Call Detail Records & messages</span>
+                </div>
+            </a>
+
+            <a href="{{ url_for('admin.message_settings') }}" class="admin-module-card">
+                <div class="module-icon-box" style="background: linear-gradient(135deg, #4b5563, #1f2937);">
+                    <i class="fa fa-cog"></i>
+                </div>
+                <div class="module-info">
+                    <span class="module-name">System Settings</span>
+                    <span class="module-desc">SMS platform and API configuration</span>
+                </div>
+            </a>
+        </div>
+
+    </div>
+
+    <!-- RIGHT SIDE: NEWS & ANNOUNCEMENTS -->
+    <div class="col-flex-right">
+        
+        <div class="news-panel">
+            <div class="news-header">
+                <div class="news-title">
+                    <i class="fa fa-bullhorn" style="color: var(--warn);"></i> News &amp; Bulletins
+                </div>
+                <a href="{{ url_for('admin.create_news') }}" class="btn btn-primary btn-xs" style="font-size: 11px; padding: 4px 10px;"><i class="fa fa-plus"></i> Add News</a>
             </div>
-            <div class="widget-content">
-                <ul class="list-unstyled">
-                    {% if recent_news %}
+            
+            <div style="background-color: var(--card);">
+                {% if recent_news %}
                     {% for news in recent_news %}
-                    <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
-                        <strong>{{ news.headline }}</strong>
-                        <br>
-                        <small class="text-muted">{{ news.created_at.strftime('%Y-%m-%d') if news.created_at else '' }}</small>
-                        <a href="{{ url_for('admin.delete_news', news_id=news.id) }}" class="btn btn-xs btn-danger pull-right" onclick="return confirm('Are you sure?')"><i class="fa fa-trash"></i></a>
-                    </li>
+                    <div class="news-item">
+                        <div>
+                            <strong style="color: var(--txt); font-size: 13.5px; display: block;">{{ news.headline }}</strong>
+                            <span style="color: var(--muted); font-size: 11px; margin-top: 4px; display: inline-block;">
+                                <i class="fa fa-clock-o"></i> {{ news.created_at.strftime('%Y-%m-%d') if news.created_at else '' }}
+                            </span>
+                        </div>
+                        <a href="{{ url_for('admin.delete_news', news_id=news.id) }}" class="btn btn-xs btn-danger" style="padding: 4px 8px;" onclick="return confirm('Delete this news?')">
+                            <i class="fa fa-trash"></i>
+                        </a>
+                    </div>
                     {% endfor %}
-                    {% else %}
-                    <li class="text-muted">No news available.</li>
-                    {% endif %}
-                </ul>
+                {% else %}
+                    <div style="padding: 40px; text-align: center; color: var(--muted);">
+                        <i class="fa fa-newspaper-o fa-2x" style="opacity: 0.4; margin-bottom: 8px;"></i>
+                        <p style="margin: 0; font-size: 13px;">No system announcements published yet.</p>
+                    </div>
+                {% endif %}
             </div>
         </div>
+
+        <!-- Detail System Info card -->
+        <div class="news-panel">
+            <div class="news-header">
+                <div class="news-title">
+                    <i class="fa fa-info-circle" style="color: var(--accent);"></i> Live Platform Info
+                </div>
+            </div>
+            <div style="padding: 20px; font-size: 13px; line-height: 1.6; color: var(--muted);">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span>Service Brand:</span>
+                    <strong style="color: var(--txt);">DREEM SMS</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span>Total Call Records:</span>
+                    <strong style="color: var(--txt);">{{ stats.total_cdr }}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span>Database Status:</span>
+                    <strong style="color: var(--success);"><i class="fa fa-check-circle"></i> Operational</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>System Time (UTC):</span>
+                    <strong style="color: var(--txt);" id="liveSystemTime">--:--:--</strong>
+                </div>
+            </div>
+        </div>
+
     </div>
+
 </div>
+
+<script>
+    // Simple system ticking clock
+    setInterval(function() {
+        var d = new Date();
+        var utcStr = d.toUTCString().replace("GMT", "UTC");
+        var timeEl = document.getElementById("liveSystemTime");
+        if (timeEl) timeEl.innerText = utcStr.split(" ")[4];
+    }, 1000);
+</script>
 {% endblock %}

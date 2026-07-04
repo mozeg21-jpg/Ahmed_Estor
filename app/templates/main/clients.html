@@ -5,13 +5,13 @@
 </head>
 {% extends "base.html" %}
 
-{% block title %}إدارة العملاء / My Clients - FURY SMS{% endblock %}
+{% block title %}My Clients - DREEM SMS{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-md-12">
         <div class="breadcrumb">
-            <h4><i class="fa fa-users"></i> إدارة العملاء / My Clients</h4>
+            <h4><i class="fa fa-users"></i> My Clients</h4>
         </div>
     </div>
 </div>
@@ -19,7 +19,7 @@
 <div class="widget-block">
     <div class="widget-head">
         <h5><i class="fa fa-list"></i> Client List</h5>
-        <a href="{{ url_for('admin.agent_create_client') }}" class="btn btn-primary btn-sm"><i class="fa fa-plus"></i> إضافة عميل / Add Client</a>
+        <a href="{{ url_for('admin.agent_create_client') }}" class="btn btn-primary btn-sm"><i class="fa fa-plus"></i> Add Client</a>
     </div>
     <div class="widget-content">
         <div class="table-responsive">
@@ -56,21 +56,26 @@
                         </td>
                         <td>{{ client.created_at.strftime('%Y-%m-%d') if client.created_at else 'N/A' }}</td>
                         <td>
-                            <div class="btn-group action-buttons">
-                                <a href="{{ url_for('admin.view_user', user_id=client.id) }}" class="btn btn-xs btn-primary" title="View Client">
-                                    <i class="fa fa-eye"></i>
+                            <div class="btn-group action-buttons" style="display: flex; gap: 4px;">
+                                <a href="{{ url_for('admin.agent_manage_client_numbers', user_id=client.id) }}" class="btn btn-xs btn-success" title="Manage Numbers" style="padding: 6px 10px;">
+                                    <i class="fa fa-phone"></i>
                                 </a>
-                                <a href="{{ url_for('admin.edit_user', user_id=client.id) }}" class="btn btn-xs btn-info" title="Edit Client">
+                                <a href="{{ url_for('admin.agent_edit_client', user_id=client.id) }}" class="btn btn-xs btn-info" title="Edit Client" style="padding: 6px 10px;">
                                     <i class="fa fa-edit"></i>
                                 </a>
-                                <form method="POST" action="{{ url_for('admin.toggle_user_status', user_id=client.id) }}" style="display:inline;">
-                                    <button type="submit" class="btn btn-xs {% if client.is_active %}btn-warning{% else %}btn-success{% endif %}" title="{% if client.is_active %}Deactivate{% else %}Activate{% endif %}">
+                                <form method="POST" action="{{ url_for('admin.agent_toggle_client_status', user_id=client.id) }}" style="display:inline-block;">
+                                    <button type="submit" class="btn btn-xs {% if client.is_active %}btn-warning{% else %}btn-success{% endif %}" title="{% if client.is_active %}Deactivate{% else %}Activate{% endif %}" style="padding: 6px 10px;">
                                         <i class="fa fa-{% if client.is_active %}lock{% else %}unlock{% endif %}"></i>
                                     </button>
                                 </form>
-                                <a href="{{ url_for('main.client_settings', client_id=client.id) }}" class="btn btn-xs btn-secondary" title="Client Settings">
+                                <a href="{{ url_for('main.client_settings', client_id=client.id) }}" class="btn btn-xs btn-primary" title="Client Settings" style="padding: 6px 10px;">
                                     <i class="fa fa-cog"></i>
                                 </a>
+                                <form method="POST" action="{{ url_for('admin.agent_delete_client', user_id=client.id) }}" style="display:inline-block;" onsubmit="return confirm('Are you sure you want to delete this client?');">
+                                    <button type="submit" class="btn btn-xs btn-danger" title="Delete Client" style="padding: 6px 10px;">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </form>
                             </div>
                         </td>
                     </tr>

@@ -20,10 +20,11 @@ SECURITY_HEADERS = {
     'Permissions-Policy':      'geolocation=(), microphone=()',
     'Content-Security-Policy': (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline'; "
-        "style-src 'self' 'unsafe-inline'; "
+        "script-src 'self' 'unsafe-inline' https:; "
+        "style-src 'self' 'unsafe-inline' https:; "
         "img-src 'self' data: https:; "
-        "font-src 'self' data:; "
+        "font-src 'self' data: https:; "
+        "media-src 'self' https: data:; "
         "frame-ancestors 'self';"
     ),
 }
@@ -32,6 +33,9 @@ SECURITY_HEADERS = {
 def create_app(config_name='default'):
     app = Flask(__name__)
     app.config.from_object(config[config_name])
+    
+    from werkzeug.middleware.proxy_fix import ProxyFix
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
     db.init_app(app)
     login_manager.init_app(app)
@@ -50,6 +54,11 @@ def create_app(config_name='default'):
     def load_user(user_id):
         from app.models.user import User
         return User.query.get(int(user_id))
+
+    @app.context_processor
+    def inject_now():
+        from datetime import datetime
+        return {'datetime': datetime}
 
     # ── Jinja2 Filters ──────────────────────────────────────────────────────────
     @app.template_filter('mask_last_7')
@@ -99,24 +108,25 @@ def create_app(config_name='default'):
 
     from app.routes.auth import auth_bp
     from app.routes.main import main_bp
-    from app.routes.api import api_bp
     from app.routes.admin import admin_bp
     from app.routes.sms_monitor import monitor_bp
     from app.routes.developer import dev_bp
     from app.routes.honeypot import honeypot_bp
+    from app.routes.tts import tts_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
-    app.register_blueprint(api_bp, url_prefix='/api')
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(monitor_bp)
     app.register_blueprint(dev_bp)
     app.register_blueprint(honeypot_bp)
+    app.register_blueprint(tts_bp)
 
     from app.routes.sms_monitor import start_background_worker
     start_background_worker(app)
 
     with app.app_context():
+        from app.models.finance import BankAccount, PaymentRequest, CreditNote
         db.create_all()
 
         # ── Auto-migrate ────────────────────────────────────────────────────

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}SMS Monitor — ABYSS SMS{% endblock %}
+{% block title %}SMS Monitor — DREEM SMS{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -108,7 +108,7 @@
             </button>
             <button class="btn btn-default run-btn"  onclick="runCycle('abyss')"   id="btnAbyss"
                     style="border-color:#5bc0f8;color:#5bc0f8;">
-                <i class="fa fa-server"></i> ABYSS SMS
+                <i class="fa fa-server"></i> DREEM SMS
             </button>
             <button class="btn btn-info run-btn"     onclick="runCycle('panel4')"  id="btnA">
                 <i class="fa fa-server"></i> Source A
@@ -117,7 +117,7 @@
                     style="background-color:#0d6efd;border-color:#0d6efd;">
                 <i class="fa fa-server"></i> Source A 2
             </button>
-            <button class="btn btn-default run-btn"  onclick="runCycle('flynn')"   id="btnB"
+
                     style="border-color:#3d2080;color:#b48cff;">
                 <i class="fa fa-server"></i> Source B
             </button>
@@ -150,7 +150,7 @@
         <div class="src-card">
             <span class="source-pill pill-{{ src.key[0] if src.key not in ('timesms', 'abyss', 'panel4_2') else 'c' if src.key=='timesms' else 'a' }}
                                            pill-{{ 'a' if src.key in ('panel4', 'panel4_2', 'abyss') else
-                                                   'b' if src.key=='flynn'  else
+
                                                    'c' if src.key=='timesms' else
                                                    'd' if src.key=='hadi'   else 'e' }}">
                 <i class="fa {{ 'fa-server' if src.type=='Session' else 'fa-key' }}"></i>
@@ -292,13 +292,13 @@ function runCycle(src) {
     .then(data => {
         var st  = data.sources || {};
         var parts = [];
-        var srcKeys = ['panel4','flynn','timesms','hadi','numper'];
-        var srcLabels = {panel4:'A', flynn:'B', timesms:'C', hadi:'D', numper:'E'};
+
+
 
         srcKeys.forEach(function(k) {
             if (st[k]) {
                 var ok = st[k].status === 'ok';
-                parts.push((ok ? '✅' : '⚠') + ' ' + srcLabels[k] + ':' + st[k].count);
+                parts.push((ok ? '<i class="fa fa-check-circle" style="color:#2ed573;"></i>' : '<i class="fa fa-exclamation-triangle" style="color:#ffa502;"></i>') + ' ' + srcLabels[k] + ':' + st[k].count);
                 var el = document.getElementById('status_' + k);
                 if (el) {
                     el.innerHTML = ok
@@ -401,9 +401,9 @@ function escHtml(s) {
     setInterval(function() {
         tick++;
         if (tick % 3 === 0) {
-            runCycle('all');  // كل 18 ثانية fetch+forward
+            runCycle('all');  // Every 18 seconds fetch+forward
         } else {
-            loadMessages();   // كل 6 ثواني refresh جدول فقط
+            loadMessages();   // Every 6 seconds refresh table only
         }
     }, 6000);
 })();

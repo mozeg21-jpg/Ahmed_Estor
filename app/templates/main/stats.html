@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Statistics - DREEM SMS{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <ol class="breadcrumb" style="background-color: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 12px 16px; margin-bottom: 24px;">
+            <li><a href="{{ url_for('main.dashboard') }}" style="color: var(--accent);"><i class="fa fa-home"></i> Home</a></li>
+            <li>CDR & Stats</li>
+            <li class="active" style="color: var(--muted); text-transform: capitalize;">{{ stat_type }} Stats</li>
+        </ol>
+    </div>
+</div>
+
+<div class="panel">
+    <div class="panel-heading">
+        <span style="font-weight: 600; font-size: 16px; text-transform: capitalize;"><i class="fa fa-bar-chart" style="color: var(--accent);"></i> {{ stat_type }} Statistics</span>
+    </div>
+    <div class="panel-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover" id="statsTable">
+                <thead>
+                    <tr>
+                        <th style="text-transform: capitalize;">{{ stat_type }}</th>
+                        <th>Total SMS</th>
+                        <th>Agent Payout</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in records %}
+                    <tr>
+                        <td><strong>{{ r.label }}</strong></td>
+                        <td><span class="badge" style="background-color: var(--accent);">{{ r.count }}</span></td>
+                        <td style="font-weight: 600; color: var(--success);">{{ "%.4f"|format(r.payout) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('#statsTable').DataTable({
+            "pageLength": 25,
+            "order": [[ 1, "desc" ]],
+            "dom": '<"row"<"col-sm-6"l><"col-sm-6"f>>rt<"row"<"col-sm-6"i><"col-sm-6"p>>',
+            "language": {
+                "search": "_INPUT_",
+                "searchPlaceholder": "Search stats..."
+            }
+        });
+    });
+</script>
+{% endblock %}

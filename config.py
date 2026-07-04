@@ -1,16 +1,18 @@
 import os
 import secrets
 from datetime import timedelta
+from dotenv import load_dotenv
+load_dotenv()  # Load .env file if it exists
 
 
 class Config:
     # ── Secret key ──────────────────────────────────────────────────────────
     # MUST be set via environment variable in production.
-    SECRET_KEY = os.environ.get('SECRET_KEY') or secrets.token_hex(32)
+    SECRET_KEY = os.environ.get('SECRET_KEY') or "dreemsms_stable_secret_key"
 
     # ── Database ─────────────────────────────────────────────────────────────
     SQLALCHEMY_DATABASE_URI = (
-        os.environ.get('DATABASE_URL') or 'sqlite:///abyss_sms.db'
+        os.environ.get('DATABASE_URL') or 'sqlite:///dreem_sms.db'
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
@@ -18,7 +20,7 @@ class Config:
     PERMANENT_SESSION_LIFETIME = timedelta(days=7)
     SESSION_COOKIE_SECURE   = True
     SESSION_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_SAMESITE = 'Lax'
+    SESSION_COOKIE_SAMESITE = 'None'
 
     # ── CSRF ────────────────────────────────────────────────────────────────
     WTF_CSRF_ENABLED    = True
@@ -53,20 +55,17 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    SESSION_COOKIE_SECURE = False
-
+    # We need Secure cookies for SameSite=None to work in AI Studio
 
 class ProductionConfig(Config):
     DEBUG = False
     # For production, set to True and configure HTTPS
-    SESSION_COOKIE_SECURE = True
-
+    # SESSION_COOKIE_SECURE is True in base Config
 
 class TestingConfig(Config):
     TESTING = True
     WTF_CSRF_ENABLED = False
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
-    SESSION_COOKIE_SECURE = False
 
 
 config = {

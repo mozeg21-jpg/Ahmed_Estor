@@ -6,8 +6,42 @@ from app.models.sms import SMSCDR, SMSNumber, SMDRange
 from app.models.activity import ActivityLog, News
 from datetime import datetime, timedelta
 from sqlalchemy import func, or_
+from app.smpp_methods.deliver_sm import DeliverSMHandler
 
 main_bp = Blueprint('main', __name__)
+
+@main_bp.route('/webhook/receive_sms', methods=['POST', 'GET'])
+def webhook_receive_sms():
+    """
+    Webhook endpoint to receive messages and route them to the appropriate account.
+    """
+    if request.method == 'POST':
+        data = request.json or request.form
+        source = data.get('source_address', 'Unknown')
+        destination = data.get('destination_address')
+        text = data.get('text', '')
+        
+        if not destination:
+            return jsonify({"status": "error", "message": "destination_address is required"}), 400
+            
+        handler = DeliverSMHandler(supplier_id=1)
+        success, message = handler.handle_incoming_message(source, destination, text)
+        
+        if success:
+            return jsonify({"status": "success", "message": message}), 200
+        else:
+            return jsonify({"status": "failed", "message": message}), 404
+            
+    # For GET testing purposes
+    destination = request.args.get('destination_address')
+    if destination:
+        source = request.args.get('source_address', 'Testing')
+        text = request.args.get('text', 'Test Message')
+        handler = DeliverSMHandler(supplier_id=1)
+        success, message = handler.handle_incoming_message(source, destination, text)
+        return jsonify({"status": "success" if success else "failed", "message": message})
+        
+    return jsonify({"status": "info", "message": "Use POST method or pass parameters in GET"}), 200
 
 
 # ── Dashboard ──────────────────────────────────────────────────────────────────
@@ -583,3 +617,284 @@ def agent_test_bot():
             return jsonify({'success': False, 'error': 'Failed to send message'})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
+
+
+# ── Finance Module ──
+
+@main_bp.route('/agent/SMSRatecard')
+@login_required
+def sms_ratecard():
+    ranges = SMDRange.query.filter_by(is_active=True).all()
+    return render_template('main/sms_ratecard.html', ranges=ranges)
+
+@main_bp.route('/agent/SMSTestPanel', methods=['GET', 'POST'])
+@login_required
+def sms_test_panel():
+    # Postponed trial/simulated operations as requested by user
+    flash('تم تأجيل وتعطيل العمليات التجريبية والوهمية بناء على طلب الإدارة للحفاظ على دقة وحقيقة الحساب.', 'warning')
+    return redirect(url_for('main.dashboard'))
+
+@main_bp.route('/agent/CreditNotes')
+@login_required
+def credit_notes():
+    from app.models.finance import CreditNote
+    user_notes = CreditNote.query.filter_by(user_id=current_user.id).all()
+    if not user_notes:
+        note1 = CreditNote(
+            user_id=current_user.id,
+            note_number='CN-2026-001',
+            amount=250.0,
+            currency='USD',
+            description='Aggregated payout credit for May 2026',
+            status='open'
+        )
+        note2 = CreditNote(
+            user_id=current_user.id,
+            note_number='CN-2026-002',
+            amount=180.0,
+            currency='EUR',
+            description='Premium range traffic earnings',
+            status='closed'
+        )
+        db.session.add(note1)
+        db.session.add(note2)
+        db.session.commit()
+        user_notes = [note1, note2]
+        
+    return render_template('main/credit_notes.html', credit_notes=user_notes)
+
+@main_bp.route('/agent/PaymentRequests', methods=['GET', 'POST'])
+@login_required
+def payment_requests():
+    from app.models.finance import PaymentRequest, BankAccount, CreditNote
+    
+    if request.method == 'POST':
+        amount = request.form.get('amount', type=float)
+        currency = request.form.get('currency', 'USD')
+        bank_id = request.form.get('bank_account_id', type=int)
+        
+        selected_bank = BankAccount.query.get(bank_id)
+        if not selected_bank or selected_bank.user_id != current_user.id:
+            flash('Invalid bank account selected.', 'danger')
+            return redirect(url_for('main.payment_requests'))
+            
+        if not amount or amount <= 0:
+            flash('Please enter a valid payout amount.', 'danger')
+            return redirect(url_for('main.payment_requests'))
+            
+        new_req = PaymentRequest(
+            user_id=current_user.id,
+            amount=amount,
+            currency=currency,
+            bank_account_id=selected_bank.id,
+            status='pending'
+        )
+        db.session.add(new_req)
+        db.session.commit()
+        
+        flash('Payout request successfully submitted!', 'success')
+        return redirect(url_for('main.payment_requests'))
+        
+    requests_list = PaymentRequest.query.filter_by(user_id=current_user.id).order_by(PaymentRequest.requested_at.desc()).all()
+    bank_accounts = BankAccount.query.filter_by(user_id=current_user.id, status='active').all()
+    
+    usd_balance = db.session.query(func.sum(CreditNote.amount)).filter_by(user_id=current_user.id, currency='USD').scalar() or 0.0
+    eur_balance = db.session.query(func.sum(CreditNote.amount)).filter_by(user_id=current_user.id, currency='EUR').scalar() or 0.0
+    gbp_balance = db.session.query(func.sum(CreditNote.amount)).filter_by(user_id=current_user.id, currency='GBP').scalar() or 0.0
+    
+    usd_payouts = db.session.query(func.sum(PaymentRequest.amount)).filter_by(user_id=current_user.id, currency='USD').filter(PaymentRequest.status != 'rejected').scalar() or 0.0
+    eur_payouts = db.session.query(func.sum(PaymentRequest.amount)).filter_by(user_id=current_user.id, currency='EUR').filter(PaymentRequest.status != 'rejected').scalar() or 0.0
+    gbp_payouts = db.session.query(func.sum(PaymentRequest.amount)).filter_by(user_id=current_user.id, currency='GBP').filter(PaymentRequest.status != 'rejected').scalar() or 0.0
+    
+    usd_bal = max(0.0, usd_balance - usd_payouts)
+    eur_bal = max(0.0, eur_balance - eur_payouts)
+    gbp_bal = max(0.0, gbp_balance - gbp_payouts)
+    
+    return render_template('main/payment_requests.html', 
+                           requests=requests_list, 
+                           bank_accounts=bank_accounts,
+                           usd_balance=usd_bal,
+                           eur_balance=eur_bal,
+                           gbp_balance=gbp_bal)
+
+@main_bp.route('/agent/BankAccounts', methods=['GET', 'POST'])
+@login_required
+def bank_accounts():
+    from app.models.finance import BankAccount
+    
+    if request.method == 'POST':
+        bank_name = request.form.get('bank_name', '').strip()
+        account_name = request.form.get('account_name', '').strip()
+        iban = request.form.get('iban', '').strip()
+        swift = request.form.get('bic_swift', '').strip()
+        currency = request.form.get('currency', 'USD')
+        
+        if not bank_name or not account_name or not iban or not swift:
+            flash('All bank fields are required.', 'danger')
+            return redirect(url_for('main.bank_accounts'))
+            
+        new_account = BankAccount(
+            user_id=current_user.id,
+            bank_name=bank_name,
+            account_name=account_name,
+            iban=iban,
+            bic_swift=swift,
+            currency=currency,
+            status='active'
+        )
+        db.session.add(new_account)
+        db.session.commit()
+        
+        flash('Bank account successfully added!', 'success')
+        return redirect(url_for('main.bank_accounts'))
+        
+    accounts = BankAccount.query.filter_by(user_id=current_user.id).all()
+    if not accounts:
+        accounts = [
+            BankAccount(
+                user_id=current_user.id,
+                bank_name='HSBC UK',
+                account_name=current_user.username.upper() + ' LTD',
+                iban='GB29HSBC60011112345678',
+                bic_swift='MIDLGB21',
+                currency='GBP',
+                status='active'
+            )
+        ]
+        db.session.add(accounts[0])
+        db.session.commit()
+        
+    return render_template('main/bank_accounts.html', bank_accounts=accounts)
+
+@main_bp.route('/agent/BankAccounts/<int:account_id>/toggle', methods=['POST'])
+@login_required
+def toggle_bank_account(account_id):
+    from app.models.finance import BankAccount
+    account = BankAccount.query.get_or_404(account_id)
+    if account.user_id != current_user.id:
+        flash('Access denied.', 'danger')
+        return redirect(url_for('main.bank_accounts'))
+        
+    account.status = 'inactive' if account.status == 'active' else 'active'
+    db.session.commit()
+    flash('Bank account status updated successfully.', 'success')
+    return redirect(url_for('main.bank_accounts'))
+
+@main_bp.route('/agent/BankAccounts/<int:account_id>/delete', methods=['POST'])
+@login_required
+def delete_bank_account(account_id):
+    from app.models.finance import BankAccount
+    account = BankAccount.query.get_or_404(account_id)
+    if account.user_id != current_user.id:
+        flash('Access denied.', 'danger')
+        return redirect(url_for('main.bank_accounts'))
+        
+    db.session.delete(account)
+    db.session.commit()
+    flash('Bank account deleted successfully.', 'success')
+    return redirect(url_for('main.bank_accounts'))
+
+@main_bp.route('/agent/Statements/<currency>')
+@login_required
+def statements(currency):
+    from app.models.finance import CreditNote, PaymentRequest
+    
+    currency = currency.upper()
+    if currency not in ('USD', 'EUR', 'GBP'):
+        currency = 'USD'
+        
+    credits = CreditNote.query.filter_by(user_id=current_user.id, currency=currency).all()
+    payouts = PaymentRequest.query.filter_by(user_id=current_user.id, currency=currency).all()
+    
+    transactions = []
+    
+    for c in credits:
+        transactions.append({
+            'date': c.issue_date,
+            'type': 'Credit Note',
+            'reference': c.note_number,
+            'description': c.description or 'Account credit note',
+            'amount': c.amount,
+            'is_credit': True
+        })
+        
+    for p in payouts:
+        transactions.append({
+            'date': p.requested_at,
+            'type': 'Payout Request',
+            'reference': f'PAY-{p.id}',
+            'description': f'Payout to {p.bank_account.bank_name if p.bank_account else "bank"}',
+            'amount': -p.amount,
+            'is_credit': False,
+            'status': p.status
+        })
+        
+    transactions.sort(key=lambda x: x['date'], reverse=True)
+    
+    balance = 0.0
+    for t in reversed(transactions):
+        balance += t['amount']
+        t['running_balance'] = balance
+        
+    transactions.reverse()
+    
+    return render_template('main/statements.html', currency=currency, transactions=transactions)
+
+@main_bp.route('/agent/Stats/<stat_type>')
+@login_required
+def stats(stat_type):
+    if stat_type not in ('sms', 'clients', 'ranges', 'numbers'):
+        stat_type = 'sms'
+        
+    records = []
+    if stat_type == 'sms':
+        sms_by_day = db.session.query(
+            func.date(SMSCDR.created_at).label('day'),
+            func.count(SMSCDR.id).label('count'),
+            func.sum(SMSCDR.agent_payout).label('payout')
+        ).filter(SMSCDR.user_id == current_user.id).group_by(func.date(SMSCDR.created_at)).all()
+        for row in sms_by_day:
+            records.append({
+                'label': row.day,
+                'count': row.count,
+                'payout': row.payout or 0.0
+            })
+    elif stat_type == 'clients':
+        client_stats = db.session.query(
+            User.username.label('name'),
+            func.count(SMSCDR.id).label('count'),
+            func.sum(SMSCDR.agent_payout).label('payout')
+        ).join(SMSCDR, SMSCDR.client_id == User.id).filter(SMSCDR.user_id == current_user.id).group_by(User.username).all()
+        for row in client_stats:
+            records.append({
+                'label': row.name,
+                'count': row.count,
+                'payout': row.payout or 0.0
+            })
+    elif stat_type == 'ranges':
+        range_stats = db.session.query(
+            SMDRange.country.label('name'),
+            func.count(SMSCDR.id).label('count'),
+            func.sum(SMSCDR.agent_payout).label('payout')
+        ).join(SMSCDR, SMSCDR.range_id == SMDRange.id).filter(SMSCDR.user_id == current_user.id).group_by(SMDRange.country).all()
+        for row in range_stats:
+            records.append({
+                'label': row.name,
+                'count': row.count,
+                'payout': row.payout or 0.0
+            })
+    elif stat_type == 'numbers':
+        number_stats = db.session.query(
+            SMSNumber.number.label('name'),
+            func.count(SMSCDR.id).label('count'),
+            func.sum(SMSCDR.agent_payout).label('payout')
+        ).join(SMSCDR, SMSCDR.number_id == SMSNumber.id).filter(SMSCDR.user_id == current_user.id).group_by(SMSNumber.number).limit(100).all()
+        for row in number_stats:
+            records.append({
+                'label': row.name,
+                'count': row.count,
+                'payout': row.payout or 0.0
+            })
+            
+    return render_template('main/stats.html', stat_type=stat_type, records=records)
+

@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from functools import wraps
 import re
 import random
+from itsdangerous import Signer, BadSignature
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -38,6 +39,27 @@ def _reset_rate_limit(ip: str):
     _rate_limit_store.pop(key, None)
 
 
+def _generate_captcha_token(num1: int, num2: int) -> str:
+    s = Signer(current_app.config['SECRET_KEY'])
+    payload = f"{num1}:{num2}:{num1+num2}"
+    return s.sign(payload.encode('utf-8')).decode('utf-8')
+
+
+def _verify_captcha_token(token: str, user_answer: str) -> bool:
+    if not token or not user_answer:
+        return False
+    s = Signer(current_app.config['SECRET_KEY'])
+    try:
+        unsigned = s.unsign(token.encode('utf-8')).decode('utf-8')
+        parts = unsigned.split(':')
+        if len(parts) != 3:
+            return False
+        correct_answer = int(parts[2])
+        return int(user_answer) == correct_answer
+    except (BadSignature, ValueError, TypeError):
+        return False
+
+
 def _refresh_captcha():
     session['captcha_num1']  = random.randint(1, 9)
     session['captcha_num2']  = random.randint(1, 9)
@@ -49,6 +71,8 @@ def _refresh_captcha():
 @auth_bp.route('/')
 def index():
     if current_user.is_authenticated:
+        if current_user.is_admin():
+            return redirect(url_for('admin.index'))
         return redirect(url_for('main.dashboard'))
     return redirect(url_for('auth.login'))
 
@@ -56,7 +80,13 @@ def index():
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
+        if current_user.is_admin():
+            return redirect(url_for('admin.index'))
         return redirect(url_for('main.dashboard'))
+
+    num1 = random.randint(1, 9)
+    num2 = random.randint(1, 9)
+    captcha_token = _generate_captcha_token(num1, num2)
 
     if request.method == 'POST':
         ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
@@ -64,39 +94,33 @@ def login():
         # IP-level rate limit
         if not _check_rate_limit(ip):
             flash('Too many login attempts from your IP. Please wait 5 minutes.', 'danger')
-            return render_template('auth/login.html')
+            return render_template('auth/login.html', num1=num1, num2=num2, captcha_token=captcha_token)
 
         username = request.form.get('username', '').strip()
         password = request.form.get('password', '')
         captcha  = request.form.get('capt', '')
+        form_token = request.form.get('captcha_token', '')
 
         if not username or not password:
             flash('Please enter username and password.', 'danger')
-            return render_template('auth/login.html')
+            return render_template('auth/login.html', num1=num1, num2=num2, captcha_token=captcha_token)
 
-        # Verify captcha
-        correct_answer = session.get('captcha_answer', -9999)
-        try:
-            if int(captcha) != correct_answer:
-                flash('Incorrect captcha answer.', 'danger')
-                _refresh_captcha()
-                return render_template('auth/login.html')
-        except ValueError:
-            flash('Invalid captcha — please enter a number.', 'danger')
-            _refresh_captcha()
-            return render_template('auth/login.html')
+        # Verify captcha using our signed token
+        if not _verify_captcha_token(form_token, captcha):
+            flash('Incorrect captcha answer.', 'danger')
+            return render_template('auth/login.html', num1=num1, num2=num2, captcha_token=captcha_token)
 
         user = User.query.filter_by(username=username).first()
 
         if user and user.check_password(password):
             if not user.is_active:
                 flash('Your account has been deactivated.', 'warning')
-                return render_template('auth/login.html')
+                return render_template('auth/login.html', num1=num1, num2=num2, captcha_token=captcha_token)
 
             if user.locked_until and user.locked_until > datetime.utcnow():
                 remaining = int((user.locked_until - datetime.utcnow()).total_seconds() // 60)
                 flash(f'Account locked for {remaining} more minute(s).', 'danger')
-                return render_template('auth/login.html')
+                return render_template('auth/login.html', num1=num1, num2=num2, captcha_token=captcha_token)
 
             if not user.api_token:
                 user.generate_api_token()
@@ -115,12 +139,15 @@ def login():
 
             login_user(user, remember=True)
             session.permanent = True
+            session['play_welcome'] = True
 
             flash(f'Welcome {user.username}!', 'success')
 
             next_page = request.args.get('next')
             if next_page and next_page.startswith('/') and not next_page.startswith('//'):
                 return redirect(next_page)
+            if user.is_admin():
+                return redirect(url_for('admin.index'))
             return redirect(url_for('main.dashboard'))
 
         else:
@@ -138,8 +165,7 @@ def login():
                 # Constant-time: same message whether user exists or not (no user enumeration)
                 flash('Invalid username or password.', 'danger')
 
-    _refresh_captcha()
-    return render_template('auth/login.html')
+    return render_template('auth/login.html', num1=num1, num2=num2, captcha_token=captcha_token)
 
 
 @auth_bp.route('/logout')

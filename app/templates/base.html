@@ -3,96 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}FURY SMS{% endblock %}</title>
+    <title>{% block title %}DREEM SMS{% endblock %}</title>
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
     <link href="/static/css/font-awesome.min.css" rel="stylesheet">
     <link href="/static/css/styles.css" rel="stylesheet">
     {% block extra_css %}{% endblock %}
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
     /* ── CSS Variables ─────────────────────────── */
     :root {
-        --bg:      #0d0d0d;
-        --card:    #1a1a1a;
-        --hover:   #242424;
-        --border:  #2e2e2e;
-        --txt:     #e8e8e8;
-        --muted:   #888;
-        --accent:  #00d4ff;
-        --danger:  #ff4757;
-        --success: #2ed573;
-        --warn:    #ffa502;
-        --sb-w:    240px;   /* sidebar width */
-        --nav-h:   56px;    /* topbar height */
+        --bg:      #0b0f19;
+        --card:    #111827;
+        --hover:   #1f2937;
+        --border:  #1f2937;
+        --txt:     #f3f4f6;
+        --muted:   #9ca3af;
+        --accent:  #3b82f6;
+        --accent-hover: #2563eb;
+        --danger:  #ef4444;
+        --success: #10b981;
+        --warn:    #f59e0b;
+        --sb-w:    260px;   /* sidebar width */
+        --nav-h:   64px;    /* topbar height */
+        --radius:  12px;
+        --shadow:  0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
     }
 
     /* Light Mode */
     body.theme-light {
-        --bg:      #f5f5f5;
+        --bg:      #f3f4f6;
         --card:    #ffffff;
-        --hover:   #e8e8e8;
-        --border:  #d0d0d0;
-        --txt:     #1a1a1a;
-        --muted:   #666;
-        --accent:  #0099cc;
-        --danger:  #e63946;
-        --success: #2ecc71;
-        --warn:    #e67e22;
+        --hover:   #f3f4f6;
+        --border:  #e5e7eb;
+        --txt:     #111827;
+        --muted:   #6b7280;
+        --accent:  #4f46e5;
+        --accent-hover: #4338ca;
+        --shadow:  0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     }
 
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
     html{font-size:14px;scroll-behavior:smooth;}
-    body{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;
-         background:var(--bg);color:var(--txt);min-height:100vh;}
+    body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+         background:var(--bg);color:var(--txt);min-height:100vh;
+         transition: background-color 0.3s, color 0.3s;}
 
     /* ── Theme Toggle Button ─────────────────────── */
     .theme-toggle {
-        background: none;
+        background: var(--hover);
         border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 8px 12px;
+        border-radius: 20px;
+        padding: 6px 14px;
         cursor: pointer;
         color: var(--txt);
-        font-size: 16px;
-        transition: all 0.3s;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease-in-out;
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
     }
     .theme-toggle:hover {
-        background: var(--hover);
-        border-color: var(--accent);
+        background: var(--border);
+        transform: translateY(-1px);
     }
-    .theme-toggle .fa-moon { color: #ffd700; }
-    .theme-toggle .fa-sun { color: #ff9800; }
+    .theme-toggle .fa-moon { color: #facc15; }
+    .theme-toggle .fa-sun { color: #f97316; }
 
     /* ── Topbar ────────────────────────────────── */
     .topbar {
         position: fixed; top:0; left:0; right:0; z-index:1050;
         height: var(--nav-h);
-        background: var(--card);
+        background: rgba(var(--card-rgb), 0.8);
+        background-color: var(--card);
+        backdrop-filter: blur(10px);
         border-bottom: 1px solid var(--border);
         display: flex; align-items: center;
-        padding: 0 16px; gap: 12px;
+        padding: 0 24px; gap: 16px;
+        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .topbar-brand {
-        font-size: 18px; font-weight: 800; letter-spacing: 1px;
-        color: var(--accent); text-decoration: none;
+        font-size: 20px; font-weight: 800; letter-spacing: 0.5px;
+        background: linear-gradient(90deg, var(--accent), #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-decoration: none;
         white-space: nowrap;
     }
-    .topbar-brand:hover { color: var(--accent); text-decoration: none; }
+    .topbar-brand:hover { text-decoration: none; }
     .topbar-spacer { flex: 1; }
     .topbar-user {
-        display: flex; align-items: center; gap: 8px;
-        color: var(--muted); font-size: 13px; white-space: nowrap;
+        display: flex; align-items: center; gap: 12px;
+        color: var(--txt); font-size: 14px; white-space: nowrap;
     }
-    .topbar-user strong { color: var(--txt); }
-    .topbar-user a { color: var(--muted); font-size: 12px; text-decoration: none; }
-    .topbar-user a:hover { color: var(--danger); }
+    .topbar-user strong { font-weight: 600; }
+    .topbar-user a.logout-btn { 
+        color: var(--danger); font-size: 14px; text-decoration: none; 
+        padding: 6px 12px; border-radius: 8px; background: rgba(239, 68, 68, 0.1);
+        font-weight: 500; transition: all 0.2s;
+    }
+    .topbar-user a.logout-btn:hover { background: var(--danger); color: white; }
+    
     .hamburger {
-        background: none; border: none; cursor: pointer;
-        color: var(--txt); font-size: 20px; padding: 6px;
-        border-radius: 6px; transition: background .2s;
-        display: none;  /* hidden on desktop */
+        background: transparent; border: none; cursor: pointer;
+        color: var(--txt); font-size: 20px; padding: 8px;
+        border-radius: 8px; transition: background .2s;
+        display: flex; align-items: center; justify-content: center;
     }
     .hamburger:hover { background: var(--hover); }
 
@@ -102,260 +118,310 @@
         width: var(--sb-w); height: calc(100vh - var(--nav-h));
         background: var(--card); border-right: 1px solid var(--border);
         overflow-y: auto; z-index: 1040;
-        transition: transform .28s cubic-bezier(.4,0,.2,1);
+        transition: transform .3s cubic-bezier(.4,0,.2,1);
+        box-shadow: 2px 0 8px rgba(0,0,0,0.05);
     }
-    .sidebar::-webkit-scrollbar { width:4px; }
-    .sidebar::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+    body.sidebar-collapsed .sidebar {
+        transform: translateX(-100%);
+    }
+    .sidebar::-webkit-scrollbar { width:6px; }
+    .sidebar::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
 
     /* Sidebar user badge */
     .sb-user {
-        padding: 16px 20px 14px;
+        padding: 24px 24px 16px;
         border-bottom: 1px solid var(--border);
+        margin-bottom: 8px;
     }
-    .sb-user-name  { font-weight: 700; font-size: 14px; color: var(--txt); }
-    .sb-user-role  { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .sb-user-name  { font-weight: 700; font-size: 16px; color: var(--txt); letter-spacing: -0.2px; }
+    .sb-user-role  { font-size: 12px; color: var(--accent); font-weight: 500; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px;}
 
     /* Nav items */
-    .sb-nav { list-style: none !important; padding: 8px 0; }
-    .sb-nav li { list-style: none !important; }
+    .sb-nav { list-style: none !important; padding: 0 12px 24px; }
+    .sb-nav li { list-style: none !important; margin-bottom: 2px; }
 
     .sb-link {
-        display: flex; align-items: center; gap: 11px;
-        padding: 11px 20px;
+        display: flex; align-items: center; gap: 12px;
+        padding: 10px 16px;
         color: var(--muted); text-decoration: none;
-        border-left: 3px solid transparent;
-        transition: all .2s; font-size: 13.5px;
+        border-radius: 8px;
+        transition: all .2s ease; font-size: 14px; font-weight: 500;
         cursor: pointer;
     }
-    .sb-link:hover, .sb-link.active {
+    .sb-link:hover {
         background: var(--hover);
-        color: var(--accent);
-        border-left-color: var(--accent);
+        color: var(--txt);
         text-decoration: none;
     }
-    .sb-link i { width: 18px; text-align: center; flex-shrink: 0; font-size: 15px; }
+    .sb-link.active {
+        background: rgba(59, 130, 246, 0.1);
+        color: var(--accent);
+    }
+    body.theme-light .sb-link.active {
+        background: rgba(79, 70, 229, 0.1);
+    }
+    .sb-link i { width: 20px; text-align: center; flex-shrink: 0; font-size: 16px; }
     .sb-link .sb-arrow {
-        margin-left: auto; font-size: 11px;
-        transition: transform .25s;
+        margin-left: auto; font-size: 12px;
+        transition: transform .2s ease;
+        opacity: 0.7;
     }
     .sb-link.open .sb-arrow { transform: rotate(90deg); }
 
-    /* Accordion sub-menu — PUSHES CONTENT DOWN */
+    /* Accordion sub-menu */
     .sb-sub {
         list-style: none !important;
         overflow: hidden;
         max-height: 0;
         transition: max-height .3s ease;
-        background: rgba(0,0,0,.18);
+        margin: 0; padding: 0;
     }
-    .sb-sub.expanded { max-height: 600px; }
+    .sb-sub.expanded { max-height: 600px; margin-top: 2px; margin-bottom: 6px; }
     .sb-sub li { list-style: none !important; }
     .sb-sub .sb-link {
-        padding-left: 48px; font-size: 13px;
-        border-left: none; border-left: 3px solid transparent;
+        padding: 8px 16px 8px 48px; font-size: 13.5px;
+        color: var(--muted);
     }
+    .sb-sub .sb-link:hover, .sb-sub .sb-link.active {
+        color: var(--accent);
+        background: transparent;
+    }
+    .sb-sub .sb-link.active { font-weight: 600; }
 
     /* Section label */
     .sb-label {
-        font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
-        color: var(--muted); padding: 14px 20px 4px;
-        text-transform: uppercase;
+        font-size: 11px; font-weight: 700; letter-spacing: 1px;
+        color: var(--muted); padding: 20px 16px 8px;
+        text-transform: uppercase; opacity: 0.7;
     }
-    .sb-divider { height:1px; background:var(--border); margin: 8px 16px; }
+    .sb-divider { height:1px; background:var(--border); margin: 12px 0; }
 
     /* ── Main content ────────────────────────────── */
     .page-wrap {
         margin-left: var(--sb-w);
-        padding: calc(var(--nav-h) + 28px) 28px 28px;
+        padding: calc(var(--nav-h) + 32px) 32px 32px;
         min-height: 100vh;
-        transition: margin-left .28s, background .3s;
+        transition: margin-left .3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    body.sidebar-collapsed .page-wrap {
+        margin-left: 0;
     }
 
     /* ── Overlay (mobile) ────────────────────────── */
     .sb-overlay {
         display: none; position: fixed; inset: 0; z-index: 1039;
-        background: rgba(0,0,0,.6);
+        background: rgba(0,0,0,.5);
+        backdrop-filter: blur(2px);
     }
 
     /* ── Flash messages ──────────────────────────── */
-    .flash-bar { margin-bottom: 18px; }
+    .flash-bar { margin-bottom: 24px; }
     .flash-bar .alert {
-        display: flex; align-items: center; gap: 10px;
-        border-radius: 8px; padding: 12px 18px; font-size: 13.5px;
+        display: flex; align-items: center; gap: 12px;
+        border-radius: var(--radius); padding: 16px 20px; font-size: 14px;
+        border: 1px solid transparent;
+        box-shadow: var(--shadow);
     }
+    .alert-success { background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.2); color: var(--success); }
+    .alert-danger { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: var(--danger); }
+    .alert-info { background: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.2); color: var(--accent); }
+    .alert-warning { background: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.2); color: var(--warn); }
+    
     .close-btn {
         margin-left: auto; background: none; border: none;
-        font-size: 18px; cursor: pointer; color: inherit; opacity: .7;
-        line-height: 1; padding: 0 4px;
+        font-size: 20px; cursor: pointer; color: inherit; opacity: .7;
+        line-height: 1; padding: 0 4px; transition: opacity 0.2s;
     }
     .close-btn:hover { opacity: 1; }
 
     /* ── Responsive breakpoints ──────────────────── */
     @media (max-width: 991px) {
-        .hamburger  { display: flex; }
-        .sidebar    { transform: translateX(-100%); }
-        .sidebar.open { transform: translateX(0); }
-        .sb-overlay.open { display: block; }
+        .sidebar { transform: translateX(-100%); }
+        body.sidebar-collapsed .sidebar { transform: translateX(0); } /* Reversed on mobile: collapsed class means OPEN */
+        body.sidebar-collapsed .sb-overlay { display: block; }
         .page-wrap  { margin-left: 0; padding: calc(var(--nav-h) + 20px) 16px 20px; }
     }
     @media (max-width: 575px) {
         .topbar-user .u-details { display: none; }
-        .page-wrap { padding: calc(var(--nav-h) + 14px) 10px 14px; }
+        .page-wrap { padding: calc(var(--nav-h) + 16px) 12px 16px; }
     }
+
+    /* ── Generic UI Overrides ─────────────────── */
+    .panel, .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        color: var(--txt);
+        margin-bottom: 24px;
+        overflow: hidden;
+    }
+    .panel-heading, .card-header {
+        background: rgba(0,0,0,0.02);
+        border-bottom: 1px solid var(--border);
+        padding: 16px 20px;
+        font-weight: 600;
+        font-size: 16px;
+        color: var(--txt);
+    }
+    body.theme-dark .panel-heading { background: rgba(255,255,255,0.02); }
+    .panel-body, .card-body { padding: 20px; }
+    
+    .table { color: var(--txt); }
+    .table>thead>tr>th { border-bottom: 2px solid var(--border); color: var(--muted); font-weight: 600; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; padding: 12px 8px; }
+    .table>tbody>tr>td { border-top: 1px solid var(--border); padding: 12px 8px; vertical-align: middle; }
+    .table-striped>tbody>tr:nth-of-type(odd) { background-color: var(--hover); }
+    .table-hover>tbody>tr:hover { background-color: var(--border); }
+
+    .form-control {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        color: var(--txt);
+        border-radius: 8px;
+        padding: 10px 14px;
+        height: auto;
+        box-shadow: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-control:focus {
+        border-color: var(--accent);
+        background: var(--bg);
+        color: var(--txt);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+    body.theme-light .form-control:focus { box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15); }
+    .form-control[disabled], .form-control[readonly], fieldset[disabled] .form-control { background-color: var(--hover); opacity: 0.8; }
+
+    .btn {
+        border-radius: 8px;
+        padding: 8px 16px;
+        font-weight: 500;
+        transition: all 0.2s;
+        border: none;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:hover { background: var(--accent-hover); color: white; transform: translateY(-1px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    .btn-success { background: var(--success); color: white; }
+    .btn-success:hover { background: #059669; color: white; transform: translateY(-1px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-danger:hover { background: #dc2626; color: white; transform: translateY(-1px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    .btn-warning { background: var(--warn); color: white; }
+    .btn-warning:hover { background: #d97706; color: white; transform: translateY(-1px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    .btn-default { background: var(--hover); color: var(--txt); border: 1px solid var(--border); }
+    .btn-default:hover { background: var(--border); color: var(--txt); }
 
     /* ── Action Buttons Styling ─────────────────── */
     .btn-group.action-buttons {
         display: flex;
-        gap: 4px;
+        gap: 6px;
         flex-wrap: wrap;
     }
     .btn-group.action-buttons .btn {
-        padding: 4px 8px;
-        font-size: 12px;
-        border-radius: 4px;
-        min-width: 28px;
-        display: flex;
+        padding: 6px 10px;
+        font-size: 13px;
+        border-radius: 6px;
+        min-width: 32px;
+        display: inline-flex;
         align-items: center;
         justify-content: center;
     }
-    .btn-group.action-buttons .btn i {
-        margin: 0;
-        font-size: 12px;
-    }
-    .btn-group.action-buttons .btn-primary {
-        background: var(--accent, #00d4ff);
-        border-color: var(--accent, #00d4ff);
-        color: #000;
-    }
-    .btn-group.action-buttons .btn-primary:hover {
-        background: #00b8e6;
-        border-color: #00b8e6;
-    }
-    .btn-group.action-buttons .btn-info {
-        background: #5bc0de;
-        border-color: #5bc0de;
-        color: #000;
-    }
-    .btn-group.action-buttons .btn-info:hover {
-        background: #31b0d5;
-        border-color: #31b0d5;
-    }
-    .btn-group.action-buttons .btn-success {
-        background: var(--success, #2ed573);
-        border-color: var(--success, #2ed573);
-        color: #000;
-    }
-    .btn-group.action-buttons .btn-success:hover {
-        background: #26a85a;
-        border-color: #26a85a;
-    }
-    .btn-group.action-buttons .btn-warning {
-        background: var(--warn, #ffa502);
-        border-color: var(--warn, #ffa502);
-        color: #000;
-    }
-    .btn-group.action-buttons .btn-warning:hover {
-        background: #cc8400;
-        border-color: #cc8400;
-    }
-    .btn-group.action-buttons .btn-danger {
-        background: var(--danger, #ff4757);
-        border-color: var(--danger, #ff4757);
-        color: #fff;
-    }
-    .btn-group.action-buttons .btn-danger:hover {
-        background: #cc3a47;
-        border-color: #cc3a47;
-    }
-    .btn-group.action-buttons .btn-secondary {
-        background: var(--muted, #888);
-        border-color: var(--muted, #888);
-        color: #fff;
-    }
-    .btn-group.action-buttons .btn-secondary:hover {
-        background: #666;
-        border-color: #666;
-    }
-
-    /* ── Light Mode Button Fixes ──────────────── */
-    body.theme-light .btn-group.action-buttons .btn-primary {
-        color: #fff;
-    }
-    body.theme-light .btn-group.action-buttons .btn-info {
-        color: #fff;
-    }
-    body.theme-light .btn-group.action-buttons .btn-success {
-        color: #fff;
-    }
-    body.theme-light .btn-group.action-buttons .btn-warning {
-        color: #000;
-    }
-    body.theme-light .btn-group.action-buttons .btn-secondary {
-        color: #fff;
-    }
+    .btn-group.action-buttons .btn i { margin: 0; }
 
     /* ── Widget Stat Cards ─────────────────────── */
     .stat-card {
         display: flex;
         align-items: center;
-        padding: 20px;
+        padding: 24px;
         background: var(--card);
-        border-radius: 8px;
+        border-radius: var(--radius);
         border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     }
     .stat-card .stat-icon {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
+        width: 64px;
+        height: 64px;
+        border-radius: 16px;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-right: 15px;
+        margin-right: 20px;
         flex-shrink: 0;
+        background: rgba(255,255,255,0.05);
     }
     .stat-card .stat-icon i {
-        font-size: 24px;
+        font-size: 28px;
         color: white;
     }
-    .stat-card .stat-icon.bg-primary { background: var(--accent, #00d4ff); }
-    .stat-card .stat-icon.bg-success { background: var(--success, #2ed573); }
-    .stat-card .stat-icon.bg-info { background: #5bc0de; }
-    .stat-card .stat-icon.bg-warning { background: var(--warn, #ffa502); }
+    .stat-card .stat-icon.bg-primary { background: linear-gradient(135deg, var(--accent), #60a5fa); box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); }
+    .stat-card .stat-icon.bg-success { background: linear-gradient(135deg, var(--success), #34d399); box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3); }
+    .stat-card .stat-icon.bg-info { background: linear-gradient(135deg, #06b6d4, #67e8f9); box-shadow: 0 4px 10px rgba(6, 182, 212, 0.3); }
+    .stat-card .stat-icon.bg-warning { background: linear-gradient(135deg, var(--warn), #fbbf24); box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3); }
+    .stat-card .stat-icon.bg-danger { background: linear-gradient(135deg, var(--danger), #f87171); box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3); }
+    
+    .stat-card .stat-content {
+        flex: 1;
+    }
     .stat-card h3 {
-        margin: 0;
-        font-size: 24px;
-        font-weight: bold;
+        margin: 0 0 4px 0;
+        font-size: 28px;
+        font-weight: 800;
+        color: var(--txt);
+        letter-spacing: -0.5px;
     }
     .stat-card p {
         margin: 0;
-        font-size: 12px;
-        color: var(--muted, #888);
+        font-size: 13px;
+        color: var(--muted);
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
     </style>
 </head>
 <body>
 
 <!-- ══ TOPBAR ════════════════════════════════════════════════════════════ -->
-<div class="topbar">
-    <button class="hamburger" onclick="toggleSidebar()" aria-label="menu">
-        <i class="fa fa-bars"></i>
-    </button>
-    <a class="topbar-brand" href="{{ url_for('main.dashboard') }}">
-        FURY SMS
-    </a>
-    <div class="topbar-spacer"></div>
-    <div class="topbar-user">
+<div class="topbar" style="background-color: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: var(--nav-h);">
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <button class="hamburger" onclick="toggleSidebar()" aria-label="menu" style="background: none; border: none; font-size: 20px; color: var(--txt); cursor: pointer;">
+            <i class="fa fa-bars"></i>
+        </button>
+        <a class="topbar-brand" href="{% if current_user.is_admin() %}{{ url_for('admin.index') }}{% else %}{{ url_for('main.dashboard') }}{% endif %}" style="font-size: 20px; font-weight: 800; color: var(--accent); text-decoration: none;">
+            DREEM SMS
+        </a>
+    </div>
+
+    <!-- Real-time ticking UTC Clock -->
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <span id="serverTimeDisplay" style="font-family: monospace; font-size: 13px; font-weight: 600; padding: 6px 12px; background: var(--hover); border: 1px solid var(--border); border-radius: 4px; color: var(--txt);">
+            Loading UTC Clock...
+        </span>
+
         <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
             <i class="fa fa-moon"></i>
             <span class="theme-text">Dark</span>
         </button>
-        <span class="u-details">
-            <strong>{{ current_user.username }}</strong>
-            <span style="margin:0 6px;opacity:.4;">|</span>
-            <span>{{ current_user.role.display_name if current_user.role else 'User' }}</span>
-            <span style="margin:0 6px;opacity:.4;">|</span>
-        </span>
-        <a href="{{ url_for('auth.logout') }}"><i class="fa fa-sign-out"></i> Logout</a>
+
+        <!-- Profile Avatar & Gear settings icon -->
+        {% if current_user.is_admin() %}
+        <a href="{{ url_for('admin.settings') }}" style="color: var(--txt); font-size: 18px;" title="Settings">
+            <i class="fa fa-cog"></i>
+        </a>
+        {% else %}
+        <a href="{{ url_for('main.profile') }}" style="color: var(--txt); font-size: 18px;" title="Settings">
+            <i class="fa fa-cog"></i>
+        </a>
+        {% endif %}
+        <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;" title="{{ current_user.username }}">
+            {{ current_user.username[0].upper() }}
+        </div>
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-xs btn-danger" style="background-color: var(--danger); font-size: 11px;"><i class="fa fa-sign-out"></i> Logout</a>
     </div>
 </div>
 
@@ -363,198 +429,161 @@
 <div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
 
 <!-- ══ SIDEBAR ═══════════════════════════════════════════════════════════ -->
-<nav class="sidebar" id="sidebar">
-    <div class="sb-user">
-        <div class="sb-user-name">{{ current_user.username }}</div>
-        <div class="sb-user-role">{{ current_user.role.display_name if current_user.role else 'User' }}</div>
+<nav class="sidebar" id="sidebar" style="background-color: var(--card); border-right: 1px solid var(--border);">
+    <div class="sb-user" style="padding: 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px;">
+        <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--hover); display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--accent);">
+            <i class="fa fa-user-circle-o"></i>
+        </div>
+        <div>
+            <div class="sb-user-name" style="font-weight: 700; color: var(--txt);">{{ current_user.username }}</div>
+            <div class="sb-user-role" style="font-size: 11px; color: var(--accent); text-transform: uppercase;">{{ current_user.role.display_name if current_user.role else 'User' }}</div>
+        </div>
     </div>
 
-    <ul class="sb-nav">
-        {% if not current_user.is_test_account() %}
-        <!-- Dashboard -->
-        <li>
-            <a href="{{ url_for('main.dashboard') }}"
-               class="sb-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}">
-                <i class="fa fa-th-large"></i> Dashboard
-            </a>
-        </li>
-        {% endif %}
-
-        <!-- SMS accordion -->
-        <li>
-            <span class="sb-link {% if request.endpoint in ('main.sms_ranges','main.my_sms_numbers','main.sms_cdr_reports','main.inbox') %}active open{% endif %}"
-                  onclick="toggleAccordion(this,'sub-sms')">
-                <i class="fa fa-mobile"></i> SMS
-                <i class="fa fa-chevron-right sb-arrow"></i>
-            </span>
-            <ul class="sb-sub {% if request.endpoint in ('main.sms_ranges','main.my_sms_numbers','main.sms_cdr_reports','main.inbox') %}expanded{% endif %}"
-                id="sub-sms">
-                {% if not current_user.is_test_account() %}
-                <li><a href="{{ url_for('main.sms_ranges') }}"
-                       class="sb-link {% if request.endpoint == 'main.sms_ranges' %}active{% endif %}">
-                    <i class="fa fa-flag"></i> Ranges
-                </a></li>
-                {% endif %}
-                <li><a href="{{ url_for('main.my_sms_numbers') }}"
-                       class="sb-link {% if request.endpoint == 'main.my_sms_numbers' %}active{% endif %}">
-                    <i class="fa fa-list-ol"></i> My Numbers
-                </a></li>
-                <li><a href="{{ url_for('main.inbox') }}"
-                       class="sb-link {% if request.endpoint == 'main.inbox' %}active{% endif %}">
-                    <i class="fa fa-inbox"></i> Inbox
-                </a></li>
-                {% if not current_user.is_test_account() %}
-                <li><a href="{{ url_for('main.sms_cdr_reports') }}"
-                       class="sb-link {% if request.endpoint == 'main.sms_cdr_reports' %}active{% endif %}">
-                    <i class="fa fa-file-text-o"></i> CDR Reports
-                </a></li>
-                {% endif %}
-            </ul>
-        </li>
-
-        {% if not current_user.is_test_account() %}
-        <!-- Clients -->
-        <li>
-            <a href="{{ url_for('main.clients') }}"
-               class="sb-link {% if request.endpoint == 'main.clients' %}active{% endif %}">
-                <i class="fa fa-users"></i> Clients
-            </a>
-        </li>
-
-        <!-- Notifications -->
-        <li>
-            <a href="{{ url_for('main.notifications') }}"
-               class="sb-link {% if request.endpoint == 'main.notifications' %}active{% endif %}">
-                <i class="fa fa-bell"></i> Notifications
-            </a>
-        </li>
-        {% endif %}
-
-        {% if current_user.is_agent() or current_user.is_admin() %}
-        <div class="sb-divider"></div>
-        <div class="sb-label">Agent</div>
-
-        <!-- Agent accordion -->
-        <li>
-            <span class="sb-link {% if request.endpoint in ('admin.agent_add_numbers','admin.agent_my_numbers','admin.agent_create_client','admin.agent_clients') %}active open{% endif %}"
-                  onclick="toggleAccordion(this,'sub-agent')">
-                <i class="fa fa-user-circle"></i> My Account
-                <i class="fa fa-chevron-right sb-arrow"></i>
-            </span>
-            <ul class="sb-sub {% if request.endpoint in ('admin.agent_add_numbers','admin.agent_my_numbers','admin.agent_create_client','admin.agent_clients') %}expanded{% endif %}"
-                id="sub-agent">
-                <li><a href="{{ url_for('admin.agent_add_numbers') }}"
-                       class="sb-link {% if request.endpoint == 'admin.agent_add_numbers' %}active{% endif %}">
-                    <i class="fa fa-plus-circle"></i> Add Numbers
-                </a></li>
-                <li><a href="{{ url_for('admin.agent_my_numbers') }}"
-                       class="sb-link {% if request.endpoint == 'admin.agent_my_numbers' %}active{% endif %}">
-                    <i class="fa fa-list-ol"></i> My Numbers
-                </a></li>
-                <li><a href="{{ url_for('admin.agent_create_client') }}"
-                       class="sb-link {% if request.endpoint == 'admin.agent_create_client' %}active{% endif %}">
-                    <i class="fa fa-user-plus"></i> Add Client
-                </a></li>
-                <li><a href="{{ url_for('main.clients') }}"
-                       class="sb-link {% if request.endpoint == 'main.clients' %}active{% endif %}">
-                    <i class="fa fa-users"></i> My Clients
-                </a></li>
-                <li><a href="{{ url_for('admin.admin_add_numbers_to_client') }}"
-                       class="sb-link {% if request.endpoint == 'admin.admin_add_numbers_to_client' %}active{% endif %}">
-                    <i class="fa fa-phone-square"></i> Add Numbers to Client
-                </a></li>
-                <li><a href="{{ url_for('main.agent_api_settings') }}"
-                       class="sb-link {% if request.endpoint == 'main.agent_api_settings' %}active{% endif %}">
-                    <i class="fa fa-key"></i> API Settings
-                </a></li>
-            </ul>
-        </li>
-        {% endif %}
-
-        {% if current_user.is_developer() %}
-        <div class="sb-divider"></div>
-        <div class="sb-label">Developer</div>
-        <li>
-            <span class="sb-link {% if request.endpoint and request.endpoint.startswith('dev.') %}active open{% endif %}"
-                  onclick="toggleAccordion(this,'sub-dev')">
-                <i class="fa fa-code"></i> Static Assets
-                <i class="fa fa-chevron-right sb-arrow"></i>
-            </span>
-            <ul class="sb-sub {% if request.endpoint and request.endpoint.startswith('dev.') %}expanded{% endif %}"
-                id="sub-dev">
-                <li><a href="{{ url_for('dev.index') }}"
-                       class="sb-link {% if request.endpoint == 'dev.index' %}active{% endif %}">
-                    <i class="fa fa-th"></i> All Assets
-                </a></li>
-                <li><a href="{{ url_for('dev.upload') }}?type=img"
-                       class="sb-link"><i class="fa fa-image"></i> Images
-                </a></li>
-                <li><a href="{{ url_for('dev.upload') }}?type=css"
-                       class="sb-link"><i class="fa fa-paint-brush"></i> CSS
-                </a></li>
-                <li><a href="{{ url_for('dev.upload') }}?type=js"
-                       class="sb-link"><i class="fa fa-bolt"></i> JavaScript
-                </a></li>
-                <li><a href="{{ url_for('dev.pages_list') }}"
-                       class="sb-link {% if request.endpoint in ('dev.pages_list','dev.page_view') %}active{% endif %}">
-                    <i class="fa fa-file-code-o"></i> HTML Pages
-                </a></li>
-                <li><a href="{{ url_for('dev.upload') }}?type=html"
-                       class="sb-link"><i class="fa fa-plus"></i> New Page
-                </a></li>
-            </ul>
-        </li>
-        {% endif %}
-
-        <div class="sb-divider"></div>
-        <div class="sb-label">Account</div>
-
-        <li>
-            <a href="{{ url_for('main.profile') }}"
-               class="sb-link {% if request.endpoint == 'main.profile' %}active{% endif %}">
-                <i class="fa fa-user"></i> Profile
-            </a>
-        </li>
-        <li>
-            <a href="{{ url_for('main.profile') }}"
-               class="sb-link {% if request.endpoint == 'main.profile' %}active{% endif %}">
-                <i class="fa fa-cog"></i> Settings
-            </a>
-        </li>
-        <li>
-            <a href="{{ url_for('main.my_activity') }}"
-               class="sb-link {% if request.endpoint == 'main.my_activity' %}active{% endif %}">
-                <i class="fa fa-history"></i> Activity
-            </a>
-        </li>
-
+    <ul class="sb-nav" style="list-style: none; padding: 15px 10px;">
         {% if current_user.is_admin() %}
-        <div class="sb-divider"></div>
-        <div class="sb-label" style="color:var(--danger);">Admin</div>
+        <!-- ══ ADMIN SIDEBAR ════════════════════════════════════════════════════ -->
+        <div class="sb-label" style="font-size: 11px; font-weight: 700; color: var(--danger); margin-bottom: 8px; text-transform: uppercase;">Admin Control Panel</div>
         <li>
-            <span class="sb-link {% if request.endpoint and request.endpoint.startswith('admin.') %}active open{% endif %}"
-                  style="color:var(--danger);"
-                  onclick="toggleAccordion(this,'sub-admin')">
-                <i class="fa fa-shield"></i> Admin Panel
-                <i class="fa fa-chevron-right sb-arrow"></i>
+            <a href="{{ url_for('admin.index') }}" class="sb-link {% if request.endpoint == 'admin.index' %}active{% endif %}" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); text-decoration: none;">
+                <i class="fa fa-dashboard" style="color: var(--danger);"></i> Overview
+            </a>
+        </li>
+        <li>
+            <a href="{{ url_for('admin.users') }}" class="sb-link {% if request.endpoint == 'admin.users' %}active{% endif %}" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); text-decoration: none;">
+                <i class="fa fa-users"></i> Users Management
+            </a>
+        </li>
+        <li>
+            <a href="{{ url_for('admin.sms_ranges') }}" class="sb-link {% if request.endpoint == 'admin.sms_ranges' %}active{% endif %}" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); text-decoration: none;">
+                <i class="fa fa-flag"></i> SMS Ranges
+            </a>
+        </li>
+        <li>
+            <a href="{{ url_for('admin.sms_numbers') }}" class="sb-link {% if request.endpoint == 'admin.sms_numbers' %}active{% endif %}" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); text-decoration: none;">
+                <i class="fa fa-phone"></i> SMS Numbers
+            </a>
+        </li>
+        <li>
+            <a href="{{ url_for('admin.sms_cdr') }}" class="sb-link {% if request.endpoint == 'admin.sms_cdr' %}active{% endif %}" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); text-decoration: none;">
+                <i class="fa fa-file-text"></i> CDR Reports
+            </a>
+        </li>
+        <li>
+            <span class="sb-link {% if request.endpoint in ('admin.smpp_settings', 'admin.telegram_settings', 'admin.api_settings', 'admin.test123_bot_settings', 'admin.settings', 'admin.message_settings') %}active open{% endif %}" onclick="toggleAccordion(this, 'sub-admin-settings')" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); cursor: pointer;">
+                <i class="fa fa-cogs"></i> Settings Hub
+                <i class="fa fa-chevron-right sb-arrow" style="margin-left: auto; font-size: 10px;"></i>
             </span>
-            <ul class="sb-sub {% if request.endpoint and request.endpoint.startswith('admin.') %}expanded{% endif %}"
-                id="sub-admin">
-                <li><a href="{{ url_for('admin.index') }}"         class="sb-link"><i class="fa fa-dashboard"></i> Overview</a></li>
-                <li><a href="{{ url_for('admin.users') }}"         class="sb-link"><i class="fa fa-users"></i> Users</a></li>
-                <li><a href="{{ url_for('admin.sms_ranges') }}"    class="sb-link"><i class="fa fa-flag"></i> Ranges</a></li>
-                <li><a href="{{ url_for('admin.sms_numbers') }}"   class="sb-link"><i class="fa fa-phone"></i> Numbers</a></li>
-                <li><a href="{{ url_for('admin.sms_cdr') }}"       class="sb-link"><i class="fa fa-file-text"></i> CDR</a></li>
-                <li><a href="{{ url_for('admin.activity_logs') }}" class="sb-link"><i class="fa fa-history"></i> Logs</a></li>
-                <li><a href="{{ url_for('admin.telegram_settings') }}" class="sb-link"><i class="fa fa-telegram"></i> Telegram Bot</a></li>
-                <li><a href="{{ url_for('admin.test123_bot_settings') }}" class="sb-link"><i class="fa fa-android"></i> Test123 Bot</a></li>
-                <li><a href="{{ url_for('admin.api_settings') }}"   class="sb-link"><i class="fa fa-key"></i> API Settings</a></li>
-                <li><a href="{{ url_for('admin.smpp_settings') }}"  class="sb-link"><i class="fa fa-server"></i> SMPP Server</a></li>
-                <li><a href="{{ url_for('admin.smpp_messages') }}"  class="sb-link"><i class="fa fa-envelope"></i> SMPP Messages</a></li>
-                <li><a href="{{ url_for('monitor.index') }}"       class="sb-link"><i class="fa fa-rss"></i> SMS Monitor</a></li>
+            <ul class="sb-sub {% if request.endpoint in ('admin.smpp_settings', 'admin.telegram_settings', 'admin.api_settings', 'admin.test123_bot_settings', 'admin.settings', 'admin.message_settings') %}expanded{% endif %}" id="sub-admin-settings" style="list-style: none; padding-left: 20px;">
+                <li><a href="{{ url_for('admin.settings') }}" class="sb-link {% if request.endpoint == 'admin.settings' %}active{% endif %}"><i class="fa fa-cog"></i> Settings Hub</a></li>
+                <li><a href="{{ url_for('admin.smpp_settings') }}" class="sb-link {% if request.endpoint == 'admin.smpp_settings' %}active{% endif %}"><i class="fa fa-plug"></i> SMPP Settings</a></li>
+                <li><a href="{{ url_for('admin.telegram_settings') }}" class="sb-link {% if request.endpoint == 'admin.telegram_settings' %}active{% endif %}"><i class="fa fa-telegram"></i> Telegram Settings</a></li>
+                <li><a href="{{ url_for('admin.api_settings') }}" class="sb-link {% if request.endpoint == 'admin.api_settings' %}active{% endif %}"><i class="fa fa-code"></i> API Settings</a></li>
+                <li><a href="{{ url_for('admin.test123_bot_settings') }}" class="sb-link {% if request.endpoint == 'admin.test123_bot_settings' %}active{% endif %}"><i class="fa fa-robot"></i> Test123 Bot</a></li>
+                <li><a href="{{ url_for('admin.message_settings') }}" class="sb-link {% if request.endpoint == 'admin.message_settings' %}active{% endif %}"><i class="fa fa-hourglass-end"></i> Auto-Deletion</a></li>
+            </ul>
+        </li>
+
+        <div class="sb-divider" style="height: 1px; background: var(--border); margin: 15px 0;"></div>
+        <div class="sb-label" style="font-size: 11px; font-weight: 700; color: var(--success); margin-bottom: 8px; text-transform: uppercase;">User View</div>
+        <li>
+            <a href="{{ url_for('main.dashboard') }}" class="sb-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--success); text-decoration: none;">
+                <i class="fa fa-newspaper-o"></i> Latest News Panel
+            </a>
+        </li>
+
+        {% else %}
+        <!-- ══ STANDARD USER SIDEBAR ════════════════════════════════════════════ -->
+        <!-- DASHBOARDS -->
+        <div class="sb-label" style="font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 8px; text-transform: uppercase;">Dashboards</div>
+        <li>
+            <a href="{{ url_for('main.dashboard') }}" class="sb-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); text-decoration: none;">
+                <i class="fa fa-home"></i> Dashboard
+            </a>
+        </li>
+
+        <div class="sb-divider" style="height: 1px; background: var(--border); margin: 15px 0;"></div>
+
+        <!-- SMS MODULE -->
+        <div class="sb-label" style="font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 8px; text-transform: uppercase;">SMS Module</div>
+        <li>
+            <span class="sb-link {% if request.endpoint in ('main.sms_ranges', 'main.my_sms_numbers', 'main.sms_ratecard') %}active open{% endif %}" onclick="toggleAccordion(this, 'sub-sms')" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); cursor: pointer;">
+                <i class="fa fa-th-large"></i> IPRN SMS Module
+                <i class="fa fa-chevron-right sb-arrow" style="margin-left: auto; font-size: 10px;"></i>
+            </span>
+            <ul class="sb-sub {% if request.endpoint in ('main.sms_ranges', 'main.my_sms_numbers', 'main.sms_ratecard') %}expanded{% endif %}" id="sub-sms" style="list-style: none; padding-left: 20px;">
+                <li><a href="{{ url_for('main.sms_ranges') }}" class="sb-link {% if request.endpoint == 'main.sms_ranges' %}active{% endif %}"><i class="fa fa-flag"></i> SMS Ranges</a></li>
+                <li><a href="{{ url_for('main.my_sms_numbers') }}" class="sb-link {% if request.endpoint == 'main.my_sms_numbers' %}active{% endif %}"><i class="fa fa-list-ol"></i> My SMS Numbers</a></li>
+                <li><a href="{{ url_for('main.sms_ratecard') }}" class="sb-link {% if request.endpoint == 'main.sms_ratecard' %}active{% endif %}"><i class="fa fa-calculator"></i> SMS Ratecard</a></li>
+            </ul>
+        </li>
+
+        <div class="sb-divider" style="height: 1px; background: var(--border); margin: 15px 0;"></div>
+
+        <!-- USERS -->
+        <div class="sb-label" style="font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 8px; text-transform: uppercase;">Users</div>
+        <li>
+            <a href="{{ url_for('main.clients') }}" class="sb-link {% if request.endpoint == 'main.clients' %}active{% endif %}" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); text-decoration: none;">
+                <i class="fa fa-lock"></i> Clients
+            </a>
+        </li>
+
+        <div class="sb-divider" style="height: 1px; background: var(--border); margin: 15px 0;"></div>
+
+        <!-- CDRS & STATS -->
+        <div class="sb-label" style="font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 8px; text-transform: uppercase;">CDRS & Stats</div>
+        <li>
+            <span class="sb-link {% if request.endpoint == 'main.sms_cdr_reports' or (request.endpoint == 'main.stats') %}active open{% endif %}" onclick="toggleAccordion(this, 'sub-cdrs')" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); cursor: pointer;">
+                <i class="fa fa-file-text-o"></i> CDR & Stats
+                <i class="fa fa-chevron-right sb-arrow" style="margin-left: auto; font-size: 10px;"></i>
+            </span>
+            <ul class="sb-sub {% if request.endpoint == 'main.sms_cdr_reports' or (request.endpoint == 'main.stats') %}expanded{% endif %}" id="sub-cdrs" style="list-style: none; padding-left: 20px;">
+                <li><a href="{{ url_for('main.sms_cdr_reports') }}" class="sb-link {% if request.endpoint == 'main.sms_cdr_reports' %}active{% endif %}"><i class="fa fa-file-text"></i> SMS Reports</a></li>
+                <li><a href="{{ url_for('main.stats', stat_type='sms') }}" class="sb-link {% if request.endpoint == 'main.stats' and request.view_args.get('stat_type') == 'sms' %}active{% endif %}"><i class="fa fa-bar-chart"></i> SMS Stats</a></li>
+                <li><a href="{{ url_for('main.stats', stat_type='clients') }}" class="sb-link {% if request.endpoint == 'main.stats' and request.view_args.get('stat_type') == 'clients' %}active{% endif %}"><i class="fa fa-user"></i> Clients Stats</a></li>
+                <li><a href="{{ url_for('main.stats', stat_type='ranges') }}" class="sb-link {% if request.endpoint == 'main.stats' and request.view_args.get('stat_type') == 'ranges' %}active{% endif %}"><i class="fa fa-globe"></i> Ranges Stats</a></li>
+                <li><a href="{{ url_for('main.stats', stat_type='numbers') }}" class="sb-link {% if request.endpoint == 'main.stats' and request.view_args.get('stat_type') == 'numbers' %}active{% endif %}"><i class="fa fa-hashtag"></i> Number Stats</a></li>
+            </ul>
+        </li>
+
+        <div class="sb-divider" style="height: 1px; background: var(--border); margin: 15px 0;"></div>
+
+        <!-- FINANCE -->
+        <div class="sb-label" style="font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 8px; text-transform: uppercase;">Finance</div>
+        <li>
+            <a href="{{ url_for('main.credit_notes') }}" class="sb-link {% if request.endpoint == 'main.credit_notes' %}active{% endif %}" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); text-decoration: none;">
+                <i class="fa fa-compass"></i> Credit Notes
+            </a>
+        </li>
+        <li>
+            <a href="{{ url_for('main.payment_requests') }}" class="sb-link {% if request.endpoint == 'main.payment_requests' %}active{% endif %}" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); text-decoration: none;">
+                <i class="fa fa-credit-card"></i> Payment Requests
+            </a>
+        </li>
+        <li>
+            <a href="{{ url_for('main.bank_accounts') }}" class="sb-link {% if request.endpoint == 'main.bank_accounts' %}active{% endif %}" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); text-decoration: none;">
+                <i class="fa fa-university"></i> Bank Accounts
+            </a>
+        </li>
+        <li>
+            <span class="sb-link {% if request.endpoint == 'main.statements' %}active open{% endif %}" onclick="toggleAccordion(this, 'sub-statements')" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); cursor: pointer;">
+                <i class="fa fa-list"></i> Statements
+                <i class="fa fa-chevron-right sb-arrow" style="margin-left: auto; font-size: 10px;"></i>
+            </span>
+            <ul class="sb-sub {% if request.endpoint == 'main.statements' %}expanded{% endif %}" id="sub-statements" style="list-style: none; padding-left: 20px;">
+                <li><a href="{{ url_for('main.statements', currency='USD') }}" class="sb-link {% if request.endpoint == 'main.statements' and request.view_args.get('currency') == 'USD' %}active{% endif %}"><i class="fa fa-usd"></i> USD Statement</a></li>
+                <li><a href="{{ url_for('main.statements', currency='EUR') }}" class="sb-link {% if request.endpoint == 'main.statements' and request.view_args.get('currency') == 'EUR' %}active{% endif %}"><i class="fa fa-eur"></i> EUR Statement</a></li>
+                <li><a href="{{ url_for('main.statements', currency='GBP') }}" class="sb-link {% if request.endpoint == 'main.statements' and request.view_args.get('currency') == 'GBP' %}active{% endif %}"><i class="fa fa-gbp"></i> GBP Statement</a></li>
             </ul>
         </li>
         {% endif %}
+
+        <div class="sb-divider" style="height: 1px; background: var(--border); margin: 15px 0;"></div>
+        <li>
+            <a href="{{ url_for('auth.logout') }}" class="sb-link" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--danger); text-decoration: none;">
+                <i class="fa fa-sign-out"></i> Logout
+            </a>
+        </li>
     </ul>
 </nav>
 
@@ -576,6 +605,13 @@
     {% endwith %}
 
     {% block content %}{% endblock %}
+
+    <!-- ══ FOOTER ════════════════════════════════════════════════════════════ -->
+    <footer style="margin-top: auto; padding: 24px 0; border-top: 1px solid var(--border); font-size: 13px; color: var(--muted); text-align: center;">
+        <div class="container-fluid">
+            <p style="margin: 0;">&copy; {{ datetime.now().year }} <strong>DREEM SMS</strong>. All rights reserved.</p>
+        </div>
+    </footer>
 </div>
 
 <!-- Scripts -->
@@ -584,6 +620,29 @@
 {% block extra_js %}{% endblock %}
 
 <script>
+/* ── Real-time ticking UTC clock ────────────────── */
+(function() {
+    var clockEl = document.getElementById('serverTimeDisplay');
+    if (!clockEl) return;
+    
+    // Initialize with standard current date (since we want real-time accuracy)
+    var serverTime = new Date();
+    
+    function updateClock() {
+        serverTime.setSeconds(serverTime.getSeconds() + 1);
+        var year = serverTime.getUTCFullYear();
+        var month = String(serverTime.getUTCMonth() + 1).padStart(2, '0');
+        var day = String(serverTime.getUTCDate()).padStart(2, '0');
+        var hours = String(serverTime.getUTCHours()).padStart(2, '0');
+        var minutes = String(serverTime.getUTCMinutes()).padStart(2, '0');
+        var seconds = String(serverTime.getUTCSeconds()).padStart(2, '0');
+        clockEl.textContent = year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds + ' UTC';
+    }
+    
+    updateClock();
+    setInterval(updateClock, 1000);
+})();
+
 /* ── Theme Toggle ──────────────────────────────── */
 function toggleTheme() {
     var body = document.body;
@@ -625,12 +684,14 @@ function updateThemeIcon(isLight) {
     }
 })();
 
-/* ── Sidebar toggle (mobile) ──────────────────── */
+/* ── Sidebar toggle (desktop & mobile) ──────────────────── */
 function toggleSidebar() {
+    var body = document.body;
     var sb  = document.getElementById('sidebar');
     var ov  = document.getElementById('sbOverlay');
-    sb.classList.toggle('open');
-    ov.classList.toggle('open');
+    
+    // Toggle class on body to handle desktop collapse
+    body.classList.toggle('sidebar-collapsed');
 }
 
 /* ── Accordion nav (PUSHES content down) ─────── */
@@ -661,6 +722,43 @@ setTimeout(function() {
         setTimeout(function() { el.remove(); }, 500);
     });
 }, 6000);
+
+/* ── Google TTS Welcome Greeting ──────────────── */
+{% if session.pop('play_welcome', None) %}
+(function() {
+    function speakFallback() {
+        if ('speechSynthesis' in window) {
+            var msg = new SpeechSynthesisUtterance('Welcome Dream SMS');
+            msg.rate = 0.9;
+            var voices = window.speechSynthesis.getVoices();
+            for (var i = 0; i < voices.length; i++) {
+                if (voices[i].lang.indexOf('en') === 0) {
+                    msg.voice = voices[i];
+                    break;
+                }
+            }
+            window.speechSynthesis.speak(msg);
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', function() {
+        // Play welcome audio via our backend TTS proxy
+        try {
+            var audio = new Audio("/api/tts/welcome");
+            var playPromise = audio.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(function(error) {
+                    console.log("Autoplay policy or error occurred, calling speech fallback.", error);
+                    speakFallback();
+                });
+            }
+        } catch (e) {
+            console.log("Google TTS proxy error, calling speech fallback.", e);
+            speakFallback();
+        }
+    });
+})();
+{% endif %}
 </script>
 </body>
 </html>

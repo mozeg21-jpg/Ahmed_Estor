@@ -174,3 +174,69 @@ def fake_lfi():
 def fake_joomla(subpath=''):
     _log_attempt()
     return make_response(_FAKE_LOGIN_HTML.replace('phpMyAdmin', 'Joomla! Administration'), 200)
+
+
+# ============ LOCAL EMULATED DREEM SMS (ABYSS) ENDPOINTS ============
+
+@honeypot_bp.route('/ints/login', methods=['GET'])
+def ints_login():
+    import random
+    n1 = random.randint(1, 10)
+    n2 = random.randint(1, 10)
+    html = f"""
+    <html>
+    <head><title>Login</title></head>
+    <body>
+      <p>What is {n1} + {n2}?</p>
+      <form action="/ints/signin" method="POST">
+        <label>Answer:</label>
+        <input type="text" name="capt" />
+        <input type="submit" value="Login" />
+      </form>
+    </body>
+    </html>
+    """
+    return make_response(html, 200)
+
+@honeypot_bp.route('/ints/signin', methods=['POST'])
+def ints_signin():
+    return make_response("Logged in dashboard success", 200)
+
+@honeypot_bp.route('/ints/agent/SMSCDRStats', methods=['GET'])
+def ints_stats():
+    return make_response("Stats OK", 200)
+
+@honeypot_bp.route('/ints/agent/res/data_smscdr.php', methods=['GET'])
+def ints_data_smscdr():
+    import random
+    from datetime import datetime, timedelta
+    from app.models.sms import SMSNumber
+    
+    try:
+        active_numbers = SMSNumber.query.filter_by(is_active=True).all()
+    except Exception:
+        active_numbers = []
+    
+    rows = []
+    now = datetime.now()
+    
+    if active_numbers:
+        sampled = random.sample(active_numbers, min(len(active_numbers), 5))
+        for i, num in enumerate(sampled):
+            otp = random.randint(100000, 999999)
+            text = f"Your activation code is: {otp}. Welcome to our service."
+            sender = random.choice(["Verify", "InfoSMS", "AuthCode", "Google", "Telegram"])
+            msg_time = (now - timedelta(minutes=i*2)).strftime("%Y-%m-%d %H:%M:%S")
+            rows.append([msg_time, "", num.number, sender, text])
+            
+    if not rows:
+        rows.append([
+            now.strftime("%Y-%m-%d %H:%M:%S"),
+            "",
+            "+447123456789",
+            "TEST_SENDER",
+            "Your verification code is 123456. Welcome to DREEM SMS."
+        ])
+        
+    return jsonify({"data": rows})
+

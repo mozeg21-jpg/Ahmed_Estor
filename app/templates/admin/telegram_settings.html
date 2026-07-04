@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram Bot Settings - FURY SMS</title>
+    <title>Telegram Bot Settings - DREEM SMS</title>
 </head>
 {% extends "base.html" %}
 
@@ -90,7 +90,7 @@ function testConnection() {
     $.ajax({
         url: '{{ url_for("admin.telegram_test") }}',
         method: 'POST',
-        data: { chat_id: chatId, message: 'FURY SMS Connection Test' },
+        data: { chat_id: chatId, message: 'DREEM SMS Connection Test' },
         success: function(response) {
             if (response.success) {
                 alert('Test message sent successfully!');
