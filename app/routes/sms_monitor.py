@@ -15,12 +15,16 @@ _sys_server_port = os.environ.get('SERVER_PORT')
 _sys_port = os.environ.get('PORT')
 if os.environ.get('DEFAULT_APP_PORT'):
     local_port = os.environ.get('DEFAULT_APP_PORT')
-elif _sys_server_port:
-    local_port = _sys_server_port
+elif os.environ.get('PORT'):
+    local_port = os.environ.get('PORT')
+elif os.environ.get('SERVER_PORT'):
+    local_port = os.environ.get('SERVER_PORT')
 elif _sys_port:
     local_port = _sys_port
+elif _sys_server_port:
+    local_port = _sys_server_port
 else:
-    local_port = os.environ.get('PORT', '3000')
+    local_port = '5000'
 from datetime import datetime, timedelta, date
 from urllib.parse import quote_plus
 from functools import wraps
