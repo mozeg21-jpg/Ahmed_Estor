@@ -648,6 +648,55 @@ def fetch_numper(days_back=1):
         return [], str(e)
 
 
+def fetch_supplier_messages(supplier, days_back=1):
+    now = datetime.now()
+    params = {
+        "token":   supplier.api_token,
+        "dt1":     (now - timedelta(days=days_back)).strftime("%Y-%m-%d %H:%M:%S"),
+        "dt2":     now.strftime("%Y-%m-%d %H:%M:%S"),
+        "records": supplier.records or 500,
+    }
+    try:
+        r = requests.get(supplier.api_url, params=params, timeout=supplier.timeout or 15)
+        data = r.json()
+        msgs = []
+        
+        if supplier.parser_type == 'nested_list':
+            for item in data:
+                if isinstance(item, (list, tuple)) and len(item) >= 4:
+                    cli = _clean_html(item[0])
+                    n   = _clean_num(item[1])
+                    s   = _clean_html(item[2])
+                    d   = _clean_html(item[3])
+                    if n and s and len(n) >= 8:
+                        msgs.append({
+                            "id":     _make_ext_id("np", n, d, s),
+                            "number": n, "text": s, "date": d,
+                            "source": supplier.name, "cli": cli,
+                        })
+        else: # standard
+            items = []
+            if isinstance(data, dict):
+                items = data.get("data", [])
+            elif isinstance(data, list):
+                items = data
+            for item in items:
+                if isinstance(item, dict):
+                    n   = _clean_num(item.get("num", ""))
+                    s   = str(item.get("message", "")).strip()
+                    d   = str(item.get("dt", ""))
+                    cli = str(item.get("cli", "")).strip()
+                    if n and s:
+                        msgs.append({
+                            "id":     _make_ext_id("dyn", n, d, s),
+                            "number": n, "text": s, "date": d,
+                            "source": supplier.name, "cli": cli,
+                        })
+        return msgs, "ok"
+    except Exception as e:
+        return [], str(e)
+
+
 # ════════════════════════════════════════════════════════════
 # Background Worker
 # ════════════════════════════════════════════════════════════
@@ -664,21 +713,44 @@ def _background_worker(app):
     with app.app_context():
         while _bg_running:
             try:
+                # Check website status first
+                from app.models.activity import News
+                try:
+                    status_setting = News.query.filter_by(title='website_status').first()
+                    if status_setting and status_setting.content == 'offline':
+                        # If website is offline, skip background polling to save resources
+                        time.sleep(30)
+                        continue
+                except Exception:
+                    pass
+
                 all_msgs = []
                 statuses = {}
-                # Disabled local/mock/test sources (abyss, panel4, panel4_2) to avoid fake stats/messages.
-                # Only pull real messages from live provider REST APIs (timesms, hadi, numper)
-                for label, fn in [
-                    ("timesms", fetch_timesms),
-                    ("hadi",    fetch_hadi),
-                    ("numper",  fetch_numper),
-                ]:
-                    try:
-                        msgs, st = fn()
-                        all_msgs.extend(msgs)
-                        statuses[label] = {"count": len(msgs), "status": st}
-                    except Exception as e:
-                        statuses[label] = {"count": 0, "status": str(e)}
+                
+                from app.models.sms import SMSSupplier
+                suppliers = SMSSupplier.query.filter_by(is_active=True).all()
+                
+                if suppliers:
+                    for s in suppliers:
+                        try:
+                            msgs, st = fetch_supplier_messages(s)
+                            all_msgs.extend(msgs)
+                            statuses[s.name] = {"count": len(msgs), "status": st}
+                        except Exception as e:
+                            statuses[s.name] = {"count": 0, "status": str(e)}
+                else:
+                    # Fallback
+                    for label, fn in [
+                        ("timesms", fetch_timesms),
+                        ("hadi",    fetch_hadi),
+                        ("numper",  fetch_numper),
+                    ]:
+                        try:
+                            msgs, st = fn()
+                            all_msgs.extend(msgs)
+                            statuses[label] = {"count": len(msgs), "status": st}
+                        except Exception as e:
+                            statuses[label] = {"count": 0, "status": str(e)}
 
                 result = forward_to_reserved(all_msgs)
                 _bg_last_run    = datetime.now().strftime("%Y-%m-%d %H:%M:%S")

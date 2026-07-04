@@ -220,3 +220,31 @@ class SMPPMessage(db.Model):
             'ton': self.ton,
             'npi': self.npi
         }
+
+
+class SMSSupplier(db.Model):
+    __tablename__ = 'sms_suppliers'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    api_url = db.Column(db.String(255), nullable=False)
+    api_token = db.Column(db.String(255), nullable=False)
+    parser_type = db.Column(db.String(50), default='standard')  # 'standard' (Timesms/Hadi) or 'nested_list' (Numper)
+    timeout = db.Column(db.Integer, default=15)
+    records = db.Column(db.Integer, default=500)
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'api_url': self.api_url,
+            'api_token': self.api_token,
+            'parser_type': self.parser_type,
+            'timeout': self.timeout,
+            'records': self.records,
+            'is_active': self.is_active,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+

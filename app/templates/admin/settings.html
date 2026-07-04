@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Settings Hub - DREEM SMS{% endblock %}
+{% block title %}إعدادات النظام والتحكم - DREEM SMS{% endblock %}
 
 {% block content %}
 <style>
@@ -13,173 +13,620 @@
         backdrop-filter: blur(10px);
     }
 
-    .settings-grid {
+    .settings-grid-compact {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 20px;
-        margin-top: 10px;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 30px;
     }
 
-    .settings-card {
+    .settings-card-compact {
         background-color: var(--card);
         border: 1px solid var(--border);
         border-radius: 12px;
-        padding: 24px;
+        padding: 16px;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        min-height: 220px;
+        transition: all 0.2s ease;
+        position: relative;
+        overflow: hidden;
     }
 
-    .settings-card:hover {
-        transform: translateY(-4px);
+    .settings-card-compact:hover {
+        transform: translateY(-2px);
         border-color: var(--accent);
-        box-shadow: 0 12px 24px -10px rgba(59, 130, 246, 0.25);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
     }
 
-    .settings-icon-title {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        margin-bottom: 12px;
-    }
-
-    .settings-icon-box {
-        width: 48px;
-        height: 48px;
-        border-radius: 10px;
+    .settings-icon-box-compact {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
-        flex-shrink: 0;
+        margin-bottom: 10px;
     }
 
-    .settings-icon-box i {
-        font-size: 20px;
+    .settings-icon-box-compact i {
+        font-size: 16px;
         color: white;
     }
 
-    .settings-title {
-        font-size: 16px;
+    .settings-title-compact {
+        font-size: 14px;
         font-weight: 700;
         color: var(--txt);
+        margin-bottom: 6px;
     }
 
-    .settings-desc {
-        font-size: 13px;
+    .settings-desc-compact {
+        font-size: 11px;
         color: var(--muted);
-        line-height: 1.6;
-        margin-bottom: 20px;
-        flex-grow: 1;
+        line-height: 1.4;
+        margin-bottom: 12px;
+        height: 32px;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
-    .settings-action-btn {
+    .settings-action-btn-compact {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 8px;
+        gap: 6px;
         width: 100%;
-        padding: 10px;
-        border-radius: 8px;
-        font-size: 13px;
+        padding: 6px;
+        border-radius: 6px;
+        font-size: 12px;
         font-weight: 600;
         text-decoration: none !important;
         transition: all 0.2s;
     }
+
+    .control-panel-section {
+        background-color: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+
+    .section-title {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--txt);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 12px;
+    }
+
+    .section-title i {
+        color: var(--accent);
+    }
+
+    .switch-toggle-container {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        background: rgba(17, 24, 39, 0.4);
+        padding: 16px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+    }
+
+    /* Beautiful custom switch toggler */
+    .switch-custom {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 30px;
+    }
+
+    .switch-custom input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider-custom {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ef4444; /* Offline - Red */
+        transition: .4s;
+        border-radius: 34px;
+    }
+
+    .slider-custom:before {
+        position: absolute;
+        content: "";
+        height: 22px;
+        width: 22px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+
+    input:checked + .slider-custom {
+        background-color: #22c55e; /* Online - Green */
+    }
+
+    input:checked + .slider-custom:before {
+        transform: translateX(30px);
+    }
+
+    .status-badge {
+        font-size: 12px;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 99px;
+    }
+
+    .status-badge.online {
+        background: rgba(34, 197, 94, 0.1);
+        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.2);
+    }
+
+    .status-badge.offline {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .form-group-custom {
+        margin-bottom: 16px;
+    }
+
+    .form-group-custom label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--txt);
+        margin-bottom: 6px;
+    }
+
+    .form-control-custom {
+        width: 100%;
+        background-color: rgba(17, 24, 39, 0.6);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px 14px;
+        color: var(--txt);
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+
+    .form-control-custom:focus {
+        border-color: var(--accent);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+
+    .supplier-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+
+    .supplier-table th {
+        background-color: rgba(17, 24, 39, 0.8);
+        border: 1px solid var(--border);
+        padding: 12px;
+        text-align: right;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--muted);
+    }
+
+    .supplier-table td {
+        border: 1px solid var(--border);
+        padding: 12px;
+        font-size: 13px;
+        color: var(--txt);
+        vertical-align: middle;
+    }
+
+    .supplier-table tr:hover {
+        background-color: rgba(31, 41, 55, 0.3);
+    }
+
+    .action-badge-btn {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+        color: var(--muted);
+        transition: color 0.2s;
+        margin: 0 4px;
+    }
+
+    .action-badge-btn:hover {
+        color: var(--txt);
+    }
+
+    .action-badge-btn.delete:hover {
+        color: #ef4444;
+    }
 </style>
 
+<!-- Header -->
 <div class="row">
     <div class="col-md-12">
-        <div class="settings-header">
+        <div class="settings-header" style="direction: rtl;">
             <span class="admin-title-badge" style="background: rgba(59, 130, 246, 0.1); color: var(--accent); padding: 6px 12px; border-radius: 99px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 8px;">
-                <i class="fa fa-cogs"></i> CONFIGURATION HUB
+                <i class="fa fa-cogs"></i> لوحة التحكم المركزية والإعدادات
             </span>
-            <h2 style="color: var(--txt); font-weight: 800; margin: 0; font-size: 24px;">Admin Settings Dashboard</h2>
-            <p style="color: var(--muted); margin: 6px 0 0 0; font-size: 14px;">Manage SMPP protocols, system security, Telegram notifications, and API tokens across the entire platform.</p>
+            <h2 style="color: var(--txt); font-weight: 800; margin: 0; font-size: 24px;">إعدادات النظام والتحكم الأساسي</h2>
+            <p style="color: var(--muted); margin: 6px 0 0 0; font-size: 14px;">التحكم الكامل بمنافذ الموردين (API)، تغيير كلمة مرور المالك، إيقاف وتشغيل الموقع، وإدارة كافة بروتوكولات الربط والإرسال.</p>
         </div>
     </div>
 </div>
 
-<div class="settings-grid">
+<!-- Quick Link Cards Row -->
+<div class="settings-grid-compact" style="direction: rtl;">
     <!-- SMPP Settings -->
-    <div class="settings-card">
+    <div class="settings-card-compact">
         <div>
-            <div class="settings-icon-title">
-                <div class="settings-icon-box" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
-                    <i class="fa fa-plug"></i>
-                </div>
-                <div class="settings-title">SMPP Server Settings</div>
+            <div class="settings-icon-box-compact" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+                <i class="fa fa-plug"></i>
             </div>
-            <div class="settings-desc">Configure SMPP parameters, bind credentials, host ports, and system ID settings to establish stable connections with external providers.</div>
+            <div class="settings-title-compact">خادم SMPP</div>
+            <div class="settings-desc-compact">إعدادات بروتوكول SMPP للربط الخارجي.</div>
         </div>
-        <a href="{{ url_for('admin.smpp_settings') }}" class="btn btn-primary settings-action-btn">
-            Configure SMPP <i class="fa fa-arrow-right"></i>
+        <a href="{{ url_for('admin.smpp_settings') }}" class="btn btn-primary settings-action-btn-compact">
+            تعديل SMPP <i class="fa fa-arrow-left"></i>
         </a>
     </div>
 
     <!-- Telegram Settings -->
-    <div class="settings-card">
+    <div class="settings-card-compact">
         <div>
-            <div class="settings-icon-title">
-                <div class="settings-icon-box" style="background: linear-gradient(135deg, #06b6d4, #0891b2);">
-                    <i class="fa fa-telegram"></i>
-                </div>
-                <div class="settings-title">Telegram Bot Config</div>
+            <div class="settings-icon-box-compact" style="background: linear-gradient(135deg, #06b6d4, #0891b2);">
+                <i class="fa fa-telegram"></i>
             </div>
-            <div class="settings-desc">Configure the main system Telegram bot token, chat IDs, and enable/disable automated delivery alerts or SMS forwarding protocols.</div>
+            <div class="settings-title-compact">بوت التلغرام</div>
+            <div class="settings-desc-compact">إعداد توكن البوت ومعرفات قنوات التنبيه.</div>
         </div>
-        <a href="{{ url_for('admin.telegram_settings') }}" class="btn btn-info settings-action-btn" style="background-color: #0891b2; border-color: #0891b2; color: white;">
-            Configure Telegram <i class="fa fa-arrow-right"></i>
+        <a href="{{ url_for('admin.telegram_settings') }}" class="btn btn-info settings-action-btn-compact" style="background-color: #0891b2; border-color: #0891b2; color: white;">
+            تعديل التلغرام <i class="fa fa-arrow-left"></i>
         </a>
     </div>
 
     <!-- API Settings -->
-    <div class="settings-card">
+    <div class="settings-card-compact">
         <div>
-            <div class="settings-icon-title">
-                <div class="settings-icon-box" style="background: linear-gradient(135deg, #10b981, #047857);">
-                    <i class="fa fa-code"></i>
-                </div>
-                <div class="settings-title">API & Webhooks</div>
+            <div class="settings-icon-box-compact" style="background: linear-gradient(135deg, #10b981, #047857);">
+                <i class="fa fa-code"></i>
             </div>
-            <div class="settings-desc">Set rate limits, webhook secrets, configure OTP channel integrations, and manage client authentication access tokens.</div>
+            <div class="settings-title-compact">الـ API والويب هوك</div>
+            <div class="settings-desc-compact">إعداد حدود الطلبات، مفاتيح الأمان، والتوثيق.</div>
         </div>
-        <a href="{{ url_for('admin.api_settings') }}" class="btn btn-success settings-action-btn" style="background-color: #047857; border-color: #047857;">
-            Configure API <i class="fa fa-arrow-right"></i>
+        <a href="{{ url_for('admin.api_settings') }}" class="btn btn-success settings-action-btn-compact" style="background-color: #047857; border-color: #047857; color: white;">
+            تعديل الـ API <i class="fa fa-arrow-left"></i>
         </a>
     </div>
 
     <!-- Test123 Bot Settings -->
-    <div class="settings-card">
+    <div class="settings-card-compact">
         <div>
-            <div class="settings-icon-title">
-                <div class="settings-icon-box" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">
-                    <i class="fa fa-robot"></i>
-                </div>
-                <div class="settings-title">Test123 Bot Config</div>
+            <div class="settings-icon-box-compact" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">
+                <i class="fa fa-robot"></i>
             </div>
-            <div class="settings-desc">Configure specialized integration parameters for test123 sandbox and simulated users, including customized forwarding rules and target channels.</div>
+            <div class="settings-title-compact">تعديل توجيه OTP</div>
+            <div class="settings-desc-compact">إعدادات الفلترة وحسابات التوجيه المخصصة.</div>
         </div>
-        <a href="{{ url_for('admin.test123_bot_settings') }}" class="btn btn-warning settings-action-btn" style="background-color: #6d28d9; border-color: #6d28d9; color: white;">
-            Configure Bot <i class="fa fa-arrow-right"></i>
+        <a href="{{ url_for('admin.test123_bot_settings') }}" class="btn btn-warning settings-action-btn-compact" style="background-color: #6d28d9; border-color: #6d28d9; color: white;">
+            إعدادات التوجيه <i class="fa fa-arrow-left"></i>
         </a>
     </div>
 
     <!-- Message Deletion Settings -->
-    <div class="settings-card">
+    <div class="settings-card-compact">
         <div>
-            <div class="settings-icon-title">
-                <div class="settings-icon-box" style="background: linear-gradient(135deg, #f59e0b, #b45309);">
-                    <i class="fa fa-hourglass-end"></i>
-                </div>
-                <div class="settings-title">System Message Deletion</div>
+            <div class="settings-icon-box-compact" style="background: linear-gradient(135deg, #f59e0b, #b45309);">
+                <i class="fa fa-hourglass-end"></i>
             </div>
-            <div class="settings-desc">Define message auto-deletion intervals and storage rotation settings per client for automated CDR privacy compliance.</div>
+            <div class="settings-title-compact">حذف الرسائل تلقائياً</div>
+            <div class="settings-desc-compact">جدولة الحذف التلقائي لسجلات الـ CDR للحفاظ على الخصوصية.</div>
         </div>
-        <a href="{{ url_for('admin.message_settings') }}" class="btn btn-warning settings-action-btn" style="background-color: #b45309; border-color: #b45309; color: white;">
-            Configure Deletion <i class="fa fa-arrow-right"></i>
+        <a href="{{ url_for('admin.message_settings') }}" class="btn btn-warning settings-action-btn-compact" style="background-color: #b45309; border-color: #b45309; color: white;">
+            جدولة الحذف <i class="fa fa-arrow-left"></i>
         </a>
     </div>
 </div>
+
+<div class="row" style="direction: rtl;">
+    <!-- Main Left Column: System Control & Admin Password -->
+    <div class="col-md-5">
+        <!-- Website Status Control Panel -->
+        <div class="control-panel-section">
+            <div class="section-title">
+                <i class="fa fa-power-off"></i>
+                <span>حالة الموقع والتشغيل</span>
+            </div>
+            <p style="font-size: 13px; color: var(--muted); margin-bottom: 16px; line-height: 1.6;">
+                يمكنك إيقاف الموقع بالكامل وتحويله إلى وضع الصيانة فوراً لمنع دخول العملاء والوكلاء ومراقبة حالة البث أثناء التحديثات، مع بقاء لوحة الإدارة متاحة لك.
+            </p>
+
+            <form action="{{ url_for('admin.toggle_website') }}" method="POST">
+                <div class="switch-toggle-container mb-3">
+                    <label class="switch-custom">
+                        <input type="checkbox" name="website_status_check" id="website_status_check" value="online" {% if website_status == 'online' %}checked{% endif %} onchange="updateStatusLabel(this)">
+                        <span class="slider-custom"></span>
+                    </label>
+                    <div style="flex-grow: 1;">
+                        <div style="font-weight: bold; font-size: 14px;" id="status-title-text">
+                            {% if website_status == 'online' %}الموقع قيد العمل والتشغيل الآن{% else %}الموقع متوقف وفي وضع الصيانة حالياً{% endif %}
+                        </div>
+                        <span class="status-badge {% if website_status == 'online' %}online{% else %}offline{% endif %}" id="status-badge-el">
+                            {% if website_status == 'online' %}نشط (Online){% else %}مغلق (Offline){% endif %}
+                        </span>
+                    </div>
+                </div>
+                <input type="hidden" name="website_status" id="website_status_input" value="{{ website_status }}">
+
+                <div class="form-group-custom" id="maintenance-msg-wrapper" {% if website_status == 'online' %}style="display: none;"{% endif %}>
+                    <label for="maintenance_message">رسالة الصيانة التي تظهر للمستخدمين:</label>
+                    <textarea class="form-control-custom" name="maintenance_message" id="maintenance_message" rows="3" placeholder="اكتب رسالة الصيانة هنا...">{{ maintenance_message }}</textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100" style="font-weight: bold;">
+                    <i class="fa fa-save"></i> حفظ وتحديث حالة الموقع
+                </button>
+            </form>
+        </div>
+
+        <!-- Master Owner Password Change -->
+        <div class="control-panel-section">
+            <div class="section-title">
+                <i class="fa fa-lock"></i>
+                <span>تغيير كلمة مرور المالك الأساسي</span>
+            </div>
+            <p style="font-size: 13px; color: var(--muted); margin-bottom: 16px; line-height: 1.6;">
+                قم بتحديث كلمة المرور لحساب المدير والمالك الأساسي للنظام (admin) بشكل دوري لضمان أمان الموقع بالكامل.
+            </p>
+
+            <form action="{{ url_for('admin.change_admin_password') }}" method="POST">
+                <div class="form-group-custom">
+                    <label for="current_password">كلمة المرور الحالية:</label>
+                    <input type="password" class="form-control-custom" name="current_password" id="current_password" placeholder="••••••••" required>
+                </div>
+                <div class="form-group-custom">
+                    <label for="new_password">كلمة المرور الجديدة:</label>
+                    <input type="password" class="form-control-custom" name="new_password" id="new_password" placeholder="••••••••" required>
+                </div>
+                <div class="form-group-custom">
+                    <label for="confirm_password">تأكيد كلمة المرور الجديدة:</label>
+                    <input type="password" class="form-control-custom" name="confirm_password" id="confirm_password" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" class="btn btn-success w-100" style="font-weight: bold; background-color: #047857; border-color: #047857;">
+                    <i class="fa fa-key"></i> تحديث كلمة المرور
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Right Column: Dynamic Supplier API Management -->
+    <div class="col-md-7">
+        <div class="control-panel-section">
+            <div class="section-title" style="justify-content: space-between; display: flex; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <i class="fa fa-server"></i>
+                    <span>إدارة الموردين الخارجيين (API Suppliers)</span>
+                </div>
+                <button class="btn btn-sm btn-primary" style="font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 6px;" data-bs-toggle="modal" data-bs-target="#addSupplierModal">
+                    <i class="fa fa-plus"></i> إضافة مورد جديد
+                </button>
+            </div>
+            <p style="font-size: 13px; color: var(--muted); margin-bottom: 16px; line-height: 1.6;">
+                تتيح لك هذه اللوحة إدارة مصادر سحب رسائل الـ SMS (الموردين) بشكل ديناميكي. يمكنك إضافة أي رابط API خاص بمورد خارجي، تعيين توكن التحقق، نوع معالجة المخرجات (Parser)، تفعيل/تعطيل المورد، أو حذفه بالكامل.
+            </p>
+
+            <div class="table-responsive">
+                <table class="supplier-table">
+                    <thead>
+                        <tr>
+                            <th>اسم المورد</th>
+                            <th>رابط الـ API</th>
+                            <th>التوثيق (Token)</th>
+                            <th>نوع المعالجة</th>
+                            <th>الحالة</th>
+                            <th>العمليات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for supplier in suppliers %}
+                        <tr>
+                            <td style="font-weight: bold;">{{ supplier.name }}</td>
+                            <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: monospace; font-size: 11px;" title="{{ supplier.api_url }}">
+                                {{ supplier.api_url }}
+                            </td>
+                            <td style="font-family: monospace; font-size: 11px;">
+                                {% if supplier.api_token %}
+                                {{ supplier.api_token[:8] }}...{{ supplier.api_token[-8:] if supplier.api_token|length > 8 else '' }}
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if supplier.parser_type == 'nested_list' %}
+                                <span class="badge bg-purple" style="font-size: 11px;">مصفوفة متداخلة (Source E)</span>
+                                {% else %}
+                                <span class="badge bg-info" style="font-size: 11px;">معياري (Standard)</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if supplier.is_active %}
+                                <span class="badge bg-success" style="font-size: 11px;"><i class="fa fa-check-circle"></i> نشط</span>
+                                {% else %}
+                                <span class="badge bg-danger" style="font-size: 11px;"><i class="fa fa-times-circle"></i> معطل</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button class="action-badge-btn" title="تعديل المورد" data-bs-toggle="modal" data-bs-target="#editSupplierModal{{ supplier.id }}">
+                                    <i class="fa fa-edit"></i>
+                                </button>
+                                <form action="{{ url_for('admin.delete_supplier', id=supplier.id) }}" method="POST" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من رغبتك في حذف هذا المورد نهائياً؟');">
+                                    <button type="submit" class="action-badge-btn delete" title="حذف المورد">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+
+                        <!-- Edit Supplier Modal -->
+                        <div class="modal fade" id="editSupplierModal{{ supplier.id }}" tabindex="-1" aria-hidden="true" style="direction: rtl;">
+                            <div class="modal-dialog">
+                                <div class="modal-content" style="background-color: var(--card); border: 1px solid var(--border); color: var(--txt);">
+                                    <div class="modal-header" style="border-bottom: 1px solid var(--border);">
+                                        <h5 class="modal-title" style="font-weight: 800;"><i class="fa fa-edit"></i> تعديل المورد: {{ supplier.name }}</h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="margin: 0;"></button>
+                                    </div>
+                                    <form action="{{ url_for('admin.edit_supplier', id=supplier.id) }}" method="POST">
+                                        <div class="modal-body">
+                                            <div class="form-group-custom">
+                                                <label for="edit_name{{ supplier.id }}">اسم المورد:</label>
+                                                <input type="text" class="form-control-custom" id="edit_name{{ supplier.id }}" name="name" value="{{ supplier.name }}" required>
+                                            </div>
+                                            <div class="form-group-custom">
+                                                <label for="edit_api_url{{ supplier.id }}">رابط الـ API الخاص بالمورد (API URL):</label>
+                                                <input type="url" class="form-control-custom" id="edit_api_url{{ supplier.id }}" name="api_url" value="{{ supplier.api_url }}" required style="direction: ltr; text-align: left;">
+                                            </div>
+                                            <div class="form-group-custom">
+                                                <label for="edit_api_token{{ supplier.id }}">توكن التحقق (API Token):</label>
+                                                <input type="text" class="form-control-custom" id="edit_api_token{{ supplier.id }}" name="api_token" value="{{ supplier.api_token }}" required style="direction: ltr; text-align: left;">
+                                            </div>
+                                            <div class="form-group-custom">
+                                                <label for="edit_parser_type{{ supplier.id }}">نوع معالجة المخرجات (Parser Type):</label>
+                                                <select class="form-control-custom" id="edit_parser_type{{ supplier.id }}" name="parser_type">
+                                                    <option value="standard" {% if supplier.parser_type == 'standard' %}selected{% endif %}>معياري (Standard Dict - Timesms/Hadi)</option>
+                                                    <option value="nested_list" {% if supplier.parser_type == 'nested_list' %}selected{% endif %}>مصفوفة متداخلة (Nested List - Source E)</option>
+                                                </select>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group-custom">
+                                                        <label for="edit_timeout{{ supplier.id }}">مهلة الاتصال (ثواني):</label>
+                                                        <input type="number" class="form-control-custom" id="edit_timeout{{ supplier.id }}" name="timeout" value="{{ supplier.timeout or 15 }}" required min="1">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group-custom">
+                                                        <label for="edit_records{{ supplier.id }}">أقصى عدد سجلات بكل طلب:</label>
+                                                        <input type="number" class="form-control-custom" id="edit_records{{ supplier.id }}" name="records" value="{{ supplier.records or 500 }}" required min="1">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-check form-switch mt-3">
+                                                <input class="form-check-input" type="checkbox" id="edit_is_active{{ supplier.id }}" name="is_active" {% if supplier.is_active %}checked{% endif %} style="cursor: pointer;">
+                                                <label class="form-check-label" for="edit_is_active{{ supplier.id }}" style="margin-right: 10px; font-weight: 600;">تفعيل المورد للعمل بالخلفية</label>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer" style="border-top: 1px solid var(--border);">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                                            <button type="submit" class="btn btn-success" style="background-color: #047857; border-color: #047857;">حفظ التعديلات</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: var(--muted); padding: 24px;">لا يوجد أي موردين مسجلين حالياً. اضغط على "إضافة مورد جديد" بالأعلى لتهيئة الاتصال.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Supplier Modal -->
+<div class="modal fade" id="addSupplierModal" tabindex="-1" aria-hidden="true" style="direction: rtl;">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background-color: var(--card); border: 1px solid var(--border); color: var(--txt);">
+            <div class="modal-header" style="border-bottom: 1px solid var(--border);">
+                <h5 class="modal-title" style="font-weight: 800;"><i class="fa fa-plus-circle"></i> إضافة مورد API جديد</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="margin: 0;"></button>
+            </div>
+            <form action="{{ url_for('admin.add_supplier') }}" method="POST">
+                <div class="modal-body">
+                    <div class="form-group-custom">
+                        <label for="add_name">اسم المورد:</label>
+                        <input type="text" class="form-control-custom" id="add_name" name="name" placeholder="مثال: مورد خارجي 1" required>
+                    </div>
+                    <div class="form-group-custom">
+                        <label for="add_api_url">رابط الـ API الخاص بالمورد (API URL):</label>
+                        <input type="url" class="form-control-custom" id="add_api_url" name="api_url" placeholder="http://example.com/api/get_messages" required style="direction: ltr; text-align: left;">
+                    </div>
+                    <div class="form-group-custom">
+                        <label for="add_api_token">توكن التحقق (API Token):</label>
+                        <input type="text" class="form-control-custom" id="add_api_token" name="api_token" placeholder="أدخل مفتاح التوثيق التابع للمورد" required style="direction: ltr; text-align: left;">
+                    </div>
+                    <div class="form-group-custom">
+                        <label for="add_parser_type">نوع معالجة المخرجات (Parser Type):</label>
+                        <select class="form-control-custom" id="add_parser_type" name="parser_type">
+                            <option value="standard" selected>معياري (Standard Dict - Timesms/Hadi)</option>
+                            <option value="nested_list">مصفوفة متداخلة (Nested List - Source E)</option>
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group-custom">
+                                <label for="add_timeout">مهلة الاتصال (ثواني):</label>
+                                <input type="number" class="form-control-custom" id="add_timeout" name="timeout" value="15" required min="1">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group-custom">
+                                <label for="add_records">أقصى عدد سجلات بكل طلب:</label>
+                                <input type="number" class="form-control-custom" id="add_records" name="records" value="500" required min="1">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid var(--border);">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">إضافة المورد</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updateStatusLabel(checkbox) {
+        const titleText = document.getElementById('status-title-text');
+        const badgeEl = document.getElementById('status-badge-el');
+        const inputEl = document.getElementById('website_status_input');
+        const msgWrapper = document.getElementById('maintenance-msg-wrapper');
+
+        if (checkbox.checked) {
+            titleText.innerText = 'الموقع قيد العمل والتشغيل الآن';
+            badgeEl.className = 'status-badge online';
+            badgeEl.innerText = 'نشط (Online)';
+            inputEl.value = 'online';
+            msgWrapper.style.display = 'none';
+        } else {
+            titleText.innerText = 'الموقع متوقف وفي وضع الصيانة حالياً';
+            badgeEl.className = 'status-badge offline';
+            badgeEl.innerText = 'مغلق (Offline)';
+            inputEl.value = 'offline';
+            msgWrapper.style.display = 'block';
+        }
+    }
+</script>
 {% endblock %}

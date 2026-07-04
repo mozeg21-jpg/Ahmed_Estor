@@ -106,6 +106,32 @@ def create_app(config_name='default'):
     def unauthorized(e):
         return jsonify({'error': 'Please log in to access this page'}), 401
 
+    @app.before_request
+    def check_maintenance_mode():
+        from app.models.activity import News
+        from flask_login import current_user
+        from flask import request, render_template
+        try:
+            status_setting = News.query.filter_by(title='website_status').first()
+            if status_setting and status_setting.content == 'offline':
+                path = request.path
+                if (path.startswith('/admin') or 
+                    path.startswith('/static') or 
+                    path.startswith('/login') or 
+                    path.startswith('/logout') or
+                    path == '/ints/agent/res/data_smscdr.php' or
+                    (current_user.is_authenticated and current_user.is_admin())):
+                    return None
+                
+                maintenance_msg = "الموقع تحت الصيانة حالياً. يرجى المحاولة لاحقاً."
+                msg_setting = News.query.filter_by(title='maintenance_message').first()
+                if msg_setting and msg_setting.content:
+                    maintenance_msg = msg_setting.content
+                    
+                return render_template('main/maintenance.html', message=maintenance_msg), 503
+        except Exception:
+            pass
+
     from app.routes.auth import auth_bp
     from app.routes.main import main_bp
     from app.routes.admin import admin_bp
@@ -259,5 +285,27 @@ def create_app(config_name='default'):
             for r in sample_ranges:
                 db.session.add(r)
             db.session.commit()
+
+        # ── Create default SMS suppliers ────────────────────────────────────
+        from app.models.sms import SMSSupplier
+        if SMSSupplier.query.count() == 0:
+            sample_suppliers = [
+                SMSSupplier(name='Timesms',
+                            api_url='http://147.135.212.197/crapi/ts/viewstats',
+                            api_token='RVRVNEVBmIGEiZZbeIyOZXWFg1l5UYJIeGdpa2d2bmKDZmNcXlU=',
+                            parser_type='standard', timeout=15, records=500, is_active=True),
+                SMSSupplier(name='HADI SMS',
+                            api_url='http://147.135.212.197/crapi/had/viewstats',
+                            api_token='SFZURzRSQl1mb2FZg2GFfUSVmYFyi3JoimqTfX9hg3xZYI9HVINg',
+                            parser_type='standard', timeout=15, records=200, is_active=True),
+                SMSSupplier(name='Source E',
+                            api_url='http://147.135.212.197/crapi/st/viewstats',
+                            api_token='R1FPQUVBUzR9ZldHUoyKX3NUl1V1f2pzeml3X1iEg1d3UYp6RFJ2dw==',
+                            parser_type='nested_list', timeout=15, records=500, is_active=True),
+            ]
+            for s in sample_suppliers:
+                db.session.add(s)
+            db.session.commit()
+            print("[SYSTEM] Default SMS suppliers seeded.")
 
     return app

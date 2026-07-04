@@ -843,7 +843,150 @@ def delete_news(news_id):
 @admin_bp.route('/settings')
 @admin_required
 def settings():
-    return render_template('admin/settings.html')
+    from app.models.activity import News
+    from app.models.sms import SMSSupplier
+    
+    # Get website status settings (default to online)
+    status_setting = News.query.filter_by(title='website_status').first()
+    website_status = status_setting.content if status_setting else 'online'
+    
+    msg_setting = News.query.filter_by(title='maintenance_message').first()
+    maintenance_message = msg_setting.content if msg_setting else 'الموقع تحت الصيانة حالياً. يرجى المحاولة لاحقاً.'
+    
+    # Get suppliers
+    suppliers = SMSSupplier.query.order_by(SMSSupplier.id.asc()).all()
+    
+    return render_template(
+        'admin/settings.html',
+        website_status=website_status,
+        maintenance_message=maintenance_message,
+        suppliers=suppliers
+    )
+
+@admin_bp.route('/settings/change-password', methods=['POST'])
+@admin_required
+def change_admin_password():
+    current_password = request.form.get('current_password', '').strip()
+    new_password = request.form.get('new_password', '').strip()
+    confirm_password = request.form.get('confirm_password', '').strip()
+    
+    if not current_password or not new_password or not confirm_password:
+        flash('جميع الحقول مطلوبة لتغيير كلمة المرور.', 'danger')
+        return redirect(url_for('admin.settings'))
+        
+    if new_password != confirm_password:
+        flash('كلمتا المرور الجديدتان غير متطابقتين.', 'danger')
+        return redirect(url_for('admin.settings'))
+        
+    if not current_user.check_password(current_password):
+        flash('كلمة المرور الحالية غير صحيحة.', 'danger')
+        return redirect(url_for('admin.settings'))
+        
+    current_user.set_password(new_password)
+    db.session.commit()
+    flash('تم تغيير كلمة المرور للمالك الأساسي بنجاح!', 'success')
+    return redirect(url_for('admin.settings'))
+
+@admin_bp.route('/settings/toggle-website', methods=['POST'])
+@admin_required
+def toggle_website():
+    from app.models.activity import News
+    website_status = request.form.get('website_status', 'online').strip()
+    maintenance_message = request.form.get('maintenance_message', '').strip()
+    
+    status_setting = News.query.filter_by(title='website_status').first()
+    if not status_setting:
+        status_setting = News(title='website_status', headline='System Status', content=website_status)
+        db.session.add(status_setting)
+    else:
+        status_setting.content = website_status
+        
+    msg_setting = News.query.filter_by(title='maintenance_message').first()
+    if not msg_setting:
+        msg_setting = News(title='maintenance_message', headline='Maintenance Message', content=maintenance_message)
+        db.session.add(msg_setting)
+    else:
+        msg_setting.content = maintenance_message
+        
+    db.session.commit()
+    
+    if website_status == 'offline':
+        flash('تم إيقاف الموقع بنجاح وتحويله إلى وضع الصيانة!', 'warning')
+    else:
+        flash('تم تشغيل الموقع بنجاح وإعادته للعمل على الإنترنت!', 'success')
+        
+    return redirect(url_for('admin.settings'))
+
+@admin_bp.route('/settings/supplier/add', methods=['POST'])
+@admin_required
+def add_supplier():
+    from app.models.sms import SMSSupplier
+    name = request.form.get('name', '').strip()
+    api_url = request.form.get('api_url', '').strip()
+    api_token = request.form.get('api_token', '').strip()
+    parser_type = request.form.get('parser_type', 'standard').strip()
+    timeout = request.form.get('timeout', 15, type=int)
+    records = request.form.get('records', 500, type=int)
+    
+    if not name or not api_url or not api_token:
+        flash('اسم المورد ورابط الـ API والتوكن مطلوبة.', 'danger')
+        return redirect(url_for('admin.settings'))
+        
+    supplier = SMSSupplier(
+        name=name,
+        api_url=api_url,
+        api_token=api_token,
+        parser_type=parser_type,
+        timeout=timeout,
+        records=records,
+        is_active=True
+    )
+    db.session.add(supplier)
+    db.session.commit()
+    flash(f'تم إضافة المورد الجديد ({name}) بنجاح!', 'success')
+    return redirect(url_for('admin.settings'))
+
+@admin_bp.route('/settings/supplier/edit/<int:id>', methods=['POST'])
+@admin_required
+def edit_supplier(id):
+    from app.models.sms import SMSSupplier
+    supplier = SMSSupplier.query.get_or_404(id)
+    
+    name = request.form.get('name', '').strip()
+    api_url = request.form.get('api_url', '').strip()
+    api_token = request.form.get('api_token', '').strip()
+    parser_type = request.form.get('parser_type', 'standard').strip()
+    timeout = request.form.get('timeout', 15, type=int)
+    records = request.form.get('records', 500, type=int)
+    is_active = 'is_active' in request.form
+    
+    if not name or not api_url or not api_token:
+        flash('جميع حقول المورد مطلوبة.', 'danger')
+        return redirect(url_for('admin.settings'))
+        
+    supplier.name = name
+    supplier.api_url = api_url
+    supplier.api_token = api_token
+    supplier.parser_type = parser_type
+    supplier.timeout = timeout
+    supplier.records = records
+    supplier.is_active = is_active
+    
+    db.session.commit()
+    flash(f'تم تحديث بيانات المورد ({name}) بنجاح!', 'success')
+    return redirect(url_for('admin.settings'))
+
+@admin_bp.route('/settings/supplier/delete/<int:id>', methods=['POST'])
+@admin_required
+def delete_supplier(id):
+    from app.models.sms import SMSSupplier
+    supplier = SMSSupplier.query.get_or_404(id)
+    name = supplier.name
+    
+    db.session.delete(supplier)
+    db.session.commit()
+    flash(f'تم حذف المورد ({name}) بنجاح!', 'success')
+    return redirect(url_for('admin.settings'))
 
 @admin_bp.route('/settings/sms-limit', methods=['POST'])
 @admin_required
