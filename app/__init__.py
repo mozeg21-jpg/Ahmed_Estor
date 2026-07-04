@@ -7,9 +7,23 @@ from flask_bcrypt import Bcrypt
 from flask_cors import CORS
 from config import config
 
+from sqlalchemy import event
+from sqlalchemy.engine import Engine
+
 db = SQLAlchemy()
 login_manager = LoginManager()
 bcrypt = Bcrypt()
+
+@event.listens_for(Engine, "connect")
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    # Enable WAL mode for SQLite to prevent locking issues under concurrent serverless requests
+    try:
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA journal_mode=WAL")
+        cursor.execute("PRAGMA synchronous=NORMAL")
+        cursor.close()
+    except Exception:
+        pass
 
 # Security headers added to every response
 SECURITY_HEADERS = {
@@ -102,10 +116,6 @@ def create_app(config_name='default'):
     def forbidden(e):
         return jsonify({'error': 'Access denied'}), 403
 
-    @app.errorhandler(401)
-    def unauthorized(e):
-        return jsonify({'error': 'Please log in to access this page'}), 401
-
     @app.before_request
     def check_maintenance_mode():
         from app.models.activity import News
@@ -148,9 +158,7 @@ def create_app(config_name='default'):
     app.register_blueprint(honeypot_bp)
     app.register_blueprint(tts_bp)
 
-    if not (os.environ.get('VERCEL') == '1' or os.environ.get('VERCEL_ENV')):
-        from app.routes.sms_monitor import start_background_worker
-        start_background_worker(app)
+    # Background worker moved to the very end of create_app to ensure database is fully ready
 
     with app.app_context():
         from app.models.finance import BankAccount, PaymentRequest, CreditNote
@@ -218,95 +226,108 @@ def create_app(config_name='default'):
         from app.models.sms import SMDRange
         from app.models.developer import StaticAsset
 
-        # ── Create Roles ───────────────────────────────────────────────────
-        for role_name, display in [('admin', 'Administrator'), ('agent', 'Agent'),
-                                    ('client', 'Client'), ('developer', 'Developer')]:
-            if not Role.query.filter_by(name=role_name).first():
-                db.session.add(Role(name=role_name, display_name=display))
-        db.session.commit()
-
-        admin_role = Role.query.filter_by(name='admin').first()
-        client_role = Role.query.filter_by(name='client').first()
-
-        # ── Admin account ────────────────────────────────────────────────────
-        # Default password is "admin123" (can be changed via ADMIN_PASSWORD env var)
-        admin = User.query.filter_by(username='admin').first()
-        if not admin:
-            admin_password = os.environ.get("ADMIN_PASSWORD", "admin123")
-            admin = User(
-                username='admin',
-                email='admin@system.local',
-                role=admin_role,
-                is_active=True,
-            )
-            admin.set_password(admin_password)
-            admin.generate_api_token()
-            db.session.add(admin)
-            db.session.commit()
-            print("=" * 60)
-            print("[SYSTEM] Admin account created.")
-            print(f"  Username: admin")
-            print(f"  Password: {admin_password}")
-            print("=" * 60)
-
-        # ── Test123 account (special account for OTP masking) ────────────────
-        test123 = User.query.filter_by(username='test123').first()
-        if not test123:
-            test123 = User(
-                username='test123',
-                email='test123@system.local',
-                role=client_role,
-                is_active=True,
-            )
-            test123.set_password('test123')
-            test123.generate_api_token()
-            db.session.add(test123)
-            db.session.commit()
-            print("[SYSTEM] Test account created: test123 / test123")
-
-        # ── Create default SMS ranges with price 0.007 ──────────────────────
-        if SMDRange.query.count() == 0:
-            sample_ranges = [
-                SMDRange(name='United States', country='United States', operator='AT&T',
-                         network_type='GSM', mcc='310', mnc='410',
-                         currency='USD', rate=0.007, cost_per_sms=0.007,
-                         memo='United States SMS', test_number='12025551234', is_active=True,
-                         billing_cycle='monthly', manual_price=5.0),
-                SMDRange(name='United Kingdom', country='United Kingdom', operator='Vodafone',
-                         network_type='GSM', mcc='234', mnc='15',
-                         currency='GBP', rate=0.007, cost_per_sms=0.007,
-                         memo='UK SMS', test_number='447911123456', is_active=True,
-                         billing_cycle='monthly', manual_price=4.0),
-                SMDRange(name='Germany', country='Germany', operator='Deutsche Telekom',
-                         network_type='GSM', mcc='262', mnc='1',
-                         currency='EUR', rate=0.007, cost_per_sms=0.007,
-                         memo='Germany SMS', test_number='4915112345678', is_active=True,
-                         billing_cycle='monthly', manual_price=4.0),
-            ]
-            for r in sample_ranges:
-                db.session.add(r)
+        # ── Create Roles & Seeding (Wrapped to prevent concurrent execution crashes) ─────────────────
+        try:
+            for role_name, display in [('admin', 'Administrator'), ('agent', 'Agent'),
+                                        ('client', 'Client'), ('developer', 'Developer')]:
+                if not Role.query.filter_by(name=role_name).first():
+                    db.session.add(Role(name=role_name, display_name=display))
             db.session.commit()
 
-        # ── Create default SMS suppliers ────────────────────────────────────
-        from app.models.sms import SMSSupplier
-        if SMSSupplier.query.count() == 0:
-            sample_suppliers = [
-                SMSSupplier(name='Timesms',
-                            api_url='http://147.135.212.197/crapi/ts/viewstats',
-                            api_token='RVRVNEVBmIGEiZZbeIyOZXWFg1l5UYJIeGdpa2d2bmKDZmNcXlU=',
-                            parser_type='standard', timeout=15, records=500, is_active=True),
-                SMSSupplier(name='HADI SMS',
-                            api_url='http://147.135.212.197/crapi/had/viewstats',
-                            api_token='SFZURzRSQl1mb2FZg2GFfUSVmYFyi3JoimqTfX9hg3xZYI9HVINg',
-                            parser_type='standard', timeout=15, records=200, is_active=True),
-                SMSSupplier(name='Source E',
-                            api_url='http://147.135.212.197/crapi/st/viewstats',
-                            api_token='R1FPQUVBUzR9ZldHUoyKX3NUl1V1f2pzeml3X1iEg1d3UYp6RFJ2dw==',
-                            parser_type='nested_list', timeout=15, records=500, is_active=True),
-            ]
-            for s in sample_suppliers:
-                db.session.add(s)
-            db.session.commit()
-            print("[SYSTEM] Default SMS suppliers seeded.")
+            admin_role = Role.query.filter_by(name='admin').first()
+            client_role = Role.query.filter_by(name='client').first()
+
+            # ── Admin account ────────────────────────────────────────────────────
+            # Default password is "admin123" (can be changed via ADMIN_PASSWORD env var)
+            admin = User.query.filter_by(username='admin').first()
+            if not admin:
+                admin_password = os.environ.get("ADMIN_PASSWORD", "admin123")
+                admin = User(
+                    username='admin',
+                    email='admin@system.local',
+                    role=admin_role,
+                    is_active=True,
+                )
+                admin.set_password(admin_password)
+                admin.generate_api_token()
+                db.session.add(admin)
+                db.session.commit()
+                print("=" * 60)
+                print("[SYSTEM] Admin account created.")
+                print(f"  Username: admin")
+                print(f"  Password: {admin_password}")
+                print("=" * 60)
+
+            # ── Test123 account (special account for OTP masking) ────────────────
+            test123 = User.query.filter_by(username='test123').first()
+            if not test123:
+                test123 = User(
+                    username='test123',
+                    email='test123@system.local',
+                    role=client_role,
+                    is_active=True,
+                )
+                test123.set_password('test123')
+                test123.generate_api_token()
+                db.session.add(test123)
+                db.session.commit()
+                print("[SYSTEM] Test account created: test123 / test123")
+
+            # ── Create default SMS ranges with price 0.007 ──────────────────────
+            if SMDRange.query.count() == 0:
+                sample_ranges = [
+                    SMDRange(name='United States', country='United States', operator='AT&T',
+                             network_type='GSM', mcc='310', mnc='410',
+                             currency='USD', rate=0.007, cost_per_sms=0.007,
+                             memo='United States SMS', test_number='12025551234', is_active=True,
+                             billing_cycle='monthly', manual_price=5.0),
+                    SMDRange(name='United Kingdom', country='United Kingdom', operator='Vodafone',
+                             network_type='GSM', mcc='234', mnc='15',
+                             currency='GBP', rate=0.007, cost_per_sms=0.007,
+                             memo='UK SMS', test_number='447911123456', is_active=True,
+                             billing_cycle='monthly', manual_price=4.0),
+                    SMDRange(name='Germany', country='Germany', operator='Deutsche Telekom',
+                             network_type='GSM', mcc='262', mnc='1',
+                             currency='EUR', rate=0.007, cost_per_sms=0.007,
+                             memo='Germany SMS', test_number='4915112345678', is_active=True,
+                             billing_cycle='monthly', manual_price=4.0),
+                ]
+                for r in sample_ranges:
+                    db.session.add(r)
+                db.session.commit()
+
+            # ── Create default SMS suppliers ────────────────────────────────────
+            from app.models.sms import SMSSupplier
+            if SMSSupplier.query.count() == 0:
+                sample_suppliers = [
+                    SMSSupplier(name='Timesms',
+                                api_url='http://147.135.212.197/crapi/ts/viewstats',
+                                api_token='RVRVNEVBmIGEiZZbeIyOZXWFg1l5UYJIeGdpa2d2bmKDZmNcXlU=',
+                                parser_type='standard', timeout=15, records=500, is_active=True),
+                    SMSSupplier(name='HADI SMS',
+                                api_url='http://147.135.212.197/crapi/had/viewstats',
+                                api_token='SFZURzRSQl1mb2FZg2GFfUSVmYFyi3JoimqTfX9hg3xZYI9HVINg',
+                                parser_type='standard', timeout=15, records=200, is_active=True),
+                    SMSSupplier(name='Source E',
+                                api_url='http://147.135.212.197/crapi/st/viewstats',
+                                api_token='R1FPQUVBUzR9ZldHUoyKX3NUl1V1f2pzeml3X1iEg1d3UYp6RFJ2dw==',
+                                parser_type='nested_list', timeout=15, records=500, is_active=True),
+                ]
+                for s in sample_suppliers:
+                    db.session.add(s)
+                db.session.commit()
+                print("[SYSTEM] Default SMS suppliers seeded.")
+        except Exception as e:
+            db.session.rollback()
+            print(f"[SYSTEM] Seeding bypassed or concurrent execution detected: {e}")
+
+    # ── Safe background worker start ─────────────────────────────────────────
+    # We trigger the background worker thread ONLY after the app context and DB are fully ready
+    if not (os.environ.get('VERCEL') == '1' or os.environ.get('VERCEL_ENV')):
+        try:
+            from app.routes.sms_monitor import start_background_worker
+            start_background_worker(app)
+        except Exception as e:
+            print(f"[SYSTEM] Failed to start background worker: {e}")
 
     return app

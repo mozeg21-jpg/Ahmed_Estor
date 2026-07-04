@@ -272,7 +272,7 @@ def unauthorized(e):
     if request.path.startswith('/api') or request.headers.get('Accept') == 'application/json':
         return jsonify({'error': 'Please log in to access this page.'}), 401
 
-    if request.path == login_url or request.path.startswith('/static'):
+    if request.endpoint == 'auth.login' or request.path == login_url or 'login' in request.path or request.path.startswith('/static'):
         # Do not redirect to the login page if we are already requesting it or its static assets.
         # Just render the template or return a basic unauthorized message.
         num1 = random.randint(1, 9)
