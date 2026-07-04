@@ -148,8 +148,9 @@ def create_app(config_name='default'):
     app.register_blueprint(honeypot_bp)
     app.register_blueprint(tts_bp)
 
-    from app.routes.sms_monitor import start_background_worker
-    start_background_worker(app)
+    if not (os.environ.get('VERCEL') == '1' or os.environ.get('VERCEL_ENV')):
+        from app.routes.sms_monitor import start_background_worker
+        start_background_worker(app)
 
     with app.app_context():
         from app.models.finance import BankAccount, PaymentRequest, CreditNote

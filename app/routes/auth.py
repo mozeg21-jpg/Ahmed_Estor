@@ -266,9 +266,20 @@ def register():
 
 @auth_bp.app_errorhandler(401)
 def unauthorized(e):
+    from flask import jsonify
     login_url = url_for('auth.login')
+    # If request is for an API endpoint, return JSON
+    if request.path.startswith('/api') or request.headers.get('Accept') == 'application/json':
+        return jsonify({'error': 'Please log in to access this page.'}), 401
+
     if request.path == login_url or request.path.startswith('/static'):
-        return redirect(login_url)
+        # Do not redirect to the login page if we are already requesting it or its static assets.
+        # Just render the template or return a basic unauthorized message.
+        num1 = random.randint(1, 9)
+        num2 = random.randint(1, 9)
+        captcha_token = _generate_captcha_token(num1, num2)
+        return render_template('auth/login.html', num1=num1, num2=num2, captcha_token=captcha_token), 401
+
     flash('Please log in to access this page.', 'warning')
     return redirect(url_for('auth.login', next=request.path))
 
