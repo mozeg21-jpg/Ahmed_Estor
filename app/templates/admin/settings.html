@@ -418,20 +418,20 @@
         </div>
     </div>
 
-    <!-- Main Right Column: Dynamic Supplier API Management -->
+    <!-- Main Right Column: SMPP Suppliers Management -->
     <div class="col-md-7">
         <div class="control-panel-section">
             <div class="section-title" style="justify-content: space-between; display: flex; align-items: center;">
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <i class="fa fa-server"></i>
-                    <span>إدارة الموردين الخارجيين (API Suppliers)</span>
+                    <i class="fa fa-truck"></i>
+                    <span>إدارة موردين الـ SMPP المربوطين</span>
                 </div>
                 <button class="btn btn-sm btn-primary" style="font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 6px;" data-bs-toggle="modal" data-bs-target="#addSupplierModal">
-                    <i class="fa fa-plus"></i> إضافة مورد جديد
+                    <i class="fa fa-plus"></i> إضافة مورد SMPP جديد
                 </button>
             </div>
             <p style="font-size: 13px; color: var(--muted); margin-bottom: 16px; line-height: 1.6;">
-                تتيح لك هذه اللوحة إدارة مصادر سحب رسائل الـ SMS (الموردين) بشكل ديناميكي. يمكنك إضافة أي رابط API خاص بمورد خارجي، تعيين توكن التحقق، نوع معالجة المخرجات (Parser)، تفعيل/تعطيل المورد، أو حذفه بالكامل.
+                تتيح لك هذه اللوحة إدارة موردي ومزودي خدمة الـ SMPP المربوطين بالنظام بشكل ديناميكي ومباشر. يتم حفظ هذه البيانات تلقائياً في ملف التكوين لتأسيس اتصالات الخلفية وقنوات الإرسال.
             </p>
 
             <div class="table-responsive">
@@ -439,114 +439,173 @@
                     <thead>
                         <tr>
                             <th>اسم المورد</th>
-                            <th>رابط الـ API</th>
-                            <th>التوثيق (Token)</th>
-                            <th>نوع المعالجة</th>
+                            <th>العنوان والمنفذ</th>
+                            <th>معرف النظام (ID)</th>
+                            <th>الوضع</th>
                             <th>الحالة</th>
                             <th>العمليات</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for supplier in suppliers %}
-                        <tr>
-                            <td style="font-weight: bold;">{{ supplier.name }}</td>
-                            <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: monospace; font-size: 11px;" title="{{ supplier.api_url }}">
-                                {{ supplier.api_url }}
-                            </td>
-                            <td style="font-family: monospace; font-size: 11px;">
-                                {% if supplier.api_token %}
-                                {{ supplier.api_token[:8] }}...{{ supplier.api_token[-8:] if supplier.api_token|length > 8 else '' }}
-                                {% else %}
-                                -
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if supplier.parser_type == 'nested_list' %}
-                                <span class="badge bg-purple" style="font-size: 11px;">مصفوفة متداخلة (Source E)</span>
-                                {% else %}
-                                <span class="badge bg-info" style="font-size: 11px;">معياري (Standard)</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if supplier.is_active %}
-                                <span class="badge bg-success" style="font-size: 11px;"><i class="fa fa-check-circle"></i> نشط</span>
-                                {% else %}
-                                <span class="badge bg-danger" style="font-size: 11px;"><i class="fa fa-times-circle"></i> معطل</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <button class="action-badge-btn" title="تعديل المورد" data-bs-toggle="modal" data-bs-target="#editSupplierModal{{ supplier.id }}">
-                                    <i class="fa fa-edit"></i>
-                                </button>
-                                <form action="{{ url_for('admin.delete_supplier', id=supplier.id) }}" method="POST" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من رغبتك في حذف هذا المورد نهائياً؟');">
-                                    <button type="submit" class="action-badge-btn delete" title="حذف المورد">
-                                        <i class="fa fa-trash"></i>
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-
-                        <!-- Edit Supplier Modal -->
-                        <div class="modal fade" id="editSupplierModal{{ supplier.id }}" tabindex="-1" aria-hidden="true" style="direction: rtl;">
-                            <div class="modal-dialog">
-                                <div class="modal-content" style="background-color: var(--card); border: 1px solid var(--border); color: var(--txt);">
-                                    <div class="modal-header" style="border-bottom: 1px solid var(--border);">
-                                        <h5 class="modal-title" style="font-weight: 800;"><i class="fa fa-edit"></i> تعديل المورد: {{ supplier.name }}</h5>
-                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="margin: 0;"></button>
-                                    </div>
-                                    <form action="{{ url_for('admin.edit_supplier', id=supplier.id) }}" method="POST">
-                                        <div class="modal-body">
-                                            <div class="form-group-custom">
-                                                <label for="edit_name{{ supplier.id }}">اسم المورد:</label>
-                                                <input type="text" class="form-control-custom" id="edit_name{{ supplier.id }}" name="name" value="{{ supplier.name }}" required>
-                                            </div>
-                                            <div class="form-group-custom">
-                                                <label for="edit_api_url{{ supplier.id }}">رابط الـ API الخاص بالمورد (API URL):</label>
-                                                <input type="url" class="form-control-custom" id="edit_api_url{{ supplier.id }}" name="api_url" value="{{ supplier.api_url }}" required style="direction: ltr; text-align: left;">
-                                            </div>
-                                            <div class="form-group-custom">
-                                                <label for="edit_api_token{{ supplier.id }}">توكن التحقق (API Token):</label>
-                                                <input type="text" class="form-control-custom" id="edit_api_token{{ supplier.id }}" name="api_token" value="{{ supplier.api_token }}" required style="direction: ltr; text-align: left;">
-                                            </div>
-                                            <div class="form-group-custom">
-                                                <label for="edit_parser_type{{ supplier.id }}">نوع معالجة المخرجات (Parser Type):</label>
-                                                <select class="form-control-custom" id="edit_parser_type{{ supplier.id }}" name="parser_type">
-                                                    <option value="standard" {% if supplier.parser_type == 'standard' %}selected{% endif %}>معياري (Standard Dict - Timesms/Hadi)</option>
-                                                    <option value="nested_list" {% if supplier.parser_type == 'nested_list' %}selected{% endif %}>مصفوفة متداخلة (Nested List - Source E)</option>
-                                                </select>
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <div class="form-group-custom">
-                                                        <label for="edit_timeout{{ supplier.id }}">مهلة الاتصال (ثواني):</label>
-                                                        <input type="number" class="form-control-custom" id="edit_timeout{{ supplier.id }}" name="timeout" value="{{ supplier.timeout or 15 }}" required min="1">
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="form-group-custom">
-                                                        <label for="edit_records{{ supplier.id }}">أقصى عدد سجلات بكل طلب:</label>
-                                                        <input type="number" class="form-control-custom" id="edit_records{{ supplier.id }}" name="records" value="{{ supplier.records or 500 }}" required min="1">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="form-check form-switch mt-3">
-                                                <input class="form-check-input" type="checkbox" id="edit_is_active{{ supplier.id }}" name="is_active" {% if supplier.is_active %}checked{% endif %} style="cursor: pointer;">
-                                                <label class="form-check-label" for="edit_is_active{{ supplier.id }}" style="margin-right: 10px; font-weight: 600;">تفعيل المورد للعمل بالخلفية</label>
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer" style="border-top: 1px solid var(--border);">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
-                                            <button type="submit" class="btn btn-success" style="background-color: #047857; border-color: #047857;">حفظ التعديلات</button>
-                                        </div>
+                        {% if providers %}
+                            {% for provider in providers %}
+                            <tr>
+                                <td style="font-weight: bold;">{{ provider.name }}</td>
+                                <td style="font-family: monospace; font-size: 11px; direction: ltr; text-align: right;">
+                                    {{ provider.host }}:{{ provider.port }}
+                                </td>
+                                <td style="font-family: monospace; font-size: 11px;">
+                                    {{ provider.system_id or '-' }}
+                                </td>
+                                <td>
+                                    {% if provider.mode == 'transceiver' %}
+                                    <span class="badge bg-purple" style="font-size: 11px;">إرسال واستقبال</span>
+                                    {% elif provider.mode == 'transmitter' %}
+                                    <span class="badge bg-info" style="font-size: 11px;">إرسال فقط</span>
+                                    {% else %}
+                                    <span class="badge bg-warning" style="font-size: 11px;">استقبال فقط</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <form action="{{ url_for('admin.toggle_supplier', name=provider.name) }}" method="POST" style="display: inline;">
+                                        <button type="submit" class="btn btn-xs {% if provider.enabled %}btn-success{% else %}btn-default{% endif %}" style="padding: 2px 6px; border-radius: 4px; font-weight: 600; font-size: 11px;">
+                                            {% if provider.enabled %}
+                                                <i class="fa fa-check-circle"></i> نشط
+                                            {% else %}
+                                                <i class="fa fa-times-circle"></i> معطل
+                                            {% endif %}
+                                        </button>
                                     </form>
+                                </td>
+                                <td>
+                                    <button class="action-badge-btn" title="تعديل المورد" data-bs-toggle="modal" data-bs-target="#editSupplierModal{{ loop.index }}">
+                                        <i class="fa fa-edit"></i>
+                                    </button>
+                                    <form action="{{ url_for('admin.delete_supplier', name=provider.name) }}" method="POST" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من رغبتك في حذف هذا المورد نهائياً؟');">
+                                        <button type="submit" class="action-badge-btn delete" title="حذف المورد">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+
+                            <!-- Edit SMPP Supplier Modal -->
+                            <div class="modal fade" id="editSupplierModal{{ loop.index }}" tabindex="-1" aria-hidden="true" style="direction: rtl;">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content" style="background-color: var(--card); border: 1px solid var(--border); color: var(--txt);">
+                                        <div class="modal-header" style="border-bottom: 1px solid var(--border);">
+                                            <h5 class="modal-title" style="font-weight: 800;"><i class="fa fa-edit"></i> تعديل مورد SMPP: {{ provider.name }}</h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="margin: 0;"></button>
+                                        </div>
+                                        <form action="{{ url_for('admin.edit_supplier') }}" method="POST">
+                                            <div class="modal-body">
+                                                <input type="hidden" name="name" value="{{ provider.name }}">
+                                                
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="form-group-custom">
+                                                            <label>اسم المورد (معرّف ثابت لا يمكن تعديله):</label>
+                                                            <input type="text" class="form-control-custom" value="{{ provider.name }}" disabled>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="form-group-custom">
+                                                            <label for="edit_host{{ loop.index }}">عنوان الخادم / IP:</label>
+                                                            <input type="text" class="form-control-custom" id="edit_host{{ loop.index }}" name="host" value="{{ provider.host }}" required style="direction: ltr; text-align: left;">
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-md-4">
+                                                        <div class="form-group-custom">
+                                                            <label for="edit_port{{ loop.index }}">منفذ الاتصال (Port):</label>
+                                                            <input type="number" class="form-control-custom" id="edit_port{{ loop.index }}" name="port" value="{{ provider.port }}" required>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="form-group-custom">
+                                                            <label for="edit_system_id{{ loop.index }}">معرف النظام (System ID):</label>
+                                                            <input type="text" class="form-control-custom" id="edit_system_id{{ loop.index }}" name="system_id" value="{{ provider.system_id }}" style="direction: ltr; text-align: left;">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="form-group-custom">
+                                                            <label for="edit_password{{ loop.index }}">كلمة المرور (Password):</label>
+                                                            <input type="password" class="form-control-custom" id="edit_password{{ loop.index }}" name="password" value="{{ provider.password }}" style="direction: ltr; text-align: left;">
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="form-group-custom">
+                                                            <label for="edit_mode{{ loop.index }}">وضع الارتباط (Mode):</label>
+                                                            <select class="form-control-custom" id="edit_mode{{ loop.index }}" name="mode">
+                                                                <option value="transceiver" {% if provider.mode == 'transceiver' %}selected{% endif %}>Transceiver (إرسال واستقبال)</option>
+                                                                <option value="transmitter" {% if provider.mode == 'transmitter' %}selected{% endif %}>Transmitter (إرسال فقط)</option>
+                                                                <option value="receiver" {% if provider.mode == 'receiver' %}selected{% endif %}>Receiver (استقبال فقط)</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="form-group-custom">
+                                                            <label for="edit_system_type{{ loop.index }}">نوع النظام (System Type):</label>
+                                                            <input type="text" class="form-control-custom" id="edit_system_type{{ loop.index }}" name="system_type" value="{{ provider.system_type or 'SMPP' }}" required style="direction: ltr; text-align: left;">
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-md-4">
+                                                        <div class="form-group-custom">
+                                                            <label for="edit_ton{{ loop.index }}">مؤشر نوع الرقم (TON):</label>
+                                                            <input type="number" class="form-control-custom" id="edit_ton{{ loop.index }}" name="ton" value="{{ provider.ton or 0 }}">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="form-group-custom">
+                                                            <label for="edit_npi{{ loop.index }}">مخطط خطة الأرقام (NPI):</label>
+                                                            <input type="number" class="form-control-custom" id="edit_npi{{ loop.index }}" name="npi" value="{{ provider.npi or 0 }}">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="form-group-custom">
+                                                            <label for="edit_address_range{{ loop.index }}">نطاق العناوين (Address Range):</label>
+                                                            <input type="text" class="form-control-custom" id="edit_address_range{{ loop.index }}" name="address_range" value="{{ provider.address_range or '' }}" style="direction: ltr; text-align: left;">
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row mt-3">
+                                                    <div class="col-md-6">
+                                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                                            <input type="checkbox" id="edit_enabled{{ loop.index }}" name="enabled" {% if provider.enabled %}checked{% endif %} style="width: 18px; height: 18px; cursor: pointer;">
+                                                            <label for="edit_enabled{{ loop.index }}" style="margin: 0; font-weight: bold; cursor: pointer;">تفعيل هذا المورد للعمل</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                                            <input type="checkbox" id="edit_auto_reconnect{{ loop.index }}" name="auto_reconnect" {% if provider.auto_reconnect %}checked{% endif %} style="width: 18px; height: 18px; cursor: pointer;">
+                                                            <label for="edit_auto_reconnect{{ loop.index }}" style="margin: 0; font-weight: bold; cursor: pointer;">إعادة الاتصال تلقائياً عند انقطاعه</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer" style="border-top: 1px solid var(--border);">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                                                <button type="submit" class="btn btn-success" style="background-color: #047857; border-color: #047857;">حفظ التعديلات</button>
+                                            </div>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                            {% endfor %}
                         {% else %}
-                        <tr>
-                            <td colspan="6" style="text-align: center; color: var(--muted); padding: 24px;">لا يوجد أي موردين مسجلين حالياً. اضغط على "إضافة مورد جديد" بالأعلى لتهيئة الاتصال.</td>
-                        </tr>
-                        {% endfor %}
+                            <tr>
+                                <td colspan="6" style="text-align: center; color: var(--muted); padding: 24px;">لا يوجد أي موردين مسجلين حالياً. اضغط على "إضافة مورد جديد" بالأعلى لتهيئة الاتصال.</td>
+                            </tr>
+                        {% endif %}
                     </tbody>
                 </table>
             </div>
@@ -554,46 +613,103 @@
     </div>
 </div>
 
-<!-- Add Supplier Modal -->
+<!-- Add SMPP Supplier Modal -->
 <div class="modal fade" id="addSupplierModal" tabindex="-1" aria-hidden="true" style="direction: rtl;">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content" style="background-color: var(--card); border: 1px solid var(--border); color: var(--txt);">
             <div class="modal-header" style="border-bottom: 1px solid var(--border);">
-                <h5 class="modal-title" style="font-weight: 800;"><i class="fa fa-plus-circle"></i> إضافة مورد API جديد</h5>
+                <h5 class="modal-title" style="font-weight: 800;"><i class="fa fa-plus-circle"></i> إضافة مورد SMPP جديد</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="margin: 0;"></button>
             </div>
             <form action="{{ url_for('admin.add_supplier') }}" method="POST">
                 <div class="modal-body">
-                    <div class="form-group-custom">
-                        <label for="add_name">اسم المورد:</label>
-                        <input type="text" class="form-control-custom" id="add_name" name="name" placeholder="مثال: مورد خارجي 1" required>
-                    </div>
-                    <div class="form-group-custom">
-                        <label for="add_api_url">رابط الـ API الخاص بالمورد (API URL):</label>
-                        <input type="url" class="form-control-custom" id="add_api_url" name="api_url" placeholder="http://example.com/api/get_messages" required style="direction: ltr; text-align: left;">
-                    </div>
-                    <div class="form-group-custom">
-                        <label for="add_api_token">توكن التحقق (API Token):</label>
-                        <input type="text" class="form-control-custom" id="add_api_token" name="api_token" placeholder="أدخل مفتاح التوثيق التابع للمورد" required style="direction: ltr; text-align: left;">
-                    </div>
-                    <div class="form-group-custom">
-                        <label for="add_parser_type">نوع معالجة المخرجات (Parser Type):</label>
-                        <select class="form-control-custom" id="add_parser_type" name="parser_type">
-                            <option value="standard" selected>معياري (Standard Dict - Timesms/Hadi)</option>
-                            <option value="nested_list">مصفوفة متداخلة (Nested List - Source E)</option>
-                        </select>
-                    </div>
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group-custom">
-                                <label for="add_timeout">مهلة الاتصال (ثواني):</label>
-                                <input type="number" class="form-control-custom" id="add_timeout" name="timeout" value="15" required min="1">
+                                <label for="add_name">اسم المورد الفريد (بدون مسافات):</label>
+                                <input type="text" class="form-control-custom" id="add_name" name="name" placeholder="مثال: custom_smpp_provider" required>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group-custom">
-                                <label for="add_records">أقصى عدد سجلات بكل طلب:</label>
-                                <input type="number" class="form-control-custom" id="add_records" name="records" value="500" required min="1">
+                                <label for="add_host">عنوان الخادم / IP الخاص بمورد الـ SMPP:</label>
+                                <input type="text" class="form-control-custom" id="add_host" name="host" placeholder="smpp.example.com or 127.0.0.1" required style="direction: ltr; text-align: left;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group-custom">
+                                <label for="add_port">منفذ الاتصال الخاص بالـ SMPP (Port):</label>
+                                <input type="number" class="form-control-custom" id="add_port" name="port" value="2775" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group-custom">
+                                <label for="add_system_id">معرف النظام (System ID):</label>
+                                <input type="text" class="form-control-custom" id="add_system_id" name="system_id" placeholder="أدخل System ID للتسجيل" style="direction: ltr; text-align: left;">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group-custom">
+                                <label for="add_password">كلمة المرور (Password / Bind Password):</label>
+                                <input type="password" class="form-control-custom" id="add_password" name="password" placeholder="أدخل كلمة المرور السرية" style="direction: ltr; text-align: left;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group-custom">
+                                <label for="add_mode">وضع الارتباط (Mode):</label>
+                                <select class="form-control-custom" id="add_mode" name="mode">
+                                    <option value="transceiver" selected>Transceiver (إرسال واستقبال)</option>
+                                    <option value="transmitter">Transmitter (إرسال فقط)</option>
+                                    <option value="receiver">Receiver (استقبال فقط)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group-custom">
+                                <label for="add_system_type">نوع النظام (System Type):</label>
+                                <input type="text" class="form-control-custom" id="add_system_type" name="system_type" value="SMPP" required style="direction: ltr; text-align: left;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group-custom">
+                                <label for="add_ton">مؤشر نوع الرقم (TON):</label>
+                                <input type="number" class="form-control-custom" id="add_ton" name="ton" value="0">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group-custom">
+                                <label for="add_npi">مخطط خطة الأرقام (NPI):</label>
+                                <input type="number" class="form-control-custom" id="add_npi" name="npi" value="0">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group-custom">
+                                <label for="add_address_range">نطاق العناوين (Address Range):</label>
+                                <input type="text" class="form-control-custom" id="add_address_range" name="address_range" placeholder="مثال: .* أو اتركه فارغاً" style="direction: ltr; text-align: left;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <input type="checkbox" id="add_enabled" name="enabled" checked style="width: 18px; height: 18px; cursor: pointer;">
+                                <label for="add_enabled" style="margin: 0; font-weight: bold; cursor: pointer;">تفعيل هذا المورد فوراً</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <input type="checkbox" id="add_auto_reconnect" name="auto_reconnect" checked style="width: 18px; height: 18px; cursor: pointer;">
+                                <label for="add_auto_reconnect" style="margin: 0; font-weight: bold; cursor: pointer;">إعادة الاتصال تلقائياً عند انقطاعه</label>
                             </div>
                         </div>
                     </div>

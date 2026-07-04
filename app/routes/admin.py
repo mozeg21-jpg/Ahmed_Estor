@@ -844,7 +844,8 @@ def delete_news(news_id):
 @admin_required
 def settings():
     from app.models.activity import News
-    from app.models.sms import SMSSupplier
+    from smpp.providers import load_providers
+    from dataclasses import asdict
     
     # Get website status settings (default to online)
     status_setting = News.query.filter_by(title='website_status').first()
@@ -853,14 +854,18 @@ def settings():
     msg_setting = News.query.filter_by(title='maintenance_message').first()
     maintenance_message = msg_setting.content if msg_setting else 'الموقع تحت الصيانة حالياً. يرجى المحاولة لاحقاً.'
     
-    # Get suppliers
-    suppliers = SMSSupplier.query.order_by(SMSSupplier.id.asc()).all()
+    # Get SMPP providers instead of REST suppliers
+    providers_dicts = []
+    try:
+        providers_dicts = [asdict(p) for p in load_providers()]
+    except Exception as e:
+        print(f"Error loading SMPP suppliers: {e}")
     
     return render_template(
         'admin/settings.html',
         website_status=website_status,
         maintenance_message=maintenance_message,
-        suppliers=suppliers
+        providers=providers_dicts
     )
 
 @admin_bp.route('/settings/change-password', methods=['POST'])
@@ -915,77 +920,6 @@ def toggle_website():
     else:
         flash('تم تشغيل الموقع بنجاح وإعادته للعمل على الإنترنت!', 'success')
         
-    return redirect(url_for('admin.settings'))
-
-@admin_bp.route('/settings/supplier/add', methods=['POST'])
-@admin_required
-def add_supplier():
-    from app.models.sms import SMSSupplier
-    name = request.form.get('name', '').strip()
-    api_url = request.form.get('api_url', '').strip()
-    api_token = request.form.get('api_token', '').strip()
-    parser_type = request.form.get('parser_type', 'standard').strip()
-    timeout = request.form.get('timeout', 15, type=int)
-    records = request.form.get('records', 500, type=int)
-    
-    if not name or not api_url or not api_token:
-        flash('اسم المورد ورابط الـ API والتوكن مطلوبة.', 'danger')
-        return redirect(url_for('admin.settings'))
-        
-    supplier = SMSSupplier(
-        name=name,
-        api_url=api_url,
-        api_token=api_token,
-        parser_type=parser_type,
-        timeout=timeout,
-        records=records,
-        is_active=True
-    )
-    db.session.add(supplier)
-    db.session.commit()
-    flash(f'تم إضافة المورد الجديد ({name}) بنجاح!', 'success')
-    return redirect(url_for('admin.settings'))
-
-@admin_bp.route('/settings/supplier/edit/<int:id>', methods=['POST'])
-@admin_required
-def edit_supplier(id):
-    from app.models.sms import SMSSupplier
-    supplier = SMSSupplier.query.get_or_404(id)
-    
-    name = request.form.get('name', '').strip()
-    api_url = request.form.get('api_url', '').strip()
-    api_token = request.form.get('api_token', '').strip()
-    parser_type = request.form.get('parser_type', 'standard').strip()
-    timeout = request.form.get('timeout', 15, type=int)
-    records = request.form.get('records', 500, type=int)
-    is_active = 'is_active' in request.form
-    
-    if not name or not api_url or not api_token:
-        flash('جميع حقول المورد مطلوبة.', 'danger')
-        return redirect(url_for('admin.settings'))
-        
-    supplier.name = name
-    supplier.api_url = api_url
-    supplier.api_token = api_token
-    supplier.parser_type = parser_type
-    supplier.timeout = timeout
-    supplier.records = records
-    supplier.is_active = is_active
-    
-    db.session.commit()
-    flash(f'تم تحديث بيانات المورد ({name}) بنجاح!', 'success')
-    return redirect(url_for('admin.settings'))
-
-@admin_bp.route('/settings/supplier/delete/<int:id>', methods=['POST'])
-@admin_required
-def delete_supplier(id):
-    from app.models.sms import SMSSupplier
-    supplier = SMSSupplier.query.get_or_404(id)
-    name = supplier.name
-    
-    db.session.delete(supplier)
-    db.session.commit()
-    flash(f'تم حذف المورد ({name}) بنجاح!', 'success')
     return redirect(url_for('admin.settings'))
 
 @admin_bp.route('/settings/sms-limit', methods=['POST'])
@@ -2303,14 +2237,14 @@ def add_supplier():
 
     if not name or not host:
         flash('Supplier Name and Host are required.', 'danger')
-        return redirect(url_for('admin.smpp_settings'))
+        return redirect(request.referrer or url_for('admin.smpp_settings'))
 
     data = _get_providers_yaml_data()
     # Check if name already exists
     for p in data['providers']:
         if p.get('name') == name:
             flash(f'Supplier name "{name}" already exists.', 'danger')
-            return redirect(url_for('admin.smpp_settings'))
+            return redirect(request.referrer or url_for('admin.smpp_settings'))
 
     new_p = {
         'name': name,
@@ -2336,7 +2270,7 @@ def add_supplier():
         flash(f'Supplier "{name}" added successfully.', 'success')
     else:
         flash('Failed to save supplier to configuration.', 'danger')
-    return redirect(url_for('admin.smpp_settings'))
+    return redirect(request.referrer or url_for('admin.smpp_settings'))
 
 @admin_bp.route('/smpp-settings/edit-supplier', methods=['POST'])
 @admin_required
@@ -2356,7 +2290,7 @@ def edit_supplier():
 
     if not name or not host:
         flash('Supplier Name and Host are required.', 'danger')
-        return redirect(url_for('admin.smpp_settings'))
+        return redirect(request.referrer or url_for('admin.smpp_settings'))
 
     data = _get_providers_yaml_data()
     found = False
@@ -2378,13 +2312,13 @@ def edit_supplier():
 
     if not found:
         flash(f'Supplier "{name}" not found.', 'danger')
-        return redirect(url_for('admin.smpp_settings'))
+        return redirect(request.referrer or url_for('admin.smpp_settings'))
 
     if _save_providers_yaml_data(data):
         flash(f'Supplier "{name}" updated successfully.', 'success')
     else:
         flash('Failed to save supplier to configuration.', 'danger')
-    return redirect(url_for('admin.smpp_settings'))
+    return redirect(request.referrer or url_for('admin.smpp_settings'))
 
 @admin_bp.route('/smpp-settings/toggle-supplier/<name>', methods=['POST'])
 @admin_required
@@ -2399,13 +2333,13 @@ def toggle_supplier(name):
 
     if not found:
         flash(f'Supplier "{name}" not found.', 'danger')
-        return redirect(url_for('admin.smpp_settings'))
+        return redirect(request.referrer or url_for('admin.smpp_settings'))
 
     if _save_providers_yaml_data(data):
         flash(f'Supplier state toggled successfully.', 'success')
     else:
         flash('Failed to update supplier state.', 'danger')
-    return redirect(url_for('admin.smpp_settings'))
+    return redirect(request.referrer or url_for('admin.smpp_settings'))
 
 @admin_bp.route('/smpp-settings/delete-supplier/<name>', methods=['POST'])
 @admin_required
@@ -2421,7 +2355,7 @@ def delete_supplier(name):
         flash(f'Supplier "{name}" deleted successfully.', 'success')
     else:
         flash('Failed to delete supplier.', 'danger')
-    return redirect(url_for('admin.smpp_settings'))
+    return redirect(request.referrer or url_for('admin.smpp_settings'))
 
 @admin_bp.route('/smpp/messages')
 @admin_required

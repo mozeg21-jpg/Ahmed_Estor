@@ -484,14 +484,6 @@
             </ul>
         </li>
 
-        <div class="sb-divider" style="height: 1px; background: var(--border); margin: 15px 0;"></div>
-        <div class="sb-label" style="font-size: 11px; font-weight: 700; color: var(--success); margin-bottom: 8px; text-transform: uppercase;">User View</div>
-        <li>
-            <a href="{{ url_for('main.dashboard') }}" class="sb-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--success); text-decoration: none;">
-                <i class="fa fa-newspaper-o"></i> Latest News Panel
-            </a>
-        </li>
-
         {% else %}
         <!-- ══ STANDARD USER SIDEBAR ════════════════════════════════════════════ -->
         <!-- DASHBOARDS -->
