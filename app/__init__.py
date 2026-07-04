@@ -149,9 +149,15 @@ def create_app(config_name='default'):
 
             # ── Honeypot log table ──────────────────────────────────────────
             if 'honeypot_logs' not in tables:
-                db.session.execute(text("""
+                id_type = "id INTEGER PRIMARY KEY AUTOINCREMENT"
+                if db.engine.name == 'postgresql':
+                    id_type = "id SERIAL PRIMARY KEY"
+                elif db.engine.name == 'mysql':
+                    id_type = "id INT AUTO_INCREMENT PRIMARY KEY"
+                
+                db.session.execute(text(f"""
                     CREATE TABLE honeypot_logs (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        {id_type},
                         ip TEXT NOT NULL,
                         path TEXT NOT NULL,
                         method TEXT NOT NULL,

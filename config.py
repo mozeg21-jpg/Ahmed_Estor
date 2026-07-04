@@ -12,7 +12,8 @@ class Config:
 
     # ── Database ─────────────────────────────────────────────────────────────
     SQLALCHEMY_DATABASE_URI = (
-        os.environ.get('DATABASE_URL') or 'sqlite:///dreem_sms.db'
+        os.environ.get('DATABASE_URL') or 
+        ('sqlite:////tmp/dreem_sms.db' if (os.environ.get('VERCEL') == '1' or os.environ.get('VERCEL_ENV')) else 'sqlite:///dreem_sms.db')
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 

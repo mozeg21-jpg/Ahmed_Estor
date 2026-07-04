@@ -1,6 +1,0 @@
-[project]
-name = "Ahmed_Estor"
-version = "1.0.0"
-
-[tool.vercel]
-entrypoint = "run:app"
