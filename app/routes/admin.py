@@ -843,68 +843,64 @@ def delete_news(news_id):
 @admin_bp.route('/settings')
 @admin_required
 def settings():
+    return render_template('admin/settings.html')
+
+@admin_bp.route('/settings/website-status', methods=['GET'])
+@admin_required
+def website_status():
     from app.models.activity import News
-    from smpp.providers import load_providers
-    from dataclasses import asdict
-    
-    # Get website status settings (default to online)
     status_setting = News.query.filter_by(title='website_status').first()
-    website_status = status_setting.content if status_setting else 'online'
+    web_status = status_setting.content if status_setting else 'online'
     
     msg_setting = News.query.filter_by(title='maintenance_message').first()
     maintenance_message = msg_setting.content if msg_setting else 'الموقع تحت الصيانة حالياً. يرجى المحاولة لاحقاً.'
     
-    # Get SMPP providers instead of REST suppliers
-    providers_dicts = []
-    try:
-        providers_dicts = [asdict(p) for p in load_providers()]
-    except Exception as e:
-        print(f"Error loading SMPP suppliers: {e}")
-    
     return render_template(
-        'admin/settings.html',
-        website_status=website_status,
-        maintenance_message=maintenance_message,
-        providers=providers_dicts
+        'admin/website_status.html',
+        website_status=web_status,
+        maintenance_message=maintenance_message
     )
 
-@admin_bp.route('/settings/change-password', methods=['POST'])
+@admin_bp.route('/settings/change-password', methods=['GET', 'POST'])
 @admin_required
 def change_admin_password():
+    if request.method == 'GET':
+        return render_template('admin/change_password.html')
+        
     current_password = request.form.get('current_password', '').strip()
     new_password = request.form.get('new_password', '').strip()
     confirm_password = request.form.get('confirm_password', '').strip()
     
     if not current_password or not new_password or not confirm_password:
         flash('جميع الحقول مطلوبة لتغيير كلمة المرور.', 'danger')
-        return redirect(url_for('admin.settings'))
+        return redirect(url_for('admin.change_admin_password'))
         
     if new_password != confirm_password:
         flash('كلمتا المرور الجديدتان غير متطابقتين.', 'danger')
-        return redirect(url_for('admin.settings'))
+        return redirect(url_for('admin.change_admin_password'))
         
     if not current_user.check_password(current_password):
         flash('كلمة المرور الحالية غير صحيحة.', 'danger')
-        return redirect(url_for('admin.settings'))
+        return redirect(url_for('admin.change_admin_password'))
         
     current_user.set_password(new_password)
     db.session.commit()
     flash('تم تغيير كلمة المرور للمالك الأساسي بنجاح!', 'success')
-    return redirect(url_for('admin.settings'))
+    return redirect(url_for('admin.change_admin_password'))
 
 @admin_bp.route('/settings/toggle-website', methods=['POST'])
 @admin_required
 def toggle_website():
     from app.models.activity import News
-    website_status = request.form.get('website_status', 'online').strip()
+    web_status = request.form.get('website_status', 'online').strip()
     maintenance_message = request.form.get('maintenance_message', '').strip()
     
     status_setting = News.query.filter_by(title='website_status').first()
     if not status_setting:
-        status_setting = News(title='website_status', headline='System Status', content=website_status)
+        status_setting = News(title='website_status', headline='System Status', content=web_status)
         db.session.add(status_setting)
     else:
-        status_setting.content = website_status
+        status_setting.content = web_status
         
     msg_setting = News.query.filter_by(title='maintenance_message').first()
     if not msg_setting:
@@ -915,12 +911,12 @@ def toggle_website():
         
     db.session.commit()
     
-    if website_status == 'offline':
+    if web_status == 'offline':
         flash('تم إيقاف الموقع بنجاح وتحويله إلى وضع الصيانة!', 'warning')
     else:
         flash('تم تشغيل الموقع بنجاح وإعادته للعمل على الإنترنت!', 'success')
         
-    return redirect(url_for('admin.settings'))
+    return redirect(url_for('admin.website_status'))
 
 @admin_bp.route('/settings/sms-limit', methods=['POST'])
 @admin_required

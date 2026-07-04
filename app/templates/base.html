@@ -470,17 +470,17 @@
             </a>
         </li>
         <li>
-            <span class="sb-link {% if request.endpoint in ('admin.smpp_settings', 'admin.telegram_settings', 'admin.api_settings', 'admin.test123_bot_settings', 'admin.settings', 'admin.message_settings') %}active open{% endif %}" onclick="toggleAccordion(this, 'sub-admin-settings')" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); cursor: pointer;">
+            <span class="sb-link {% if request.endpoint in ('admin.smpp_settings', 'admin.telegram_settings', 'admin.api_settings', 'admin.website_status', 'admin.change_password', 'admin.settings') %}active open{% endif %}" onclick="toggleAccordion(this, 'sub-admin-settings')" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); cursor: pointer;">
                 <i class="fa fa-cogs"></i> Settings Hub
                 <i class="fa fa-chevron-right sb-arrow" style="margin-left: auto; font-size: 10px;"></i>
             </span>
-            <ul class="sb-sub {% if request.endpoint in ('admin.smpp_settings', 'admin.telegram_settings', 'admin.api_settings', 'admin.test123_bot_settings', 'admin.settings', 'admin.message_settings') %}expanded{% endif %}" id="sub-admin-settings" style="list-style: none; padding-left: 20px;">
+            <ul class="sb-sub {% if request.endpoint in ('admin.smpp_settings', 'admin.telegram_settings', 'admin.api_settings', 'admin.website_status', 'admin.change_password', 'admin.settings') %}expanded{% endif %}" id="sub-admin-settings" style="list-style: none; padding-left: 20px;">
                 <li><a href="{{ url_for('admin.settings') }}" class="sb-link {% if request.endpoint == 'admin.settings' %}active{% endif %}"><i class="fa fa-cog"></i> Settings Hub</a></li>
+                <li><a href="{{ url_for('admin.website_status') }}" class="sb-link {% if request.endpoint == 'admin.website_status' %}active{% endif %}"><i class="fa fa-power-off"></i> Website Status</a></li>
+                <li><a href="{{ url_for('admin.change_password') }}" class="sb-link {% if request.endpoint == 'admin.change_password' %}active{% endif %}"><i class="fa fa-key"></i> Change Password</a></li>
                 <li><a href="{{ url_for('admin.smpp_settings') }}" class="sb-link {% if request.endpoint == 'admin.smpp_settings' %}active{% endif %}"><i class="fa fa-plug"></i> SMPP Settings</a></li>
                 <li><a href="{{ url_for('admin.telegram_settings') }}" class="sb-link {% if request.endpoint == 'admin.telegram_settings' %}active{% endif %}"><i class="fa fa-telegram"></i> Telegram Settings</a></li>
                 <li><a href="{{ url_for('admin.api_settings') }}" class="sb-link {% if request.endpoint == 'admin.api_settings' %}active{% endif %}"><i class="fa fa-code"></i> API Settings</a></li>
-                <li><a href="{{ url_for('admin.test123_bot_settings') }}" class="sb-link {% if request.endpoint == 'admin.test123_bot_settings' %}active{% endif %}"><i class="fa fa-robot"></i> Test123 Bot</a></li>
-                <li><a href="{{ url_for('admin.message_settings') }}" class="sb-link {% if request.endpoint == 'admin.message_settings' %}active{% endif %}"><i class="fa fa-hourglass-end"></i> Auto-Deletion</a></li>
             </ul>
         </li>
 

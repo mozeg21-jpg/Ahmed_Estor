@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}حالة تشغيل الموقع - DREEM SMS{% endblock %}
+
+{% block content %}
+<style>
+    .settings-header {
+        background: linear-gradient(135deg, rgba(17, 24, 39, 0.8), rgba(31, 41, 55, 0.8));
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 24px;
+        backdrop-filter: blur(10px);
+    }
+
+    .control-panel-section {
+        background-color: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+
+    .section-title {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--txt);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 12px;
+    }
+
+    .section-title i {
+        color: var(--accent);
+    }
+
+    .switch-toggle-container {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        background: rgba(17, 24, 39, 0.4);
+        padding: 16px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+    }
+
+    /* Beautiful custom switch toggler */
+    .switch-custom {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 30px;
+    }
+
+    .switch-custom input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider-custom {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ef4444; /* Offline - Red */
+        transition: .4s;
+        border-radius: 34px;
+    }
+
+    .slider-custom:before {
+        position: absolute;
+        content: "";
+        height: 22px;
+        width: 22px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+
+    input:checked + .slider-custom {
+        background-color: #22c55e; /* Online - Green */
+    }
+
+    input:checked + .slider-custom:before {
+        transform: translateX(30px);
+    }
+
+    .status-badge {
+        font-size: 12px;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 99px;
+    }
+
+    .status-badge.online {
+        background: rgba(34, 197, 94, 0.1);
+        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.2);
+    }
+
+    .status-badge.offline {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .form-group-custom {
+        margin-bottom: 16px;
+    }
+
+    .form-group-custom label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--txt);
+        margin-bottom: 6px;
+    }
+
+    .form-control-custom {
+        width: 100%;
+        background-color: rgba(17, 24, 39, 0.6);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px 14px;
+        color: var(--txt);
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+
+    .form-control-custom:focus {
+        border-color: var(--accent);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+</style>
+
+<!-- Header -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="settings-header" style="direction: rtl;">
+            <span class="admin-title-badge" style="background: rgba(59, 130, 246, 0.1); color: var(--accent); padding: 6px 12px; border-radius: 99px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+                <i class="fa fa-power-off"></i> حالة الموقع والصيانة
+            </span>
+            <h2 style="color: var(--txt); font-weight: 800; margin: 0; font-size: 24px;">التحكم في تشغيل وإغلاق الموقع</h2>
+            <p style="color: var(--muted); margin: 6px 0 0 0; font-size: 14px;">إيقاف الموقع بالكامل وتحويله إلى وضع الصيانة فوراً لمنع دخول العملاء والوكلاء، أو إعادته للعمل بضغطة زر واحدة.</p>
+        </div>
+    </div>
+</div>
+
+<div class="row" style="direction: rtl;">
+    <div class="col-md-8 mx-auto">
+        <!-- Website Status Control Panel -->
+        <div class="control-panel-section">
+            <div class="section-title">
+                <i class="fa fa-power-off"></i>
+                <span>حالة الموقع والتشغيل</span>
+            </div>
+            <p style="font-size: 13px; color: var(--muted); margin-bottom: 16px; line-height: 1.6;">
+                يمكنك إيقاف الموقع بالكامل وتحويله إلى وضع الصيانة فوراً لمنع دخول العملاء والوكلاء ومراقبة حالة البث أثناء التحديثات، مع بقاء لوحة الإدارة متاحة لك.
+            </p>
+
+            <form action="{{ url_for('admin.toggle_website') }}" method="POST">
+                <div class="switch-toggle-container mb-3">
+                    <label class="switch-custom">
+                        <input type="checkbox" name="website_status_check" id="website_status_check" value="online" {% if website_status == 'online' %}checked{% endif %} onchange="updateStatusLabel(this)">
+                        <span class="slider-custom"></span>
+                    </label>
+                    <div style="flex-grow: 1;">
+                        <div style="font-weight: bold; font-size: 14px;" id="status-title-text">
+                            {% if website_status == 'online' %}الموقع قيد العمل والتشغيل الآن{% else %}الموقع متوقف وفي وضع الصيانة حالياً{% endif %}
+                        </div>
+                        <span class="status-badge {% if website_status == 'online' %}online{% else %}offline{% endif %}" id="status-badge-el">
+                            {% if website_status == 'online' %}نشط (Online){% else %}مغلق (Offline){% endif %}
+                        </span>
+                    </div>
+                </div>
+                <input type="hidden" name="website_status" id="website_status_input" value="{{ website_status }}">
+
+                <div class="form-group-custom" id="maintenance-msg-wrapper" {% if website_status == 'online' %}style="display: none;"{% endif %}>
+                    <label for="maintenance_message">رسالة الصيانة التي تظهر للمستخدمين:</label>
+                    <textarea class="form-control-custom" name="maintenance_message" id="maintenance_message" rows="4" placeholder="اكتب رسالة الصيانة هنا...">{{ maintenance_message }}</textarea>
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-top: 24px;">
+                    <a href="{{ url_for('admin.settings') }}" class="btn btn-default" style="font-weight: bold; padding: 10px 20px;">
+                        إلغاء والعودة
+                    </a>
+                    <button type="submit" class="btn btn-primary" style="font-weight: bold; padding: 10px 30px; flex-grow: 1;">
+                        <i class="fa fa-save"></i> حفظ وتحديث حالة الموقع
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateStatusLabel(checkbox) {
+    const inputEl = document.getElementById('website_status_input');
+    const badgeEl = document.getElementById('status-badge-el');
+    const titleEl = document.getElementById('status-title-text');
+    const msgWrapper = document.getElementById('maintenance-msg-wrapper');
+    
+    if (checkbox.checked) {
+        inputEl.value = 'online';
+        badgeEl.className = 'status-badge online';
+        badgeEl.innerText = 'نشط (Online)';
+        titleEl.innerText = 'الموقع قيد العمل والتشغيل الآن';
+        msgWrapper.style.display = 'none';
+    } else {
+        inputEl.value = 'offline';
+        badgeEl.className = 'status-badge offline';
+        badgeEl.innerText = 'مغلق (Offline)';
+        titleEl.innerText = 'الموقع متوقف وفي وضع الصيانة حالياً';
+        msgWrapper.style.display = 'block';
+    }
+}
+</script>
+{% endblock %}

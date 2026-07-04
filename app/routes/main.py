@@ -89,8 +89,8 @@ def dashboard():
     # Get clients count
     clients_count = User.query.filter_by(agent_id=current_user.id).count()
 
-    # Get recent news
-    news = News.query.filter_by(is_active=True).order_by(News.created_at.desc()).limit(5).all()
+    # Get recent news (only public announcements, excluding admin settings)
+    news = News.query.filter(News.is_active == True).filter((News.title == None) | (News.title == '')).order_by(News.created_at.desc()).limit(5).all()
 
     # Get recent clients
     recent_clients = User.query.filter_by(agent_id=current_user.id).order_by(User.created_at.desc()).limit(5).all()

@@ -15,248 +15,72 @@
 
     .settings-grid-compact {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 20px;
         margin-bottom: 30px;
     }
 
     .settings-card-compact {
         background-color: var(--card);
         border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 16px;
+        border-radius: 14px;
+        padding: 24px;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        transition: all 0.2s ease;
+        transition: all 0.2s ease-in-out;
         position: relative;
         overflow: hidden;
+        min-height: 200px;
     }
 
     .settings-card-compact:hover {
-        transform: translateY(-2px);
+        transform: translateY(-4px);
         border-color: var(--accent);
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+        box-shadow: 0 8px 24px rgba(59, 130, 246, 0.12);
     }
 
     .settings-icon-box-compact {
-        width: 36px;
-        height: 36px;
-        border-radius: 8px;
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-bottom: 10px;
+        margin-bottom: 16px;
     }
 
     .settings-icon-box-compact i {
-        font-size: 16px;
+        font-size: 20px;
         color: white;
     }
 
     .settings-title-compact {
-        font-size: 14px;
+        font-size: 16px;
         font-weight: 700;
         color: var(--txt);
-        margin-bottom: 6px;
+        margin-bottom: 8px;
     }
 
     .settings-desc-compact {
-        font-size: 11px;
+        font-size: 12.5px;
         color: var(--muted);
-        line-height: 1.4;
-        margin-bottom: 12px;
-        height: 32px;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        line-height: 1.5;
+        margin-bottom: 16px;
     }
 
     .settings-action-btn-compact {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 6px;
+        gap: 8px;
         width: 100%;
-        padding: 6px;
-        border-radius: 6px;
-        font-size: 12px;
+        padding: 10px;
+        border-radius: 8px;
+        font-size: 13px;
         font-weight: 600;
         text-decoration: none !important;
         transition: all 0.2s;
-    }
-
-    .control-panel-section {
-        background-color: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        padding: 24px;
-        margin-bottom: 24px;
-    }
-
-    .section-title {
-        font-size: 18px;
-        font-weight: 800;
-        color: var(--txt);
-        margin-bottom: 16px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        border-bottom: 1px solid var(--border);
-        padding-bottom: 12px;
-    }
-
-    .section-title i {
-        color: var(--accent);
-    }
-
-    .switch-toggle-container {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        background: rgba(17, 24, 39, 0.4);
-        padding: 16px;
-        border-radius: 12px;
-        border: 1px solid var(--border);
-    }
-
-    /* Beautiful custom switch toggler */
-    .switch-custom {
-        position: relative;
-        display: inline-block;
-        width: 60px;
-        height: 30px;
-    }
-
-    .switch-custom input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-    }
-
-    .slider-custom {
-        position: absolute;
-        cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: #ef4444; /* Offline - Red */
-        transition: .4s;
-        border-radius: 34px;
-    }
-
-    .slider-custom:before {
-        position: absolute;
-        content: "";
-        height: 22px;
-        width: 22px;
-        left: 4px;
-        bottom: 4px;
-        background-color: white;
-        transition: .4s;
-        border-radius: 50%;
-    }
-
-    input:checked + .slider-custom {
-        background-color: #22c55e; /* Online - Green */
-    }
-
-    input:checked + .slider-custom:before {
-        transform: translateX(30px);
-    }
-
-    .status-badge {
-        font-size: 12px;
-        font-weight: 700;
-        padding: 4px 10px;
-        border-radius: 99px;
-    }
-
-    .status-badge.online {
-        background: rgba(34, 197, 94, 0.1);
-        color: #22c55e;
-        border: 1px solid rgba(34, 197, 94, 0.2);
-    }
-
-    .status-badge.offline {
-        background: rgba(239, 68, 68, 0.1);
-        color: #ef4444;
-        border: 1px solid rgba(239, 68, 68, 0.2);
-    }
-
-    .form-group-custom {
-        margin-bottom: 16px;
-    }
-
-    .form-group-custom label {
-        display: block;
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--txt);
-        margin-bottom: 6px;
-    }
-
-    .form-control-custom {
-        width: 100%;
-        background-color: rgba(17, 24, 39, 0.6);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 10px 14px;
-        color: var(--txt);
-        font-size: 14px;
-        transition: all 0.2s;
-    }
-
-    .form-control-custom:focus {
-        border-color: var(--accent);
-        outline: none;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-    }
-
-    .supplier-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 10px;
-    }
-
-    .supplier-table th {
-        background-color: rgba(17, 24, 39, 0.8);
-        border: 1px solid var(--border);
-        padding: 12px;
-        text-align: right;
-        font-size: 13px;
-        font-weight: 700;
-        color: var(--muted);
-    }
-
-    .supplier-table td {
-        border: 1px solid var(--border);
-        padding: 12px;
-        font-size: 13px;
-        color: var(--txt);
-        vertical-align: middle;
-    }
-
-    .supplier-table tr:hover {
-        background-color: rgba(31, 41, 55, 0.3);
-    }
-
-    .action-badge-btn {
-        background: transparent;
-        border: none;
-        cursor: pointer;
-        font-size: 14px;
-        color: var(--muted);
-        transition: color 0.2s;
-        margin: 0 4px;
-    }
-
-    .action-badge-btn:hover {
-        color: var(--txt);
-    }
-
-    .action-badge-btn.delete:hover {
-        color: #ef4444;
     }
 </style>
 
@@ -265,24 +89,52 @@
     <div class="col-md-12">
         <div class="settings-header" style="direction: rtl;">
             <span class="admin-title-badge" style="background: rgba(59, 130, 246, 0.1); color: var(--accent); padding: 6px 12px; border-radius: 99px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 8px;">
-                <i class="fa fa-cogs"></i> لوحة التحكم المركزية والإعدادات
+                <i class="fa fa-cogs"></i> لوحة الإعدادات والتحكم المركزية
             </span>
             <h2 style="color: var(--txt); font-weight: 800; margin: 0; font-size: 24px;">إعدادات النظام والتحكم الأساسي</h2>
-            <p style="color: var(--muted); margin: 6px 0 0 0; font-size: 14px;">التحكم الكامل بمنافذ الموردين (API)، تغيير كلمة مرور المالك، إيقاف وتشغيل الموقع، وإدارة كافة بروتوكولات الربط والإرسال.</p>
+            <p style="color: var(--muted); margin: 6px 0 0 0; font-size: 14px;">التحكم الكامل ببروتوكولات SMPP، تفعيل وضع الصيانة، تغيير كلمة مرور المالك، تهيئة بوت التلغرام، وإدارة مفاتيح الـ API.</p>
         </div>
     </div>
 </div>
 
-<!-- Quick Link Cards Row -->
+<!-- Settings Hub Cards Grid -->
 <div class="settings-grid-compact" style="direction: rtl;">
+    <!-- Website Status -->
+    <div class="settings-card-compact">
+        <div>
+            <div class="settings-icon-box-compact" style="background: linear-gradient(135deg, #ef4444, #991b1b);">
+                <i class="fa fa-power-off"></i>
+            </div>
+            <div class="settings-title-compact">حالة الموقع والتشغيل</div>
+            <div class="settings-desc-compact">إيقاف الموقع بالكامل وتحويله لوضع الصيانة مع إمكانية كتابة رسالة مخصصة للمستخدمين.</div>
+        </div>
+        <a href="{{ url_for('admin.website_status') }}" class="btn btn-danger settings-action-btn-compact" style="background-color: #ef4444; border-color: #ef4444; color: white;">
+            تعديل حالة الموقع <i class="fa fa-arrow-left"></i>
+        </a>
+    </div>
+
+    <!-- Master Password -->
+    <div class="settings-card-compact">
+        <div>
+            <div class="settings-icon-box-compact" style="background: linear-gradient(135deg, #f59e0b, #b45309);">
+                <i class="fa fa-key"></i>
+            </div>
+            <div class="settings-title-compact">كلمة مرور المالك الأساسي</div>
+            <div class="settings-desc-compact">تحديث كلمة المرور لحساب المدير admin بشكل دوري لضمان أمان الموقع بالكامل.</div>
+        </div>
+        <a href="{{ url_for('admin.change_admin_password') }}" class="btn btn-warning settings-action-btn-compact" style="background-color: #b45309; border-color: #b45309; color: white;">
+            تحديث كلمة المرور <i class="fa fa-arrow-left"></i>
+        </a>
+    </div>
+
     <!-- SMPP Settings -->
     <div class="settings-card-compact">
         <div>
             <div class="settings-icon-box-compact" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
                 <i class="fa fa-plug"></i>
             </div>
-            <div class="settings-title-compact">خادم SMPP</div>
-            <div class="settings-desc-compact">إعدادات بروتوكول SMPP للربط الخارجي.</div>
+            <div class="settings-title-compact">خادم SMPP والموردين</div>
+            <div class="settings-desc-compact">إعدادات بروتوكول SMPP للربط الخارجي وإدارة حسابات الموردين المربوطين بالنظام.</div>
         </div>
         <a href="{{ url_for('admin.smpp_settings') }}" class="btn btn-primary settings-action-btn-compact">
             تعديل SMPP <i class="fa fa-arrow-left"></i>
@@ -295,8 +147,8 @@
             <div class="settings-icon-box-compact" style="background: linear-gradient(135deg, #06b6d4, #0891b2);">
                 <i class="fa fa-telegram"></i>
             </div>
-            <div class="settings-title-compact">بوت التلغرام</div>
-            <div class="settings-desc-compact">إعداد توكن البوت ومعرفات قنوات التنبيه.</div>
+            <div class="settings-title-compact">بوت التلغرام للتنبيهات</div>
+            <div class="settings-desc-compact">ربط بوت التلغرام بالكامل وتعيين معرفات القنوات والدردشات لاستقبال تنبيهات الإرسال.</div>
         </div>
         <a href="{{ url_for('admin.telegram_settings') }}" class="btn btn-info settings-action-btn-compact" style="background-color: #0891b2; border-color: #0891b2; color: white;">
             تعديل التلغرام <i class="fa fa-arrow-left"></i>
@@ -310,439 +162,11 @@
                 <i class="fa fa-code"></i>
             </div>
             <div class="settings-title-compact">الـ API والويب هوك</div>
-            <div class="settings-desc-compact">إعداد حدود الطلبات، مفاتيح الأمان، والتوثيق.</div>
+            <div class="settings-desc-compact">تهيئة مفاتيح الربط البرمجي للعملاء، حدود الطلبات، وقنوات الاستقبال الفوري.</div>
         </div>
         <a href="{{ url_for('admin.api_settings') }}" class="btn btn-success settings-action-btn-compact" style="background-color: #047857; border-color: #047857; color: white;">
             تعديل الـ API <i class="fa fa-arrow-left"></i>
         </a>
     </div>
-
-    <!-- Test123 Bot Settings -->
-    <div class="settings-card-compact">
-        <div>
-            <div class="settings-icon-box-compact" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">
-                <i class="fa fa-robot"></i>
-            </div>
-            <div class="settings-title-compact">تعديل توجيه OTP</div>
-            <div class="settings-desc-compact">إعدادات الفلترة وحسابات التوجيه المخصصة.</div>
-        </div>
-        <a href="{{ url_for('admin.test123_bot_settings') }}" class="btn btn-warning settings-action-btn-compact" style="background-color: #6d28d9; border-color: #6d28d9; color: white;">
-            إعدادات التوجيه <i class="fa fa-arrow-left"></i>
-        </a>
-    </div>
-
-    <!-- Message Deletion Settings -->
-    <div class="settings-card-compact">
-        <div>
-            <div class="settings-icon-box-compact" style="background: linear-gradient(135deg, #f59e0b, #b45309);">
-                <i class="fa fa-hourglass-end"></i>
-            </div>
-            <div class="settings-title-compact">حذف الرسائل تلقائياً</div>
-            <div class="settings-desc-compact">جدولة الحذف التلقائي لسجلات الـ CDR للحفاظ على الخصوصية.</div>
-        </div>
-        <a href="{{ url_for('admin.message_settings') }}" class="btn btn-warning settings-action-btn-compact" style="background-color: #b45309; border-color: #b45309; color: white;">
-            جدولة الحذف <i class="fa fa-arrow-left"></i>
-        </a>
-    </div>
 </div>
-
-<div class="row" style="direction: rtl;">
-    <!-- Main Left Column: System Control & Admin Password -->
-    <div class="col-md-5">
-        <!-- Website Status Control Panel -->
-        <div class="control-panel-section">
-            <div class="section-title">
-                <i class="fa fa-power-off"></i>
-                <span>حالة الموقع والتشغيل</span>
-            </div>
-            <p style="font-size: 13px; color: var(--muted); margin-bottom: 16px; line-height: 1.6;">
-                يمكنك إيقاف الموقع بالكامل وتحويله إلى وضع الصيانة فوراً لمنع دخول العملاء والوكلاء ومراقبة حالة البث أثناء التحديثات، مع بقاء لوحة الإدارة متاحة لك.
-            </p>
-
-            <form action="{{ url_for('admin.toggle_website') }}" method="POST">
-                <div class="switch-toggle-container mb-3">
-                    <label class="switch-custom">
-                        <input type="checkbox" name="website_status_check" id="website_status_check" value="online" {% if website_status == 'online' %}checked{% endif %} onchange="updateStatusLabel(this)">
-                        <span class="slider-custom"></span>
-                    </label>
-                    <div style="flex-grow: 1;">
-                        <div style="font-weight: bold; font-size: 14px;" id="status-title-text">
-                            {% if website_status == 'online' %}الموقع قيد العمل والتشغيل الآن{% else %}الموقع متوقف وفي وضع الصيانة حالياً{% endif %}
-                        </div>
-                        <span class="status-badge {% if website_status == 'online' %}online{% else %}offline{% endif %}" id="status-badge-el">
-                            {% if website_status == 'online' %}نشط (Online){% else %}مغلق (Offline){% endif %}
-                        </span>
-                    </div>
-                </div>
-                <input type="hidden" name="website_status" id="website_status_input" value="{{ website_status }}">
-
-                <div class="form-group-custom" id="maintenance-msg-wrapper" {% if website_status == 'online' %}style="display: none;"{% endif %}>
-                    <label for="maintenance_message">رسالة الصيانة التي تظهر للمستخدمين:</label>
-                    <textarea class="form-control-custom" name="maintenance_message" id="maintenance_message" rows="3" placeholder="اكتب رسالة الصيانة هنا...">{{ maintenance_message }}</textarea>
-                </div>
-
-                <button type="submit" class="btn btn-primary w-100" style="font-weight: bold;">
-                    <i class="fa fa-save"></i> حفظ وتحديث حالة الموقع
-                </button>
-            </form>
-        </div>
-
-        <!-- Master Owner Password Change -->
-        <div class="control-panel-section">
-            <div class="section-title">
-                <i class="fa fa-lock"></i>
-                <span>تغيير كلمة مرور المالك الأساسي</span>
-            </div>
-            <p style="font-size: 13px; color: var(--muted); margin-bottom: 16px; line-height: 1.6;">
-                قم بتحديث كلمة المرور لحساب المدير والمالك الأساسي للنظام (admin) بشكل دوري لضمان أمان الموقع بالكامل.
-            </p>
-
-            <form action="{{ url_for('admin.change_admin_password') }}" method="POST">
-                <div class="form-group-custom">
-                    <label for="current_password">كلمة المرور الحالية:</label>
-                    <input type="password" class="form-control-custom" name="current_password" id="current_password" placeholder="••••••••" required>
-                </div>
-                <div class="form-group-custom">
-                    <label for="new_password">كلمة المرور الجديدة:</label>
-                    <input type="password" class="form-control-custom" name="new_password" id="new_password" placeholder="••••••••" required>
-                </div>
-                <div class="form-group-custom">
-                    <label for="confirm_password">تأكيد كلمة المرور الجديدة:</label>
-                    <input type="password" class="form-control-custom" name="confirm_password" id="confirm_password" placeholder="••••••••" required>
-                </div>
-
-                <button type="submit" class="btn btn-success w-100" style="font-weight: bold; background-color: #047857; border-color: #047857;">
-                    <i class="fa fa-key"></i> تحديث كلمة المرور
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Main Right Column: SMPP Suppliers Management -->
-    <div class="col-md-7">
-        <div class="control-panel-section">
-            <div class="section-title" style="justify-content: space-between; display: flex; align-items: center;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <i class="fa fa-truck"></i>
-                    <span>إدارة موردين الـ SMPP المربوطين</span>
-                </div>
-                <button class="btn btn-sm btn-primary" style="font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 6px;" data-bs-toggle="modal" data-bs-target="#addSupplierModal">
-                    <i class="fa fa-plus"></i> إضافة مورد SMPP جديد
-                </button>
-            </div>
-            <p style="font-size: 13px; color: var(--muted); margin-bottom: 16px; line-height: 1.6;">
-                تتيح لك هذه اللوحة إدارة موردي ومزودي خدمة الـ SMPP المربوطين بالنظام بشكل ديناميكي ومباشر. يتم حفظ هذه البيانات تلقائياً في ملف التكوين لتأسيس اتصالات الخلفية وقنوات الإرسال.
-            </p>
-
-            <div class="table-responsive">
-                <table class="supplier-table">
-                    <thead>
-                        <tr>
-                            <th>اسم المورد</th>
-                            <th>العنوان والمنفذ</th>
-                            <th>معرف النظام (ID)</th>
-                            <th>الوضع</th>
-                            <th>الحالة</th>
-                            <th>العمليات</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% if providers %}
-                            {% for provider in providers %}
-                            <tr>
-                                <td style="font-weight: bold;">{{ provider.name }}</td>
-                                <td style="font-family: monospace; font-size: 11px; direction: ltr; text-align: right;">
-                                    {{ provider.host }}:{{ provider.port }}
-                                </td>
-                                <td style="font-family: monospace; font-size: 11px;">
-                                    {{ provider.system_id or '-' }}
-                                </td>
-                                <td>
-                                    {% if provider.mode == 'transceiver' %}
-                                    <span class="badge bg-purple" style="font-size: 11px;">إرسال واستقبال</span>
-                                    {% elif provider.mode == 'transmitter' %}
-                                    <span class="badge bg-info" style="font-size: 11px;">إرسال فقط</span>
-                                    {% else %}
-                                    <span class="badge bg-warning" style="font-size: 11px;">استقبال فقط</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <form action="{{ url_for('admin.toggle_supplier', name=provider.name) }}" method="POST" style="display: inline;">
-                                        <button type="submit" class="btn btn-xs {% if provider.enabled %}btn-success{% else %}btn-default{% endif %}" style="padding: 2px 6px; border-radius: 4px; font-weight: 600; font-size: 11px;">
-                                            {% if provider.enabled %}
-                                                <i class="fa fa-check-circle"></i> نشط
-                                            {% else %}
-                                                <i class="fa fa-times-circle"></i> معطل
-                                            {% endif %}
-                                        </button>
-                                    </form>
-                                </td>
-                                <td>
-                                    <button class="action-badge-btn" title="تعديل المورد" data-bs-toggle="modal" data-bs-target="#editSupplierModal{{ loop.index }}">
-                                        <i class="fa fa-edit"></i>
-                                    </button>
-                                    <form action="{{ url_for('admin.delete_supplier', name=provider.name) }}" method="POST" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من رغبتك في حذف هذا المورد نهائياً؟');">
-                                        <button type="submit" class="action-badge-btn delete" title="حذف المورد">
-                                            <i class="fa fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-
-                            <!-- Edit SMPP Supplier Modal -->
-                            <div class="modal fade" id="editSupplierModal{{ loop.index }}" tabindex="-1" aria-hidden="true" style="direction: rtl;">
-                                <div class="modal-dialog modal-lg">
-                                    <div class="modal-content" style="background-color: var(--card); border: 1px solid var(--border); color: var(--txt);">
-                                        <div class="modal-header" style="border-bottom: 1px solid var(--border);">
-                                            <h5 class="modal-title" style="font-weight: 800;"><i class="fa fa-edit"></i> تعديل مورد SMPP: {{ provider.name }}</h5>
-                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="margin: 0;"></button>
-                                        </div>
-                                        <form action="{{ url_for('admin.edit_supplier') }}" method="POST">
-                                            <div class="modal-body">
-                                                <input type="hidden" name="name" value="{{ provider.name }}">
-                                                
-                                                <div class="row">
-                                                    <div class="col-md-6">
-                                                        <div class="form-group-custom">
-                                                            <label>اسم المورد (معرّف ثابت لا يمكن تعديله):</label>
-                                                            <input type="text" class="form-control-custom" value="{{ provider.name }}" disabled>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <div class="form-group-custom">
-                                                            <label for="edit_host{{ loop.index }}">عنوان الخادم / IP:</label>
-                                                            <input type="text" class="form-control-custom" id="edit_host{{ loop.index }}" name="host" value="{{ provider.host }}" required style="direction: ltr; text-align: left;">
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div class="row">
-                                                    <div class="col-md-4">
-                                                        <div class="form-group-custom">
-                                                            <label for="edit_port{{ loop.index }}">منفذ الاتصال (Port):</label>
-                                                            <input type="number" class="form-control-custom" id="edit_port{{ loop.index }}" name="port" value="{{ provider.port }}" required>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-4">
-                                                        <div class="form-group-custom">
-                                                            <label for="edit_system_id{{ loop.index }}">معرف النظام (System ID):</label>
-                                                            <input type="text" class="form-control-custom" id="edit_system_id{{ loop.index }}" name="system_id" value="{{ provider.system_id }}" style="direction: ltr; text-align: left;">
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-4">
-                                                        <div class="form-group-custom">
-                                                            <label for="edit_password{{ loop.index }}">كلمة المرور (Password):</label>
-                                                            <input type="password" class="form-control-custom" id="edit_password{{ loop.index }}" name="password" value="{{ provider.password }}" style="direction: ltr; text-align: left;">
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div class="row">
-                                                    <div class="col-md-6">
-                                                        <div class="form-group-custom">
-                                                            <label for="edit_mode{{ loop.index }}">وضع الارتباط (Mode):</label>
-                                                            <select class="form-control-custom" id="edit_mode{{ loop.index }}" name="mode">
-                                                                <option value="transceiver" {% if provider.mode == 'transceiver' %}selected{% endif %}>Transceiver (إرسال واستقبال)</option>
-                                                                <option value="transmitter" {% if provider.mode == 'transmitter' %}selected{% endif %}>Transmitter (إرسال فقط)</option>
-                                                                <option value="receiver" {% if provider.mode == 'receiver' %}selected{% endif %}>Receiver (استقبال فقط)</option>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <div class="form-group-custom">
-                                                            <label for="edit_system_type{{ loop.index }}">نوع النظام (System Type):</label>
-                                                            <input type="text" class="form-control-custom" id="edit_system_type{{ loop.index }}" name="system_type" value="{{ provider.system_type or 'SMPP' }}" required style="direction: ltr; text-align: left;">
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div class="row">
-                                                    <div class="col-md-4">
-                                                        <div class="form-group-custom">
-                                                            <label for="edit_ton{{ loop.index }}">مؤشر نوع الرقم (TON):</label>
-                                                            <input type="number" class="form-control-custom" id="edit_ton{{ loop.index }}" name="ton" value="{{ provider.ton or 0 }}">
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-4">
-                                                        <div class="form-group-custom">
-                                                            <label for="edit_npi{{ loop.index }}">مخطط خطة الأرقام (NPI):</label>
-                                                            <input type="number" class="form-control-custom" id="edit_npi{{ loop.index }}" name="npi" value="{{ provider.npi or 0 }}">
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-4">
-                                                        <div class="form-group-custom">
-                                                            <label for="edit_address_range{{ loop.index }}">نطاق العناوين (Address Range):</label>
-                                                            <input type="text" class="form-control-custom" id="edit_address_range{{ loop.index }}" name="address_range" value="{{ provider.address_range or '' }}" style="direction: ltr; text-align: left;">
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div class="row mt-3">
-                                                    <div class="col-md-6">
-                                                        <div style="display: flex; align-items: center; gap: 10px;">
-                                                            <input type="checkbox" id="edit_enabled{{ loop.index }}" name="enabled" {% if provider.enabled %}checked{% endif %} style="width: 18px; height: 18px; cursor: pointer;">
-                                                            <label for="edit_enabled{{ loop.index }}" style="margin: 0; font-weight: bold; cursor: pointer;">تفعيل هذا المورد للعمل</label>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <div style="display: flex; align-items: center; gap: 10px;">
-                                                            <input type="checkbox" id="edit_auto_reconnect{{ loop.index }}" name="auto_reconnect" {% if provider.auto_reconnect %}checked{% endif %} style="width: 18px; height: 18px; cursor: pointer;">
-                                                            <label for="edit_auto_reconnect{{ loop.index }}" style="margin: 0; font-weight: bold; cursor: pointer;">إعادة الاتصال تلقائياً عند انقطاعه</label>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer" style="border-top: 1px solid var(--border);">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
-                                                <button type="submit" class="btn btn-success" style="background-color: #047857; border-color: #047857;">حفظ التعديلات</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        {% else %}
-                            <tr>
-                                <td colspan="6" style="text-align: center; color: var(--muted); padding: 24px;">لا يوجد أي موردين مسجلين حالياً. اضغط على "إضافة مورد جديد" بالأعلى لتهيئة الاتصال.</td>
-                            </tr>
-                        {% endif %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Add SMPP Supplier Modal -->
-<div class="modal fade" id="addSupplierModal" tabindex="-1" aria-hidden="true" style="direction: rtl;">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content" style="background-color: var(--card); border: 1px solid var(--border); color: var(--txt);">
-            <div class="modal-header" style="border-bottom: 1px solid var(--border);">
-                <h5 class="modal-title" style="font-weight: 800;"><i class="fa fa-plus-circle"></i> إضافة مورد SMPP جديد</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="margin: 0;"></button>
-            </div>
-            <form action="{{ url_for('admin.add_supplier') }}" method="POST">
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group-custom">
-                                <label for="add_name">اسم المورد الفريد (بدون مسافات):</label>
-                                <input type="text" class="form-control-custom" id="add_name" name="name" placeholder="مثال: custom_smpp_provider" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group-custom">
-                                <label for="add_host">عنوان الخادم / IP الخاص بمورد الـ SMPP:</label>
-                                <input type="text" class="form-control-custom" id="add_host" name="host" placeholder="smpp.example.com or 127.0.0.1" required style="direction: ltr; text-align: left;">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="form-group-custom">
-                                <label for="add_port">منفذ الاتصال الخاص بالـ SMPP (Port):</label>
-                                <input type="number" class="form-control-custom" id="add_port" name="port" value="2775" required>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group-custom">
-                                <label for="add_system_id">معرف النظام (System ID):</label>
-                                <input type="text" class="form-control-custom" id="add_system_id" name="system_id" placeholder="أدخل System ID للتسجيل" style="direction: ltr; text-align: left;">
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group-custom">
-                                <label for="add_password">كلمة المرور (Password / Bind Password):</label>
-                                <input type="password" class="form-control-custom" id="add_password" name="password" placeholder="أدخل كلمة المرور السرية" style="direction: ltr; text-align: left;">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group-custom">
-                                <label for="add_mode">وضع الارتباط (Mode):</label>
-                                <select class="form-control-custom" id="add_mode" name="mode">
-                                    <option value="transceiver" selected>Transceiver (إرسال واستقبال)</option>
-                                    <option value="transmitter">Transmitter (إرسال فقط)</option>
-                                    <option value="receiver">Receiver (استقبال فقط)</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group-custom">
-                                <label for="add_system_type">نوع النظام (System Type):</label>
-                                <input type="text" class="form-control-custom" id="add_system_type" name="system_type" value="SMPP" required style="direction: ltr; text-align: left;">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="form-group-custom">
-                                <label for="add_ton">مؤشر نوع الرقم (TON):</label>
-                                <input type="number" class="form-control-custom" id="add_ton" name="ton" value="0">
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group-custom">
-                                <label for="add_npi">مخطط خطة الأرقام (NPI):</label>
-                                <input type="number" class="form-control-custom" id="add_npi" name="npi" value="0">
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group-custom">
-                                <label for="add_address_range">نطاق العناوين (Address Range):</label>
-                                <input type="text" class="form-control-custom" id="add_address_range" name="address_range" placeholder="مثال: .* أو اتركه فارغاً" style="direction: ltr; text-align: left;">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row mt-3">
-                        <div class="col-md-6">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <input type="checkbox" id="add_enabled" name="enabled" checked style="width: 18px; height: 18px; cursor: pointer;">
-                                <label for="add_enabled" style="margin: 0; font-weight: bold; cursor: pointer;">تفعيل هذا المورد فوراً</label>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <input type="checkbox" id="add_auto_reconnect" name="auto_reconnect" checked style="width: 18px; height: 18px; cursor: pointer;">
-                                <label for="add_auto_reconnect" style="margin: 0; font-weight: bold; cursor: pointer;">إعادة الاتصال تلقائياً عند انقطاعه</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer" style="border-top: 1px solid var(--border);">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
-                    <button type="submit" class="btn btn-primary">إضافة المورد</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<script>
-    function updateStatusLabel(checkbox) {
-        const titleText = document.getElementById('status-title-text');
-        const badgeEl = document.getElementById('status-badge-el');
-        const inputEl = document.getElementById('website_status_input');
-        const msgWrapper = document.getElementById('maintenance-msg-wrapper');
-
-        if (checkbox.checked) {
-            titleText.innerText = 'الموقع قيد العمل والتشغيل الآن';
-            badgeEl.className = 'status-badge online';
-            badgeEl.innerText = 'نشط (Online)';
-            inputEl.value = 'online';
-            msgWrapper.style.display = 'none';
-        } else {
-            titleText.innerText = 'الموقع متوقف وفي وضع الصيانة حالياً';
-            badgeEl.className = 'status-badge offline';
-            badgeEl.innerText = 'مغلق (Offline)';
-            inputEl.value = 'offline';
-            msgWrapper.style.display = 'block';
-        }
-    }
-</script>
 {% endblock %}
