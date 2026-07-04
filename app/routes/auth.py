@@ -284,5 +284,4 @@ def not_found(e):
 @auth_bp.app_errorhandler(500)
 def server_error(e):
     db.session.rollback()
-    flash('An internal error occurred. Please try again later.', 'danger')
-    return redirect(url_for('main.dashboard'))
+    return render_template('errors/500.html'), 500
