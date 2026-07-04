@@ -1,21 +1,15 @@
 import os
-import yaml
 from typing import List
 from smpp.models import ProviderConfig
 from smpp.config import PROVIDERS_FILE
+from smpp.yaml_helper import parse_yaml_file
 import logging
 
 logger = logging.getLogger(__name__)
 
 def load_providers(yaml_path: str = PROVIDERS_FILE) -> List[ProviderConfig]:
     """
-    Load providers from the YAML configuration file.
-    
-    Args:
-        yaml_path: The path to the YAML configuration file.
-        
-    Returns:
-        List[ProviderConfig]: A list of provider configuration objects.
+    Load providers from the YAML configuration file using pure-Python helper.
     """
     providers: List[ProviderConfig] = []
     
@@ -24,8 +18,7 @@ def load_providers(yaml_path: str = PROVIDERS_FILE) -> List[ProviderConfig]:
         return providers
 
     try:
-        with open(yaml_path, 'r', encoding='utf-8') as file:
-            data = yaml.safe_load(file)
+        data = parse_yaml_file(yaml_path)
             
         if not data or 'providers' not in data:
             logger.warning("No providers found in configuration file.")

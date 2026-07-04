@@ -2195,26 +2195,23 @@ def smpp_test():
 
 def _get_providers_yaml_data():
     from smpp.config import PROVIDERS_FILE
-    import yaml
+    from smpp.yaml_helper import parse_yaml_file
     if not os.path.exists(PROVIDERS_FILE):
         return {'providers': []}
     try:
-        with open(PROVIDERS_FILE, 'r', encoding='utf-8') as f:
-            data = yaml.safe_load(f)
-            if not data or 'providers' not in data:
-                return {'providers': []}
-            return data
+        data = parse_yaml_file(PROVIDERS_FILE)
+        if not data or 'providers' not in data:
+            return {'providers': []}
+        return data
     except Exception as e:
         print(f"Error reading YAML: {e}")
         return {'providers': []}
 
 def _save_providers_yaml_data(data):
     from smpp.config import PROVIDERS_FILE
-    import yaml
+    from smpp.yaml_helper import dump_yaml_file
     try:
-        with open(PROVIDERS_FILE, 'w', encoding='utf-8') as f:
-            yaml.dump(data, f, default_flow_style=False, sort_keys=False)
-        return True
+        return dump_yaml_file(PROVIDERS_FILE, data)
     except Exception as e:
         print(f"Error saving YAML: {e}")
         return False
