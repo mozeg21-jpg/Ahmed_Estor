@@ -10,6 +10,13 @@ from app.smpp_methods.deliver_sm import DeliverSMHandler
 
 main_bp = Blueprint('main', __name__)
 
+@main_bp.before_request
+def restrict_admin_from_agent_routes():
+    # If the user is an admin, prevent them from accessing any client/agent panel routes under /agent/
+    if current_user.is_authenticated and current_user.is_admin():
+        if request.path.startswith('/agent'):
+            return redirect(url_for('admin.index'))
+
 @main_bp.route('/webhook/receive_sms', methods=['POST', 'GET'])
 def webhook_receive_sms():
     """

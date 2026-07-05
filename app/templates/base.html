@@ -774,91 +774,82 @@ setTimeout(function() {
     // Mapping of URLs to their natural descriptions based on user role
     {% if current_user.is_authenticated and current_user.is_admin() %}
     var urlDescriptions = {
-        "/admin/users": "إدارة المستخدمين: لعرض وتعديل حسابات الأعضاء والعملاء.",
-        "/admin/sms_ranges": "مسارات الإس إم إس: لإدارة وتعيين نطاقات البادئات.",
-        "/admin/sms_numbers": "الأرقام النشطة: لإدارة أرقام الخدمة المتصلة.",
-        "/admin/sms_cdr": "تقارير ال سيدي آر: لعرض سجلات وتفاصيل تسليم الرسائل.",
-        "/admin/settings": "لوحة الإعدادات: لضبط وتغيير إعدادات المنصة الأساسية.",
-        "/admin/website_status": "حالة الموقع: لتعديل ووقف أو تشغيل الموقع.",
-        "/admin/settings/change-password": "تغيير كلمة المرور: لتأمين وتحديث كلمة سر حسابك.",
-        "/admin/smpp_settings": "إعدادات بروتوكول إس إم بي بي: لربط المزودين والبوابات الإلكترونية.",
-        "/admin/telegram_settings": "إعدادات تيليجرام: لربط البوت وتفعيل الإشعارات الفورية.",
-        "/admin/api_settings": "إعدادات مفتاح واجهة البرمجة: للحصول على أكواد الربط وتكامل ال إيه بي آي.",
-        "/admin/": "لوحة التحكم الرئيسية: لمشاهدة الإحصائيات العامة وإدارة البانل.",
-        "/dashboard": "لوحة التحكم: لمشاهدة إحصائيات حسابك ورصيدك الحالي.",
-        "/sms_ranges": "مسارات الرسائل المتاحة: لعرض نطاقات وأسعار الدول والشبكات.",
-        "/my_sms_numbers": "أرقامي النشطة: لعرض وتتبع الأرقام الخاصة بك والمستقبلة للرسائل.",
-        "/sms_ratecard": "حاسبة الأسعار: لحساب التكلفة والعمولات لمختلف الدول والمسارات.",
-        "/clients": "قائمة العملاء التابعين لك: لإدارة حساباتك الفرعية وأرصدتهم.",
-        "/sms_cdr_reports": "تقارير الرسائل: لعرض تفاصيل وحالة وصول الرسائل لحسابك.",
-        "/stats?stat_type=sms": "إحصائيات الرسائل: لتحليل حركة مرور الرسائل بالأرقام والرسومات البيانية.",
-        "/stats?stat_type=clients": "إحصائيات العملاء: لتتبع نشاط عملائك المشتركين.",
-        "/stats?stat_type=ranges": "إحصائيات المسارات: لمشاهدة المسارات الأكثر نشاطاً.",
-        "/stats?stat_type=numbers": "إحصائيات الأرقام: لتحليل الأرقام الأكثر استقبالاً للرسائل.",
-        "/credit_notes": "إشعارات الرصيد والديون: لمراجعة المعاملات والعمليات المالية.",
-        "/payment_requests": "طلبات سحب الأرباح: لإرسال وتتبع طلبات سحب رصيدك البنكي.",
-        "/bank_accounts": "الحسابات البنكية المعتمدة: لإدارة حسابات تحويل الأرباح.",
-        "/statements?currency=USD": "كشف الحساب بالدولار الأمريكي: لمشاهدة تفاصيل الحركات والعمليات المالية بالدولار.",
-        "/statements?currency=EUR": "كشف الحساب باليورو: لمشاهدة تفاصيل الحركات والعمليات المالية باليورو.",
-        "/statements?currency=GBP": "كشف الحساب بالجنيه الإسترليني: لمشاهدة تفاصيل الحركات والعمليات المالية بالجنيه الإسترليني.",
-        "/logout": "تسجيل الخروج: لمغادرة لوحة التحكم بأمان."
+        "/admin/users": "لوحة إدارة المستخدمين: لعرض وتعديل حسابات الأعضاء والعملاء والوكلاء.",
+        "/admin/sms_ranges": "إدارة مسارات الإس إم إس: لإدارة وتعيين نطاقات البادئات وأسعار الدول.",
+        "/admin/sms_numbers": "الأرقام النشطة بالمنصة: لإدارة أرقام الخدمة المتصلة والتحكم في إتاحتها.",
+        "/admin/sms_cdr": "تقارير ال سيدي آر التفصيلية: لعرض تفاصيل وحالة تسليم الرسائل بدقة.",
+        "/admin/settings": "لوحة إعدادات المنصة: لضبط وتغيير إعدادات المنصة الأساسية والعمولات.",
+        "/admin/website_status": "حالة الموقع: لتعديل ووقف أو تشغيل الموقع بشكل مؤقت.",
+        "/admin/settings/change-password": "تغيير كلمة المرور: لتأمين وتحديث كلمة سر حسابك الإداري.",
+        "/admin/smpp_settings": "إعدادات بروتوكول إس إم بي بي: لربط مزودي الخدمة وبوابات الإرسال.",
+        "/admin/telegram_settings": "إعدادات تيليجرام: لربط البوت وتفعيل إشعارات تيليجرام التلقائية.",
+        "/admin/api_settings": "إعدادات مفتاح واجهة البرمجة: للحصول على أكواد الربط وتكامل ال إيه بي آي للمطورين.",
+        "/admin/": "لوحة التحكم الإدارية الرئيسية: لمشاهدة الإحصائيات العامة وإدارة المنصة بأكملها.",
+        "/logout": "تسجيل الخروج: لإنهاء جلستك الحالية ومغادرة لوحة التحكم بأمان."
     };
 
     var textDescriptions = {
         "حفظ": "زر حفظ التعديلات: لتطبيق وحفظ التغييرات الجديدة في قاعدة البيانات.",
         "save": "زر حفظ التعديلات: لتطبيق وحفظ التغييرات الجديدة في قاعدة البيانات.",
-        "إرسال": "زر الإرسال: لتأكيد وإرسال الرسائل أو البيانات المطلوبة.",
-        "send": "زر الإرسال: لتأكيد وإرسال الرسائل أو البيانات المطلوبة.",
-        "إضافة": "زر إضافة عنصر جديد: لفتح نموذج إضافة حقل أو مستخدم جديد.",
-        "add": "زر إضافة عنصر جديد: لفتح نموذج إضافة حقل أو مستخدم جديد.",
-        "بحث": "زر البحث: لتصفية وعرض النتائج المطلوبة.",
-        "search": "زر البحث: لتصفية وعرض النتائج المطلوبة.",
+        "إرسال": "زر الإرسال والتأكيد: لإرسال البيانات أو الرسائل المكتوبة.",
+        "send": "زر الإرسال والتأكيد: لإرسال البيانات أو الرسائل المكتوبة.",
+        "إضافة": "زر إضافة جديدة: لفتح نموذج وإدراج عنصر أو مستخدم جديد بالنظام.",
+        "add": "زر إضافة جديدة: لفتح نموذج وإدراج عنصر أو مستخدم جديد بالنظام.",
+        "بحث": "زر البحث: لتصفية وعرض النتائج المطلوبة في الجداول.",
+        "search": "زر البحث: لتصفية وعرض النتائج المطلوبة في الجداول.",
         "تعديل": "زر التعديل: لتعديل بيانات هذا العنصر.",
         "edit": "زر التعديل: لتعديل بيانات هذا العنصر.",
-        "حذف": "زر الحذف: لحذف هذا العنصر بشكل نهائي.",
-        "delete": "زر الحذف: لحذف هذا العنصر بشكل نهائي.",
-        "تحديث": "زر تحديث: لإعادة تحميل وعرض أحدث البيانات.",
-        "refresh": "زر تحديث: لإعادة تحميل وعرض أحدث البيانات.",
-        "reload": "زر تحديث: لإعادة تحميل وعرض أحدث البيانات."
+        "حذف": "زر الحذف النهائي: لحذف هذا السجل نهائياً وبدون تراجع.",
+        "delete": "زر الحذف النهائي: لحذف هذا السجل نهائياً وبدون تراجع.",
+        "تحديث": "زر تحديث البيانات: لإعادة تحميل وعرض أحدث السجلات والبيانات الحية.",
+        "refresh": "زر تحديث البيانات: لإعادة تحميل وعرض أحدث السجلات والبيانات الحية.",
+        "reload": "زر تحديث البيانات: لإعادة تحميل وعرض أحدث السجلات والبيانات الحية.",
+        "إلغاء": "زر إلغاء الإجراء: للتراجع عن هذه العملية وإغلاق النموذج.",
+        "cancel": "زر إلغاء الإجراء: للتراجع عن هذه العملية وإغلاق النموذج.",
+        "رجوع": "زر الرجوع للخلف: للعودة إلى القسم السابق.",
+        "back": "زر الرجوع للخلف: للعودة إلى القسم السابق.",
+        "إغلاق": "زر إغلاق: لإغلاق هذه النافذة المنبثقة.",
+        "close": "زر إغلاق: لإغلاق هذه النافذة المنبثقة.",
+        "تصدير": "زر تصدير البيانات: لاستخراج البيانات كملف إكسيل أو سي إس في.",
+        "export": "زر تصدير البيانات: لاستخراج البيانات كملف إكسيل أو سي إس في."
     };
     {% else %}
     var urlDescriptions = {
-        "/dashboard": "Dashboard: to view your account statistics and current balance.",
-        "/sms_ranges": "Available SMS Ranges: to view routes, countries, networks, and rates.",
-        "/my_sms_numbers": "My Active Numbers: to track your active numbers receiving messages.",
-        "/sms_ratecard": "Rate Card Calculator: to calculate cost and commissions across countries and prefix routes.",
-        "/clients": "My Clients List: to manage your sub-accounts and their balances.",
-        "/sms_cdr_reports": "SMS CDR Reports: to view delivery details and logs for your account.",
-        "/stats?stat_type=sms": "SMS Statistics: to analyze message flow using graphical charts.",
-        "/stats?stat_type=clients": "Client Statistics: to monitor sub-account activities.",
-        "/stats?stat_type=ranges": "Range Statistics: to see most active SMS prefix ranges.",
-        "/stats?stat_type=numbers": "Number Statistics: to check the busiest destination numbers.",
-        "/credit_notes": "Credit Notes: to review your transactions and financial history.",
-        "/payment_requests": "Payment Requests: to submit or track profit withdrawals.",
-        "/bank_accounts": "Bank Accounts: to manage your saved payout accounts.",
-        "/statements?currency=USD": "Statement in US Dollars: to review transactions in USD.",
-        "/statements?currency=EUR": "Statement in Euros: to review transactions in Euros.",
-        "/statements?currency=GBP": "Statement in British Pounds: to review transactions in GBP.",
-        "/logout": "Logout: to securely exit the dashboard."
+        "/agent/dashboard": "Dashboard: to view your real-time account statistics, balances, and summaries.",
+        "/agent/SMSRanges": "Available SMS Ranges: to view countries, networks, pricing, and active prefix routes.",
+        "/agent/MySMSNumbers": "My Active Numbers: to manage and view numbers assigned to your account receiving messages.",
+        "/agent/SMSRatecard": "Rate Card: to review routing prices, operator mcc, mnc codes, and payouts.",
+        "/agent/Clients": "Clients list: to manage your sub-users, update balances, or edit their details.",
+        "/agent/SMSCDRReports": "SMS CDR reports: to view detailed logs and delivery receipts of your incoming messages.",
+        "/agent/CreditNotes": "Credit Notes: to view and download credit notes and adjustments.",
+        "/agent/PaymentRequests": "Payment requests: to manage and submit profit withdrawal requests.",
+        "/agent/BankAccounts": "Bank accounts: to add and verify your bank details for receiving payouts.",
+        "/agent/MyActivity": "My Activity log: to track your security events, logins, and settings changes.",
+        "/agent/Notifications": "Notifications: to read official updates, news, and system announcements.",
+        "/agent/api-settings": "API integration settings: to retrieve your developer API token and connection parameters.",
+        "/agent/Profile": "My Profile: to update your contact details, skype handle, or change your password.",
+        "/logout": "Logout: to securely exit your dashboard session."
     };
 
     var textDescriptions = {
-        "save": "Save Button: to apply and save changes securely to the database.",
-        "send": "Send Button: to confirm and dispatch messages or data.",
-        "add": "Add Button: to open the form for adding a new record.",
-        "search": "Search Button: to filter list items and view results.",
-        "edit": "Edit Button: to modify current record details.",
-        "delete": "Delete Button: to permanently remove this record.",
-        "refresh": "Refresh Button: to update and fetch the latest data.",
-        "reload": "Refresh Button: to update and fetch the latest data."
+        "save": "Save changes: to securely store and commit your modifications.",
+        "send": "Send: to dispatch and confirm your input.",
+        "add": "Add: to insert a new entry or record.",
+        "search": "Search: to filter records and display matching items.",
+        "edit": "Edit: to update and modify details of this element.",
+        "delete": "Delete: to permanently remove this record.",
+        "refresh": "Refresh: to reload and fetch latest live data.",
+        "reload": "Refresh: to reload and fetch latest live data.",
+        "cancel": "Cancel: to dismiss the current form or dialog.",
+        "back": "Back: to navigate back to the previous section.",
+        "close": "Close: to dismiss the modal window.",
+        "export": "Export: to download the table records as a report."
     };
     {% endif %}
 
     function speakText(text) {
         if (!text) return;
         
-        // Clean text from symbols, punctuation, brackets and individual letter spelling
-        // Replace common terms for natural pronunciation without acronym spelled letter by letter
         var replacements = {
             // Arabic replacements
             "sms": "إس إم إس",
@@ -866,9 +857,10 @@ setTimeout(function() {
             "cdr": "سي دي آر",
             "smpp": "إس إم بي بي",
             "telegram": "تيليجرام",
-            "usd": "دولار",
+            "usd": "دولار أمريكي",
             "eur": "يورو",
             "gbp": "جنيه إسترليني",
+            "iprn": "آي بي آر إن",
             
             // English replacements
             "s.m.s": "SMS",
@@ -883,18 +875,16 @@ setTimeout(function() {
         
         var isArabic = /[\u0600-\u06FF]/.test(text);
         if (isArabic) {
-            // Remove any lone English letters (like 'a', 'b', etc. with spaces around)
+            // Clean Arabic text
             text = text.replace(/\b[a-zA-Z]\b/g, ' ');
         } else {
-            // For English, make sure acronyms like SMS are read as words or simple syllables, not spelled
+            // Clean English text
             text = text.replace(/\bS\s*M\s*S\b/gi, 'SMS');
             text = text.replace(/\bC\s*D\s*R\b/gi, 'CDR');
             text = text.replace(/\bA\s*P\s*I\b/gi, 'API');
         }
         
-        // Strip out brackets, special punctuation, and weird symbols so the TTS doesn't spell them
         var cleanText = text.replace(/[()[\]{}|_#@:;\-\+\=\*\/\\]/g, ' ');
-        // Replace multiple spaces with a single space
         cleanText = cleanText.replace(/\s+/g, ' ').trim();
         
         if (!cleanText) return;
@@ -920,47 +910,127 @@ setTimeout(function() {
         }
     }
 
-    document.addEventListener('click', function(e) {
-        // Find nearest clickable parent (button or anchor link)
-        var target = e.target.closest('a, button, .sb-link, .btn');
-        if (!target) return;
-
-        // Determine if it matches any URL descriptions
+    function speakElement(target) {
         var href = target.getAttribute('href') || '';
         var text = (target.textContent || target.innerText || '').trim().toLowerCase();
-
-        // 1. Check direct URL match
+        
+        // 1. Check direct URL match in mappings
         for (var key in urlDescriptions) {
             if (href.indexOf(key) !== -1 && key !== '/') {
                 speakText(urlDescriptions[key]);
                 return;
             }
         }
+        
+        // Root or dashboard links
         if (href === '/' || href.slice(-1) === '/') {
-            speakText(isAdmin ? (urlDescriptions["/admin/"] || "لوحة التحكم الرئيسية") : (urlDescriptions["/dashboard"] || "Dashboard"));
+            speakText(isAdmin ? "لوحة التحكم الرئيسية" : "Dashboard");
             return;
         }
 
-        // 2. Check text match (e.g. Save, Edit, Delete, Send)
+        // Determine if there is a Font Awesome icon inside
+        var icon = target.querySelector('i.fa');
+        if (icon) {
+            var classes = icon.className || '';
+            if (classes.indexOf('fa-trash') !== -1 || classes.indexOf('fa-remove') !== -1) {
+                text += ' delete';
+            } else if (classes.indexOf('fa-edit') !== -1 || classes.indexOf('fa-pencil') !== -1) {
+                text += ' edit';
+            } else if (classes.indexOf('fa-plus') !== -1) {
+                text += ' add';
+            } else if (classes.indexOf('fa-save') !== -1) {
+                text += ' save';
+            } else if (classes.indexOf('fa-search') !== -1) {
+                text += ' search';
+            } else if (classes.indexOf('fa-refresh') !== -1) {
+                text += ' refresh';
+            } else if (classes.indexOf('fa-cog') !== -1 || classes.indexOf('fa-cogs') !== -1) {
+                text += ' settings';
+            } else if (classes.indexOf('fa-key') !== -1) {
+                text += ' password';
+            } else if (classes.indexOf('fa-sign-out') !== -1) {
+                text += ' logout';
+            }
+        }
+
+        // 2. Check title or aria-label attributes
+        var title = target.getAttribute('title') || '';
+        var ariaLabel = target.getAttribute('aria-label') || '';
+        var placeholder = target.getAttribute('placeholder') || '';
+        
+        var combinedText = (text + ' ' + title + ' ' + ariaLabel + ' ' + placeholder).trim().toLowerCase();
+
+        // 3. Match against text descriptions
         for (var key in textDescriptions) {
-            if (text.indexOf(key) !== -1) {
+            if (combinedText.indexOf(key) !== -1) {
                 speakText(textDescriptions[key]);
                 return;
             }
         }
 
-        // 3. Fallback: Speak the clean text of the button/link
+        // 4. Fallback text reader
         if (text) {
-            // Remove icon class indicators or multiple spaces from display text
             var cleanText = text.replace(/[\n\r\t]+/g, ' ').replace(/\s+/g, ' ').trim();
             if (cleanText.length > 0 && cleanText.length < 50) {
-                var label = isAdmin ? ("زر " + cleanText) : ("Button " + cleanText);
-                if (target.tagName.toLowerCase() === 'a') {
-                    label = isAdmin ? ("رابط " + cleanText) : ("Link " + cleanText);
+                var label = "";
+                if (isAdmin) {
+                    // Try to translate common Admin texts dynamically to Arabic speech
+                    var translated = cleanText;
+                    if (cleanText.indexOf("add client") !== -1) translated = "إضافة عميل جديد";
+                    else if (cleanText.indexOf("add number") !== -1) translated = "إضافة أرقام";
+                    else if (cleanText.indexOf("change password") !== -1) translated = "تغيير كلمة المرور";
+                    else if (cleanText.indexOf("smpp settings") !== -1) translated = "إعدادات إس إم بي بي";
+                    else if (cleanText.indexOf("telegram settings") !== -1) translated = "إعدادات تيليجرام";
+                    else if (cleanText.indexOf("api settings") !== -1) translated = "إعدادات واجهة البرمجة";
+                    else if (cleanText.indexOf("users management") !== -1) translated = "إدارة المستخدمين";
+                    else if (cleanText.indexOf("cdr reports") !== -1) translated = "تقارير ال سيدي آر";
+                    else if (cleanText.indexOf("overview") !== -1) translated = "نظرة عامة";
+                    else if (cleanText.indexOf("settings hub") !== -1) translated = "مركز الإعدادات";
+                    else if (cleanText.indexOf("website status") !== -1) translated = "حالة الموقع";
+                    
+                    if (target.tagName.toLowerCase() === 'a') {
+                        label = "رابط " + translated;
+                    } else {
+                        label = "زر " + translated;
+                    }
+                } else {
+                    if (target.tagName.toLowerCase() === 'a') {
+                        label = "Link " + cleanText;
+                    } else {
+                        label = "Button " + cleanText;
+                    }
                 }
                 speakText(label);
             }
         }
+    }
+
+    var lastSpokenElement = null;
+
+    // Listen on Hover/Mouse Enter (capture phase so we intercept all mouseenters)
+    document.addEventListener('mouseenter', function(e) {
+        var target = e.target.closest('a, button, .sb-link, .btn, input[type="submit"], input[type="button"]');
+        if (!target) return;
+        
+        if (lastSpokenElement === target) return;
+        lastSpokenElement = target;
+
+        speakElement(target);
+    }, true);
+
+    // Reset lastSpokenElement on Mouse Leave
+    document.addEventListener('mouseleave', function(e) {
+        var target = e.target.closest('a, button, .sb-link, .btn, input[type="submit"], input[type="button"]');
+        if (target && lastSpokenElement === target) {
+            lastSpokenElement = null;
+        }
+    }, true);
+
+    // Also support speaking on explicit click
+    document.addEventListener('click', function(e) {
+        var target = e.target.closest('a, button, .sb-link, .btn, input[type="submit"], input[type="button"]');
+        if (!target) return;
+        speakElement(target);
     });
 })();
 </script>
