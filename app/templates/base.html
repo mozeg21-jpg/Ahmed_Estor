@@ -470,14 +470,14 @@
             </a>
         </li>
         <li>
-            <span class="sb-link {% if request.endpoint in ('admin.smpp_settings', 'admin.telegram_settings', 'admin.api_settings', 'admin.website_status', 'admin.change_password', 'admin.settings') %}active open{% endif %}" onclick="toggleAccordion(this, 'sub-admin-settings')" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); cursor: pointer;">
+            <span class="sb-link {% if request.endpoint in ('admin.smpp_settings', 'admin.telegram_settings', 'admin.api_settings', 'admin.website_status', 'admin.change_admin_password', 'admin.settings') %}active open{% endif %}" onclick="toggleAccordion(this, 'sub-admin-settings')" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); cursor: pointer;">
                 <i class="fa fa-cogs"></i> Settings Hub
                 <i class="fa fa-chevron-right sb-arrow" style="margin-left: auto; font-size: 10px;"></i>
             </span>
-            <ul class="sb-sub {% if request.endpoint in ('admin.smpp_settings', 'admin.telegram_settings', 'admin.api_settings', 'admin.website_status', 'admin.change_password', 'admin.settings') %}expanded{% endif %}" id="sub-admin-settings" style="list-style: none; padding-left: 20px;">
+            <ul class="sb-sub {% if request.endpoint in ('admin.smpp_settings', 'admin.telegram_settings', 'admin.api_settings', 'admin.website_status', 'admin.change_admin_password', 'admin.settings') %}expanded{% endif %}" id="sub-admin-settings" style="list-style: none; padding-left: 20px;">
                 <li><a href="{{ url_for('admin.settings') }}" class="sb-link {% if request.endpoint == 'admin.settings' %}active{% endif %}"><i class="fa fa-cog"></i> Settings Hub</a></li>
                 <li><a href="{{ url_for('admin.website_status') }}" class="sb-link {% if request.endpoint == 'admin.website_status' %}active{% endif %}"><i class="fa fa-power-off"></i> Website Status</a></li>
-                <li><a href="{{ url_for('admin.change_password') }}" class="sb-link {% if request.endpoint == 'admin.change_password' %}active{% endif %}"><i class="fa fa-key"></i> Change Password</a></li>
+                <li><a href="{{ url_for('admin.change_admin_password') }}" class="sb-link {% if request.endpoint == 'admin.change_admin_password' %}active{% endif %}"><i class="fa fa-key"></i> Change Password</a></li>
                 <li><a href="{{ url_for('admin.smpp_settings') }}" class="sb-link {% if request.endpoint == 'admin.smpp_settings' %}active{% endif %}"><i class="fa fa-plug"></i> SMPP Settings</a></li>
                 <li><a href="{{ url_for('admin.telegram_settings') }}" class="sb-link {% if request.endpoint == 'admin.telegram_settings' %}active{% endif %}"><i class="fa fa-telegram"></i> Telegram Settings</a></li>
                 <li><a href="{{ url_for('admin.api_settings') }}" class="sb-link {% if request.endpoint == 'admin.api_settings' %}active{% endif %}"><i class="fa fa-code"></i> API Settings</a></li>
@@ -780,7 +780,7 @@ setTimeout(function() {
         "/admin/sms_cdr": "تقارير ال سيدي آر: لعرض سجلات وتفاصيل تسليم الرسائل.",
         "/admin/settings": "لوحة الإعدادات: لضبط وتغيير إعدادات المنصة الأساسية.",
         "/admin/website_status": "حالة الموقع: لتعديل ووقف أو تشغيل الموقع.",
-        "/admin/change_password": "تغيير كلمة المرور: لتأمين وتحديث كلمة سر حسابك.",
+        "/admin/settings/change-password": "تغيير كلمة المرور: لتأمين وتحديث كلمة سر حسابك.",
         "/admin/smpp_settings": "إعدادات بروتوكول إس إم بي بي: لربط المزودين والبوابات الإلكترونية.",
         "/admin/telegram_settings": "إعدادات تيليجرام: لربط البوت وتفعيل الإشعارات الفورية.",
         "/admin/api_settings": "إعدادات مفتاح واجهة البرمجة: للحصول على أكواد الربط وتكامل ال إيه بي آي.",
