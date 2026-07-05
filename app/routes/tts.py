@@ -101,12 +101,28 @@ def play_otp():
 @tts_bp.route('/welcome')
 def welcome_greeting():
     """
-    Specifically serves a welcome voice greeting with the panel name:
-    "Welcome to DREEM SMS panel"
-    Example: /api/tts/welcome
+    Specifically serves a welcome voice greeting with the user's name and panel name:
+    - Arabic for admins
+    - English for normal users/agents
     """
-    text = "Welcome to DREEM SMS panel."
-    lang = 'en'
+    from flask_login import current_user
+    from flask import session
+    
+    if current_user and current_user.is_authenticated:
+        username = current_user.username
+        if current_user.is_admin():
+            text = f"أهلاً بك يا مدير {username} في لوحة دي ريم إس إم إس."
+            lang = 'ar'
+        elif current_user.is_agent():
+            text = f"Welcome, Agent {username}, to DREEM SMS panel."
+            lang = 'en'
+        else:
+            text = f"Welcome, {username}, to DREEM SMS panel."
+            lang = 'en'
+    else:
+        text = "Welcome to DREEM SMS panel."
+        lang = 'en'
+
     encoded = urllib.parse.quote(text)
     tts_url = (
         f"https://translate.google.com/translate_tts"
@@ -121,9 +137,12 @@ def welcome_greeting():
     try:
         r = requests.get(tts_url, headers=headers, stream=True, timeout=10)
         if r.status_code == 200:
+            # Clear the session key so we don't replay it on every reload
+            session.pop('play_welcome', None)
             def generate():
                 for chunk in r.iter_content(chunk_size=1024):
                     yield chunk
+                yield b""
             return Response(generate(), mimetype="audio/mpeg")
         else:
             return jsonify({'error': f'TTS service responded with status {r.status_code}'}), 500

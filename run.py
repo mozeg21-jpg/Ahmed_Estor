@@ -36,6 +36,10 @@ if __name__ == '__main__':
         port = int(sys_port)
     elif sys_server_port:
         port = int(sys_server_port)
+    elif os.environ.get('CUSTOM_PORT'):
+        port = int(os.environ.get('CUSTOM_PORT'))
+    elif os.environ.get('APP_PORT'):
+        port = int(os.environ.get('APP_PORT'))
     else:
         port = 5000  # Default local fallback
 

@@ -284,18 +284,4 @@ def unauthorized(e):
     return redirect(url_for('auth.login', next=request.path))
 
 
-@auth_bp.app_errorhandler(403)
-def forbidden(e):
-    flash('You do not have permission to access this page.', 'danger')
-    return redirect(url_for('main.dashboard'))
 
-
-@auth_bp.app_errorhandler(404)
-def not_found(e):
-    return render_template('errors/404.html'), 404
-
-
-@auth_bp.app_errorhandler(500)
-def server_error(e):
-    db.session.rollback()
-    return render_template('errors/500.html'), 500

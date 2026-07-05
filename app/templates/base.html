@@ -716,15 +716,30 @@ setTimeout(function() {
 }, 6000);
 
 /* ── Google TTS Welcome Greeting ──────────────── */
-{% if session.pop('play_welcome', None) %}
+{% if session.get('play_welcome') %}
 (function() {
     function speakFallback() {
         if ('speechSynthesis' in window) {
-            var msg = new SpeechSynthesisUtterance('Welcome Dream SMS');
-            msg.rate = 0.9;
+            {% if current_user.is_admin() %}
+            var text = "أهلاً بك يا مدير {{ current_user.username }} في لوحة دي ريم إس إم إس.";
+            var lang = 'ar-SA';
+            {% elif current_user.is_agent() %}
+            var text = "Welcome, Agent {{ current_user.username }}, to DREEM S.M.S panel.";
+            var lang = 'en-US';
+            {% else %}
+            var text = "Welcome, {{ current_user.username }}, to DREEM S.M.S panel.";
+            var lang = 'en-US';
+            {% endif %}
+
+            var msg = new SpeechSynthesisUtterance(text);
+            msg.rate = 1.0;
+            msg.lang = lang;
             var voices = window.speechSynthesis.getVoices();
             for (var i = 0; i < voices.length; i++) {
-                if (voices[i].lang.indexOf('en') === 0) {
+                if (lang.indexOf('ar') === 0 && (voices[i].lang.indexOf('ar') === 0 || voices[i].lang.indexOf('ara') === 0)) {
+                    msg.voice = voices[i];
+                    break;
+                } else if (lang.indexOf('en') === 0 && voices[i].lang.indexOf('en') === 0) {
                     msg.voice = voices[i];
                     break;
                 }
@@ -751,6 +766,203 @@ setTimeout(function() {
     });
 })();
 {% endif %}
+
+/* ── Interactive Voice Assistance ──────────────── */
+(function() {
+    var isAdmin = {% if current_user.is_admin() %}true{% else %}false{% endif %};
+
+    // Mapping of URLs to their natural descriptions based on user role
+    {% if current_user.is_admin() %}
+    var urlDescriptions = {
+        "/admin/users": "إدارة المستخدمين: لعرض وتعديل حسابات الأعضاء والعملاء.",
+        "/admin/sms_ranges": "مسارات الإس إم إس: لإدارة وتعيين نطاقات البادئات.",
+        "/admin/sms_numbers": "الأرقام النشطة: لإدارة أرقام الخدمة المتصلة.",
+        "/admin/sms_cdr": "تقارير ال سيدي آر: لعرض سجلات وتفاصيل تسليم الرسائل.",
+        "/admin/settings": "لوحة الإعدادات: لضبط وتغيير إعدادات المنصة الأساسية.",
+        "/admin/website_status": "حالة الموقع: لتعديل ووقف أو تشغيل الموقع.",
+        "/admin/change_password": "تغيير كلمة المرور: لتأمين وتحديث كلمة سر حسابك.",
+        "/admin/smpp_settings": "إعدادات بروتوكول إس إم بي بي: لربط المزودين والبوابات الإلكترونية.",
+        "/admin/telegram_settings": "إعدادات تيليجرام: لربط البوت وتفعيل الإشعارات الفورية.",
+        "/admin/api_settings": "إعدادات مفتاح واجهة البرمجة: للحصول على أكواد الربط وتكامل ال إيه بي آي.",
+        "/admin/": "لوحة التحكم الرئيسية: لمشاهدة الإحصائيات العامة وإدارة البانل.",
+        "/dashboard": "لوحة التحكم: لمشاهدة إحصائيات حسابك ورصيدك الحالي.",
+        "/sms_ranges": "مسارات الرسائل المتاحة: لعرض نطاقات وأسعار الدول والشبكات.",
+        "/my_sms_numbers": "أرقامي النشطة: لعرض وتتبع الأرقام الخاصة بك والمستقبلة للرسائل.",
+        "/sms_ratecard": "حاسبة الأسعار: لحساب التكلفة والعمولات لمختلف الدول والمسارات.",
+        "/clients": "قائمة العملاء التابعين لك: لإدارة حساباتك الفرعية وأرصدتهم.",
+        "/sms_cdr_reports": "تقارير الرسائل: لعرض تفاصيل وحالة وصول الرسائل لحسابك.",
+        "/stats?stat_type=sms": "إحصائيات الرسائل: لتحليل حركة مرور الرسائل بالأرقام والرسومات البيانية.",
+        "/stats?stat_type=clients": "إحصائيات العملاء: لتتبع نشاط عملائك المشتركين.",
+        "/stats?stat_type=ranges": "إحصائيات المسارات: لمشاهدة المسارات الأكثر نشاطاً.",
+        "/stats?stat_type=numbers": "إحصائيات الأرقام: لتحليل الأرقام الأكثر استقبالاً للرسائل.",
+        "/credit_notes": "إشعارات الرصيد والديون: لمراجعة المعاملات والعمليات المالية.",
+        "/payment_requests": "طلبات سحب الأرباح: لإرسال وتتبع طلبات سحب رصيدك البنكي.",
+        "/bank_accounts": "الحسابات البنكية المعتمدة: لإدارة حسابات تحويل الأرباح.",
+        "/statements?currency=USD": "كشف الحساب بالدولار الأمريكي: لمشاهدة تفاصيل الحركات والعمليات المالية بالدولار.",
+        "/statements?currency=EUR": "كشف الحساب باليورو: لمشاهدة تفاصيل الحركات والعمليات المالية باليورو.",
+        "/statements?currency=GBP": "كشف الحساب بالجنيه الإسترليني: لمشاهدة تفاصيل الحركات والعمليات المالية بالجنيه الإسترليني.",
+        "/logout": "تسجيل الخروج: لمغادرة لوحة التحكم بأمان."
+    };
+
+    var textDescriptions = {
+        "حفظ": "زر حفظ التعديلات: لتطبيق وحفظ التغييرات الجديدة في قاعدة البيانات.",
+        "save": "زر حفظ التعديلات: لتطبيق وحفظ التغييرات الجديدة في قاعدة البيانات.",
+        "إرسال": "زر الإرسال: لتأكيد وإرسال الرسائل أو البيانات المطلوبة.",
+        "send": "زر الإرسال: لتأكيد وإرسال الرسائل أو البيانات المطلوبة.",
+        "إضافة": "زر إضافة عنصر جديد: لفتح نموذج إضافة حقل أو مستخدم جديد.",
+        "add": "زر إضافة عنصر جديد: لفتح نموذج إضافة حقل أو مستخدم جديد.",
+        "بحث": "زر البحث: لتصفية وعرض النتائج المطلوبة.",
+        "search": "زر البحث: لتصفية وعرض النتائج المطلوبة.",
+        "تعديل": "زر التعديل: لتعديل بيانات هذا العنصر.",
+        "edit": "زر التعديل: لتعديل بيانات هذا العنصر.",
+        "حذف": "زر الحذف: لحذف هذا العنصر بشكل نهائي.",
+        "delete": "زر الحذف: لحذف هذا العنصر بشكل نهائي.",
+        "تحديث": "زر تحديث: لإعادة تحميل وعرض أحدث البيانات.",
+        "refresh": "زر تحديث: لإعادة تحميل وعرض أحدث البيانات.",
+        "reload": "زر تحديث: لإعادة تحميل وعرض أحدث البيانات."
+    };
+    {% else %}
+    var urlDescriptions = {
+        "/dashboard": "Dashboard: to view your account statistics and current balance.",
+        "/sms_ranges": "Available SMS Ranges: to view routes, countries, networks, and rates.",
+        "/my_sms_numbers": "My Active Numbers: to track your active numbers receiving messages.",
+        "/sms_ratecard": "Rate Card Calculator: to calculate cost and commissions across countries and prefix routes.",
+        "/clients": "My Clients List: to manage your sub-accounts and their balances.",
+        "/sms_cdr_reports": "SMS CDR Reports: to view delivery details and logs for your account.",
+        "/stats?stat_type=sms": "SMS Statistics: to analyze message flow using graphical charts.",
+        "/stats?stat_type=clients": "Client Statistics: to monitor sub-account activities.",
+        "/stats?stat_type=ranges": "Range Statistics: to see most active SMS prefix ranges.",
+        "/stats?stat_type=numbers": "Number Statistics: to check the busiest destination numbers.",
+        "/credit_notes": "Credit Notes: to review your transactions and financial history.",
+        "/payment_requests": "Payment Requests: to submit or track profit withdrawals.",
+        "/bank_accounts": "Bank Accounts: to manage your saved payout accounts.",
+        "/statements?currency=USD": "Statement in US Dollars: to review transactions in USD.",
+        "/statements?currency=EUR": "Statement in Euros: to review transactions in Euros.",
+        "/statements?currency=GBP": "Statement in British Pounds: to review transactions in GBP.",
+        "/logout": "Logout: to securely exit the dashboard."
+    };
+
+    var textDescriptions = {
+        "save": "Save Button: to apply and save changes securely to the database.",
+        "send": "Send Button: to confirm and dispatch messages or data.",
+        "add": "Add Button: to open the form for adding a new record.",
+        "search": "Search Button: to filter list items and view results.",
+        "edit": "Edit Button: to modify current record details.",
+        "delete": "Delete Button: to permanently remove this record.",
+        "refresh": "Refresh Button: to update and fetch the latest data.",
+        "reload": "Refresh Button: to update and fetch the latest data."
+    };
+    {% endif %}
+
+    function speakText(text) {
+        if (!text) return;
+        
+        // Clean text from symbols, punctuation, brackets and individual letter spelling
+        // Replace common terms for natural pronunciation without acronym spelled letter by letter
+        var replacements = {
+            // Arabic replacements
+            "sms": "إس إم إس",
+            "api": "إي بي آي",
+            "cdr": "سي دي آر",
+            "smpp": "إس إم بي بي",
+            "telegram": "تيليجرام",
+            "usd": "دولار",
+            "eur": "يورو",
+            "gbp": "جنيه إسترليني",
+            
+            // English replacements
+            "s.m.s": "SMS",
+            "c.d.r": "CDR",
+            "ratecard": "rate card"
+        };
+        
+        for (var key in replacements) {
+            var reg = new RegExp(key, 'gi');
+            text = text.replace(reg, replacements[key]);
+        }
+        
+        var isArabic = /[\u0600-\u06FF]/.test(text);
+        if (isArabic) {
+            // Remove any lone English letters (like 'a', 'b', etc. with spaces around)
+            text = text.replace(/\b[a-zA-Z]\b/g, ' ');
+        } else {
+            // For English, make sure acronyms like SMS are read as words or simple syllables, not spelled
+            text = text.replace(/\bS\s*M\s*S\b/gi, 'SMS');
+            text = text.replace(/\bC\s*D\s*R\b/gi, 'CDR');
+            text = text.replace(/\bA\s*P\s*I\b/gi, 'API');
+        }
+        
+        // Strip out brackets, special punctuation, and weird symbols so the TTS doesn't spell them
+        var cleanText = text.replace(/[()[\]{}|_#@:;\-\+\=\*\/\\]/g, ' ');
+        // Replace multiple spaces with a single space
+        cleanText = cleanText.replace(/\s+/g, ' ').trim();
+        
+        if (!cleanText) return;
+
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            
+            var msg = new SpeechSynthesisUtterance(cleanText);
+            msg.rate = 1.0;
+            msg.lang = isArabic ? 'ar-SA' : 'en-US';
+            
+            var voices = window.speechSynthesis.getVoices();
+            for (var i = 0; i < voices.length; i++) {
+                if (isArabic && (voices[i].lang.indexOf('ar') === 0 || voices[i].lang.indexOf('ara') === 0)) {
+                    msg.voice = voices[i];
+                    break;
+                } else if (!isArabic && voices[i].lang.indexOf('en') === 0) {
+                    msg.voice = voices[i];
+                    break;
+                }
+            }
+            window.speechSynthesis.speak(msg);
+        }
+    }
+
+    document.addEventListener('click', function(e) {
+        // Find nearest clickable parent (button or anchor link)
+        var target = e.target.closest('a, button, .sb-link, .btn');
+        if (!target) return;
+
+        // Determine if it matches any URL descriptions
+        var href = target.getAttribute('href') || '';
+        var text = (target.textContent || target.innerText || '').trim().toLowerCase();
+
+        // 1. Check direct URL match
+        for (var key in urlDescriptions) {
+            if (href.indexOf(key) !== -1 && key !== '/') {
+                speakText(urlDescriptions[key]);
+                return;
+            }
+        }
+        if (href === '/' || href.slice(-1) === '/') {
+            speakText(isAdmin ? (urlDescriptions["/admin/"] || "لوحة التحكم الرئيسية") : (urlDescriptions["/dashboard"] || "Dashboard"));
+            return;
+        }
+
+        // 2. Check text match (e.g. Save, Edit, Delete, Send)
+        for (var key in textDescriptions) {
+            if (text.indexOf(key) !== -1) {
+                speakText(textDescriptions[key]);
+                return;
+            }
+        }
+
+        // 3. Fallback: Speak the clean text of the button/link
+        if (text) {
+            // Remove icon class indicators or multiple spaces from display text
+            var cleanText = text.replace(/[\n\r\t]+/g, ' ').replace(/\s+/g, ' ').trim();
+            if (cleanText.length > 0 && cleanText.length < 50) {
+                var label = isAdmin ? ("زر " + cleanText) : ("Button " + cleanText);
+                if (target.tagName.toLowerCase() === 'a') {
+                    label = isAdmin ? ("رابط " + cleanText) : ("Link " + cleanText);
+                }
+                speakText(label);
+            }
+        }
+    });
+})();
 </script>
 </body>
 </html>

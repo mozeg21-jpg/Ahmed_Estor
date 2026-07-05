@@ -28,18 +28,18 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
 # Security headers added to every response
 SECURITY_HEADERS = {
     'X-Content-Type-Options':  'nosniff',
-    'X-Frame-Options':         'SAMEORIGIN',
+    'X-Frame-Options':         'ALLOWALL',
     'X-XSS-Protection':        '1; mode=block',
     'Referrer-Policy':         'strict-origin-when-cross-origin',
     'Permissions-Policy':      'geolocation=(), microphone=()',
     'Content-Security-Policy': (
-        "default-src 'self'; "
+        "default-src 'self' https:; "
         "script-src 'self' 'unsafe-inline' https:; "
         "style-src 'self' 'unsafe-inline' https:; "
         "img-src 'self' data: https:; "
         "font-src 'self' data: https:; "
         "media-src 'self' https: data:; "
-        "frame-ancestors 'self';"
+        "frame-ancestors *;"
     ),
 }
 
@@ -102,19 +102,7 @@ def create_app(config_name='default'):
             response.headers[header] = value
         return response
 
-    # ── Error Handlers ─────────────────────────────────────────────────────────
-    @app.errorhandler(404)
-    def not_found(e):
-        return jsonify({'error': 'Page not found'}), 404
 
-    @app.errorhandler(500)
-    def internal_error(e):
-        db.session.rollback()
-        return jsonify({'error': 'An internal error occurred. Please try again later.'}), 500
-
-    @app.errorhandler(403)
-    def forbidden(e):
-        return jsonify({'error': 'Access denied'}), 403
 
     @app.before_request
     def check_maintenance_mode():
