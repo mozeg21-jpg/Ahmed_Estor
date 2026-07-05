@@ -716,7 +716,7 @@ setTimeout(function() {
 }, 6000);
 
 /* ── Google TTS Welcome Greeting ──────────────── */
-{% if session.get('play_welcome') %}
+{% if session.get('play_welcome') and current_user.is_authenticated %}
 (function() {
     function speakFallback() {
         if ('speechSynthesis' in window) {
@@ -769,10 +769,10 @@ setTimeout(function() {
 
 /* ── Interactive Voice Assistance ──────────────── */
 (function() {
-    var isAdmin = {% if current_user.is_admin() %}true{% else %}false{% endif %};
+    var isAdmin = {% if current_user.is_authenticated and current_user.is_admin() %}true{% else %}false{% endif %};
 
     // Mapping of URLs to their natural descriptions based on user role
-    {% if current_user.is_admin() %}
+    {% if current_user.is_authenticated and current_user.is_admin() %}
     var urlDescriptions = {
         "/admin/users": "إدارة المستخدمين: لعرض وتعديل حسابات الأعضاء والعملاء.",
         "/admin/sms_ranges": "مسارات الإس إم إس: لإدارة وتعيين نطاقات البادئات.",

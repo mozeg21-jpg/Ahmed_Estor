@@ -284,4 +284,30 @@ def unauthorized(e):
     return redirect(url_for('auth.login', next=request.path))
 
 
+@auth_bp.app_errorhandler(403)
+def forbidden(e):
+    from flask import jsonify
+    if request.path.startswith('/api/') or request.headers.get('Accept') == 'application/json':
+        return jsonify({'error': 'Forbidden access'}), 403
+    return render_template('errors/403.html'), 403
+
+
+@auth_bp.app_errorhandler(404)
+def not_found(e):
+    from flask import jsonify
+    if request.path.startswith('/api/') or request.headers.get('Accept') == 'application/json':
+        return jsonify({'error': 'Not found'}), 404
+    return render_template('errors/404.html'), 404
+
+
+@auth_bp.app_errorhandler(500)
+def server_error(e):
+    from flask import jsonify
+    db.session.rollback()
+    if request.path.startswith('/api/') or request.headers.get('Accept') == 'application/json':
+        return jsonify({'error': 'Internal server error'}), 500
+    return render_template('errors/500.html'), 500
+
+
+
 
