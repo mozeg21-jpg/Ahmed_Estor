@@ -159,56 +159,101 @@ def create_app(config_name='default'):
             tables = inspector.get_table_names()
 
             if 'sms_ranges' in tables:
-                range_cols = [c['name'] for c in inspector.get_columns('sms_ranges')]
-                if 'application' not in range_cols:
-                    db.session.execute(text("ALTER TABLE sms_ranges ADD COLUMN application VARCHAR(50)"))
-                    db.session.commit()
+                try:
+                    range_cols = [c['name'] for c in inspector.get_columns('sms_ranges')]
+                    if 'application' not in range_cols:
+                        db.session.execute(text("ALTER TABLE sms_ranges ADD COLUMN application VARCHAR(50)"))
+                        db.session.commit()
+                except Exception as e:
+                    db.session.rollback()
+                    print(f"[MIGRATION] Bypassed sms_ranges application column: {e}")
 
             if 'sms_cdr' in tables:
-                cdr_cols = [c['name'] for c in inspector.get_columns('sms_cdr')]
-                if 'caller_id' not in cdr_cols:
-                    db.session.execute(text("ALTER TABLE sms_cdr ADD COLUMN caller_id VARCHAR(50)"))
-                    db.session.commit()
+                try:
+                    cdr_cols = [c['name'] for c in inspector.get_columns('sms_cdr')]
+                    if 'caller_id' not in cdr_cols:
+                        db.session.execute(text("ALTER TABLE sms_cdr ADD COLUMN caller_id VARCHAR(50)"))
+                        db.session.commit()
+                except Exception as e:
+                    db.session.rollback()
+                    print(f"[MIGRATION] Bypassed sms_cdr caller_id column: {e}")
 
             # ── Honeypot log table ──────────────────────────────────────────
             if 'honeypot_logs' not in tables:
-                id_type = "id INTEGER PRIMARY KEY AUTOINCREMENT"
-                if db.engine.name == 'postgresql':
-                    id_type = "id SERIAL PRIMARY KEY"
-                elif db.engine.name == 'mysql':
-                    id_type = "id INT AUTO_INCREMENT PRIMARY KEY"
-                
-                db.session.execute(text(f"""
-                    CREATE TABLE honeypot_logs (
-                        {id_type},
-                        ip TEXT NOT NULL,
-                        path TEXT NOT NULL,
-                        method TEXT NOT NULL,
-                        user_agent TEXT,
-                        body TEXT,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                    )
-                """))
-                db.session.commit()
+                try:
+                    id_type = "id INTEGER PRIMARY KEY AUTOINCREMENT"
+                    if db.engine.name == 'postgresql':
+                        id_type = "id SERIAL PRIMARY KEY"
+                    elif db.engine.name == 'mysql':
+                        id_type = "id INT AUTO_INCREMENT PRIMARY KEY"
+                    
+                    db.session.execute(text(f"""
+                        CREATE TABLE honeypot_logs (
+                            {id_type},
+                            ip TEXT NOT NULL,
+                            path TEXT NOT NULL,
+                            method TEXT NOT NULL,
+                            user_agent TEXT,
+                            body TEXT,
+                            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                        )
+                    """))
+                    db.session.commit()
+                except Exception as e:
+                    db.session.rollback()
+                    print(f"[MIGRATION] Bypassed honeypot_logs creation: {e}")
 
             # ── Add title column to news table ──────────────────────────────
             if 'news' in tables:
-                news_cols = [c['name'] for c in inspector.get_columns('news')]
-                if 'title' not in news_cols:
-                    db.session.execute(text("ALTER TABLE news ADD COLUMN title VARCHAR(200)"))
-                    db.session.commit()
+                try:
+                    news_cols = [c['name'] for c in inspector.get_columns('news')]
+                    if 'title' not in news_cols:
+                        db.session.execute(text("ALTER TABLE news ADD COLUMN title VARCHAR(200)"))
+                        db.session.commit()
+                except Exception as e:
+                    db.session.rollback()
+                    print(f"[MIGRATION] Bypassed news title column: {e}")
 
             # ── Add telegram columns to users table ─────────────────────────
             if 'users' in tables:
-                user_cols = [c['name'] for c in inspector.get_columns('users')]
-                if 'telegram_bot_token' not in user_cols:
-                    db.session.execute(text("ALTER TABLE users ADD COLUMN telegram_bot_token VARCHAR(255)"))
-                    db.session.execute(text("ALTER TABLE users ADD COLUMN telegram_chat_id VARCHAR(100)"))
-                    db.session.execute(text("ALTER TABLE users ADD COLUMN telegram_enabled BOOLEAN DEFAULT 0"))
-                    db.session.commit()
+                try:
+                    user_cols = [c['name'] for c in inspector.get_columns('users')]
+                    
+                    if 'telegram_bot_token' not in user_cols:
+                        try:
+                            db.session.execute(text("ALTER TABLE users ADD COLUMN telegram_bot_token VARCHAR(255)"))
+                            db.session.commit()
+                        except Exception as ex:
+                            db.session.rollback()
+                            print(f"[MIGRATION] Failed adding telegram_bot_token: {ex}")
 
-        except Exception:
-            pass
+                    if 'telegram_chat_id' not in user_cols:
+                        try:
+                            db.session.execute(text("ALTER TABLE users ADD COLUMN telegram_chat_id VARCHAR(100)"))
+                            db.session.commit()
+                        except Exception as ex:
+                            db.session.rollback()
+                            print(f"[MIGRATION] Failed adding telegram_chat_id: {ex}")
+
+                    if 'telegram_enabled' not in user_cols:
+                        try:
+                            # Use BOOLEAN DEFAULT FALSE (works for Postgres, SQLite, and MySQL)
+                            db.session.execute(text("ALTER TABLE users ADD COLUMN telegram_enabled BOOLEAN DEFAULT FALSE"))
+                            db.session.commit()
+                        except Exception as ex:
+                            db.session.rollback()
+                            try:
+                                # Fallback to generic representation
+                                db.session.execute(text("ALTER TABLE users ADD COLUMN telegram_enabled BOOLEAN DEFAULT '0'"))
+                                db.session.commit()
+                            except Exception as ex2:
+                                db.session.rollback()
+                                print(f"[MIGRATION] Failed adding telegram_enabled: {ex2}")
+                except Exception as e:
+                    print(f"[MIGRATION] Bypassed users telegram column checks: {e}")
+
+        except Exception as e:
+            print(f"[MIGRATION] Bypassed auto-migrate: {e}")
 
         from app.models.user import User, Role
         from app.models.sms import SMDRange
