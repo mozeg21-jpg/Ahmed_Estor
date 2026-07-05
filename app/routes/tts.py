@@ -102,23 +102,37 @@ def play_otp():
 def welcome_greeting():
     """
     Specifically serves a welcome voice greeting with the user's name and panel name:
-    - Arabic for admins
-    - English for normal users/agents
+    - Arabic if the name contains Arabic characters or if user is admin
+    - English for normal users/agents if their name is in English
     """
     from flask_login import current_user
     from flask import session
     
     if current_user and current_user.is_authenticated:
-        username = current_user.username
+        display_name = current_user.name or current_user.username
+        # Clean the name from any underscores, dashes, or special characters so it sounds normal
+        display_name = re.sub(r'[^a-zA-Z0-9\s\u0600-\u06FF]', ' ', display_name)
+        display_name = re.sub(r'\s+', ' ', display_name).strip()
+        
+        name_lang = detect_lang(display_name)
+        
         if current_user.is_admin():
-            text = f"أهلاً بك يا مدير {username} في لوحة دي ريم إس إم إس."
+            text = f"أهلاً بك يا مدير {display_name} في لوحة دي ريم إس إم إس."
             lang = 'ar'
         elif current_user.is_agent():
-            text = f"Welcome, Agent {username}, to DREEM SMS panel."
-            lang = 'en'
+            if name_lang == 'ar':
+                text = f"أهلاً بك يا وكيل {display_name} في لوحة دي ريم إس إم إس."
+                lang = 'ar'
+            else:
+                text = f"Welcome, Agent {display_name}, to DREEM SMS panel."
+                lang = 'en'
         else:
-            text = f"Welcome, {username}, to DREEM SMS panel."
-            lang = 'en'
+            if name_lang == 'ar':
+                text = f"أهلاً بك يا {display_name} في لوحة دي ريم إس إم إس."
+                lang = 'ar'
+            else:
+                text = f"Welcome, {display_name}, to DREEM SMS panel."
+                lang = 'en'
     else:
         text = "Welcome to DREEM SMS panel."
         lang = 'en'

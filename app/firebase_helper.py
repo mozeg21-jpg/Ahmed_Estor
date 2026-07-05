@@ -243,19 +243,132 @@ def sync_client_to_firebase(client_user_object):
             "username": client_user_object.username,
             "name": client_user_object.name or "",
             "email": client_user_object.email or "",
+            "password_hash": client_user_object.password_hash or "",
             "is_active": client_user_object.is_active,
             "balance": float(client_user_object.balance or 0.0),
-            "credit_limit": float(client_user_object.credit_limit or 0.0),
-            "phone": client_user_object.phone or "",
+            "total_earned": float(client_user_object.total_earned or 0.0),
+            "sms_limit": int(client_user_object.sms_limit or 0),
+            "sms_count": int(client_user_object.sms_count or 0),
+            "company": client_user_object.company or "",
+            "address": client_user_object.address or "",
+            "country": client_user_object.country or "",
+            "skype": client_user_object.skype or "",
+            "contact": client_user_object.contact or "",
+            "agent_id": client_user_object.agent_id,
+            "api_token": client_user_object.api_token or "",
             "role": client_user_object.role.name if client_user_object.role else "client",
             "last_login": client_user_object.last_login.isoformat() if client_user_object.last_login else None,
-            "created_at": client_user_object.created_at.isoformat() if client_user_object.created_at else datetime.utcnow().isoformat()
+            "created_at": client_user_object.created_at.isoformat() if client_user_object.created_at else datetime.utcnow().isoformat(),
+            "delete_messages_after": int(client_user_object.delete_messages_after or 0),
+            "telegram_bot_token": client_user_object.telegram_bot_token or "",
+            "telegram_chat_id": client_user_object.telegram_chat_id or "",
+            "telegram_enabled": bool(client_user_object.telegram_enabled)
         }
         
         success, res = client.save_document("clients", client_user_object.username, data)
         return success, res
     except Exception as e:
         return False, str(e)
+
+
+def delete_client_from_firebase(username):
+    """
+    Helper function to delete a user client from Firestore when they are deleted locally.
+    """
+    try:
+        client = FirebaseFirestoreRESTClient()
+        if not client.project_id:
+            return False, "Firebase not configured."
+        success, res = client.delete_document("clients", username)
+        return success, res
+    except Exception as e:
+        return False, str(e)
+
+
+def restore_clients_from_firebase(app):
+    """
+    On app startup, fetch all registered clients/users from Firestore and insert
+    them into the local SQLite database if they don't exist.
+    This prevents users from being "deleted automatically" on container restarts.
+    """
+    try:
+        client = FirebaseFirestoreRESTClient()
+        if not client.project_id:
+            print("[FIREBASE RESTORE] Project ID not configured.")
+            return False
+        
+        success, docs = client.list_documents("clients")
+        if not success:
+            print(f"[FIREBASE RESTORE] Failed to list documents: {docs}")
+            return False
+            
+        from app import db
+        from app.models.user import User, Role
+        
+        restored_count = 0
+        with app.app_context():
+            for doc in docs:
+                username = doc.get("username")
+                if not username:
+                    continue
+                
+                # Check if user already exists
+                existing_user = User.query.filter_by(username=username).first()
+                if existing_user:
+                    # Sync updates from Firestore back to SQLite if needed
+                    existing_user.balance = float(doc.get("balance", existing_user.balance or 0.0))
+                    existing_user.is_active = bool(doc.get("is_active", existing_user.is_active))
+                    existing_user.telegram_bot_token = doc.get("telegram_bot_token", existing_user.telegram_bot_token)
+                    existing_user.telegram_chat_id = doc.get("telegram_chat_id", existing_user.telegram_chat_id)
+                    existing_user.telegram_enabled = bool(doc.get("telegram_enabled", existing_user.telegram_enabled))
+                    continue
+                
+                # Role lookup
+                role_name = doc.get("role", "client")
+                role = Role.query.filter_by(name=role_name).first()
+                if not role:
+                    role = Role.query.filter_by(name="client").first()
+                
+                # Create user from Firestore data
+                new_user = User(
+                    username=username,
+                    email=doc.get("email", f"{username}@system.local"),
+                    password_hash=doc.get("password_hash", ""),
+                    role=role,
+                    is_active=bool(doc.get("is_active", True)),
+                    api_token=doc.get("api_token") or doc.get("api_key"),
+                    name=doc.get("name"),
+                    company=doc.get("company"),
+                    address=doc.get("address"),
+                    country=doc.get("country"),
+                    skype=doc.get("skype"),
+                    contact=doc.get("contact"),
+                    agent_id=doc.get("agent_id"),
+                    sms_limit=doc.get("sms_limit", 0),
+                    sms_count=doc.get("sms_count", 0),
+                    balance=float(doc.get("balance", 0.0)),
+                    total_earned=float(doc.get("total_earned", 0.0)),
+                    delete_messages_after=doc.get("delete_messages_after", 0),
+                    telegram_bot_token=doc.get("telegram_bot_token"),
+                    telegram_chat_id=doc.get("telegram_chat_id"),
+                    telegram_enabled=bool(doc.get("telegram_enabled", False))
+                )
+                
+                if not new_user.api_token:
+                    new_user.generate_api_token()
+                    
+                db.session.add(new_user)
+                restored_count += 1
+                
+            if restored_count > 0:
+                db.session.commit()
+                print(f"[FIREBASE RESTORE] Successfully restored {restored_count} users/clients from Firestore.")
+            else:
+                print("[FIREBASE RESTORE] No new users to restore.")
+        return True
+    except Exception as e:
+        print(f"[FIREBASE RESTORE] Error restoring clients: {e}")
+        return False
 
 
 def sync_cdr_to_firebase(cdr_object):

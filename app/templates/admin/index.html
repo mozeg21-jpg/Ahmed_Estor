@@ -421,6 +421,7 @@
                 </div>
             </a>
 
+            {% if current_user.username == 'admin' %}
             <a href="{{ url_for('admin.settings') }}" class="admin-module-card">
                 <div class="module-icon-box" style="background: linear-gradient(135deg, #4b5563, #1f2937);">
                     <i class="fa fa-cog"></i>
@@ -430,6 +431,7 @@
                     <span class="module-desc">SMS platform and API configuration</span>
                 </div>
             </a>
+            {% endif %}
         </div>
 
     </div>

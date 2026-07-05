@@ -256,6 +256,13 @@ def register():
         db.session.add(user)
         db.session.commit()
 
+        # Sync registered user to Firebase Firestore
+        try:
+            from app.firebase_helper import sync_client_to_firebase
+            sync_client_to_firebase(user)
+        except Exception as e:
+            print(f"[FIREBASE SYNC] Failed to sync registered user to Firestore: {e}")
+
         ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
         ActivityLog.log(user.id, 'register', f'New {account_type} account registered', ip_address=ip)
 

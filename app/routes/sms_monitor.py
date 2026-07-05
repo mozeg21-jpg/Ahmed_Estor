@@ -51,6 +51,60 @@ def _clean_num(n):
     cleaned = re.sub(r"\D", "", str(n or ""))
     return cleaned
 
+def _extract_service_from_text(text):
+    text_lower = str(text or "").lower()
+    services = {
+        'telegram': 'Telegram',
+        'whatsapp': 'WhatsApp',
+        'google': 'Google',
+        'facebook': 'Facebook',
+        'instagram': 'Instagram',
+        'tiktok': 'TikTok',
+        'twitter': 'Twitter / X',
+        'snapchat': 'Snapchat',
+        'imo': 'Imo',
+        'viber': 'Viber',
+        'wechat': 'WeChat',
+        'line': 'Line',
+        'discord': 'Discord',
+        'microsoft': 'Microsoft',
+        'apple': 'Apple',
+        'netflix': 'Netflix',
+        'steam': 'Steam',
+        'uber': 'Uber',
+        'bolt': 'Bolt',
+        'careem': 'Careem',
+        'amazon': 'Amazon',
+        'paypal': 'PayPal',
+        'stripe': 'Stripe',
+        'binance': 'Binance',
+        'تليجرام': 'Telegram',
+        'واتساب': 'WhatsApp',
+        'جوجل': 'Google',
+        'فيسبوك': 'Facebook',
+        'تيك توك': 'TikTok',
+        'سناب': 'Snapchat',
+        'أمازون': 'Amazon',
+        'بايبال': 'PayPal'
+    }
+    for key, val in services.items():
+        if key in text_lower:
+            return val
+            
+    match = re.search(r'([A-Za-z0-9\-\.]+)\s+(?:code|verification|otp|رمز)', text_lower)
+    if match:
+        service_candidate = match.group(1).capitalize()
+        if len(service_candidate) > 2 and service_candidate.lower() not in ['your', 'verification', 'code', 'is', 'for', 'the', 'is:', 'رمز', 'كود']:
+            return service_candidate
+            
+    match_ar = re.search(r'رمز\s+تحقق\s+([^\s]+)', text_lower)
+    if match_ar:
+        service_candidate = match_ar.group(1)
+        if len(service_candidate) > 2 and service_candidate.lower() not in ['كود', 'رمز', 'الخاص', 'بموقع']:
+            return service_candidate
+            
+    return "Unknown Service / خدمة غير معروفة"
+
 def _make_ext_id(prefix, number, date_str, text):
     raw = f"{number}|{date_str}|{text[:40]}"
     h   = hashlib.md5(raw.encode()).hexdigest()[:8]
@@ -896,7 +950,6 @@ def forward_to_reserved(messages):
     if forwarded:
         db.session.commit()
         
-        # Requirement: "وخلي برده الموقع يشتغل عن طريق فاير وممكن يشتغل برده عن طريق قواعد الاستضافه"
         # Sync newly saved CDRs and updated accounts/clients to Firebase Firestore (optional, runs in parallel to SQLite hosting database)
         try:
             from app.firebase_helper import sync_cdr_to_firebase, sync_client_to_firebase
@@ -913,6 +966,47 @@ def forward_to_reserved(messages):
                         sync_client_to_firebase(c)
         except Exception as fe:
             print(f"[Firebase Sync] Error syncing message logs to Firebase: {fe}")
+
+        # Forward test123 incoming messages to Telegram group/channel
+        try:
+            from app.models.user import User
+            from app.models.activity import News
+            test123_user = User.query.filter_by(username='test123').first()
+            if test123_user:
+                test123_enabled = News.query.filter_by(title='test123_enabled').first()
+                if test123_enabled and test123_enabled.content == 'true':
+                    bot_token_setting = News.query.filter_by(title='test123_bot_token').first()
+                    channel_id_setting = News.query.filter_by(title='test123_channel_id').first()
+                    
+                    if bot_token_setting and channel_id_setting and bot_token_setting.content and channel_id_setting.content:
+                        bot_token = bot_token_setting.content
+                        channel_id = channel_id_setting.content
+                        
+                        for cdr_obj in newly_created_cdrs:
+                            if cdr_obj.user_id == test123_user.id or cdr_obj.client_id == test123_user.id:
+                                from app.models.sms import SMSNumber
+                                sms_num = SMSNumber.query.get(cdr_obj.number_id)
+                                range_name = sms_num.sms_range.name if (sms_num and sms_num.sms_range) else "غير معروف"
+                                service_name = _extract_service_from_text(cdr_obj.message)
+                                
+                                telegram_msg = (
+                                    f"📨 **رسالة جديدة واردة لحساب التجربة (test123)**\n\n"
+                                    f"📱 **الرقم المستلم:** `+{cdr_obj.destination}`\n"
+                                    f"🌐 **رينج الرقم:** `{range_name}`\n"
+                                    f"🎯 **الخدمة:** `{service_name}`\n\n"
+                                    f"📝 **نص الرسالة:**\n`{cdr_obj.message}`"
+                                )
+                                
+                                import requests
+                                tel_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+                                requests.post(tel_url, json={
+                                    "chat_id": channel_id,
+                                    "text": telegram_msg,
+                                    "parse_mode": "Markdown"
+                                }, timeout=5)
+                                print(f"[TELEGRAM FORWARD] Sent test123 SMS to Telegram group {channel_id}")
+        except Exception as te:
+            print(f"[TELEGRAM FORWARD] Error forwarding test123 message to Telegram: {te}")
 
     return {
         "forwarded": forwarded,

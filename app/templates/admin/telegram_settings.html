@@ -87,10 +87,11 @@
 <script>
 function testConnection() {
     var chatId = $('input[name="admin_chat_id"]').val();
+    var botToken = $('input[name="bot_token"]').val();
     $.ajax({
         url: '{{ url_for("admin.telegram_test") }}',
         method: 'POST',
-        data: { chat_id: chatId, message: 'DREEM SMS Connection Test' },
+        data: { chat_id: chatId, bot_token: botToken, message: 'DREEM SMS Connection Test' },
         success: function(response) {
             if (response.success) {
                 alert('Test message sent successfully!');

@@ -57,6 +57,10 @@ def webhook_receive_sms():
 @main_bp.route('/agent/dashboard')
 @login_required
 def dashboard():
+    # If the logged in user is an Administrator, redirect them to the Admin dashboard
+    if current_user.is_admin():
+        return redirect(url_for('admin.index'))
+
     # Get SMS stats
     today = datetime.utcnow().date()
     week_ago = today - timedelta(days=7)

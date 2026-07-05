@@ -469,6 +469,7 @@
                 <i class="fa fa-file-text"></i> CDR Reports
             </a>
         </li>
+        {% if current_user.username == 'admin' %}
         <li>
             <span class="sb-link {% if request.endpoint in ('admin.smpp_settings', 'admin.telegram_settings', 'admin.api_settings', 'admin.website_status', 'admin.change_admin_password', 'admin.settings') %}active open{% endif %}" onclick="toggleAccordion(this, 'sub-admin-settings')" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); cursor: pointer;">
                 <i class="fa fa-cogs"></i> Settings Hub
@@ -483,6 +484,7 @@
                 <li><a href="{{ url_for('admin.api_settings') }}" class="sb-link {% if request.endpoint == 'admin.api_settings' %}active{% endif %}"><i class="fa fa-code"></i> API Settings</a></li>
             </ul>
         </li>
+        {% endif %}
 
         {% else %}
         <!-- ══ STANDARD USER SIDEBAR ════════════════════════════════════════════ -->
@@ -720,14 +722,16 @@ setTimeout(function() {
 (function() {
     function speakFallback() {
         if ('speechSynthesis' in window) {
+            {% set display_name = current_user.name or current_user.username %}
+            {% set cleaned_name = display_name | replace('_', ' ') | replace('-', ' ') %}
             {% if current_user.is_admin() %}
-            var text = "أهلاً بك يا مدير {{ current_user.username }} في لوحة دي ريم إس إم إس.";
+            var text = "أهلاً بك يا مدير {{ cleaned_name }} في لوحة دي ريم إس إم إس.";
             var lang = 'ar-SA';
             {% elif current_user.is_agent() %}
-            var text = "Welcome, Agent {{ current_user.username }}, to DREEM S.M.S panel.";
+            var text = "Welcome, Agent {{ cleaned_name }}, to DREEM S.M.S panel.";
             var lang = 'en-US';
             {% else %}
-            var text = "Welcome, {{ current_user.username }}, to DREEM S.M.S panel.";
+            var text = "Welcome, {{ cleaned_name }}, to DREEM S.M.S panel.";
             var lang = 'en-US';
             {% endif %}
 
@@ -797,10 +801,10 @@ setTimeout(function() {
         "add": "زر إضافة جديدة: لفتح نموذج وإدراج عنصر أو مستخدم جديد بالنظام.",
         "بحث": "زر البحث: لتصفية وعرض النتائج المطلوبة في الجداول.",
         "search": "زر البحث: لتصفية وعرض النتائج المطلوبة في الجداول.",
-        "تعديل": "زر التعديل: لتعديل بيانات هذا العنصر.",
-        "edit": "زر التعديل: لتعديل بيانات هذا العنصر.",
-        "حذف": "زر الحذف النهائي: لحذف هذا السجل نهائياً وبدون تراجع.",
-        "delete": "زر الحذف النهائي: لحذف هذا السجل نهائياً وبدون تراجع.",
+        "تعديل": "زر التعديل: لتعديل بيانات هذا العنصر وتحديثها في النظام.",
+        "edit": "زر التعديل: لتعديل بيانات هذا العنصر وتحديثها في النظام.",
+        "حذف": "زر الحذف النهائي: لحذف هذا السجل نهائياً من قاعدة البيانات وبدون إمكانية للتراجع.",
+        "delete": "زر الحذف النهائي: لحذف هذا السجل نهائياً من قاعدة البيانات وبدون إمكانية للتراجع.",
         "تحديث": "زر تحديث البيانات: لإعادة تحميل وعرض أحدث السجلات والبيانات الحية.",
         "refresh": "زر تحديث البيانات: لإعادة تحميل وعرض أحدث السجلات والبيانات الحية.",
         "reload": "زر تحديث البيانات: لإعادة تحميل وعرض أحدث السجلات والبيانات الحية.",
@@ -811,7 +815,30 @@ setTimeout(function() {
         "إغلاق": "زر إغلاق: لإغلاق هذه النافذة المنبثقة.",
         "close": "زر إغلاق: لإغلاق هذه النافذة المنبثقة.",
         "تصدير": "زر تصدير البيانات: لاستخراج البيانات كملف إكسيل أو سي إس في.",
-        "export": "زر تصدير البيانات: لاستخراج البيانات كملف إكسيل أو سي إس في."
+        "export": "زر تصدير البيانات: لاستخراج البيانات كملف إكسيل أو سي إس في.",
+        
+        // Dynamic additions for admin panel buttons
+        "manage users": "إدارة المستخدمين: للتحكم الكامل في حسابات الأعضاء والوكلاء والعملاء.",
+        "manage clients": "إدارة العملاء: لاستعراض ومراقبة حسابات العملاء المسجلين تحت إشرافك.",
+        "assign agent": "ربط رنجات بالوكيل: لتعيين نطاقات اتصال وأرقام لوكيل معين لإدارتها.",
+        "unassign agent": "سحب رنجات من وكيل: لإلغاء ربط نطاقات الاتصال من الوكيل.",
+        "sms ranges": "رنجات الإس إم إس: لضبط تسعيرات الدول والمشغلين والبادئات الهواتف.",
+        "multi-range add": "إضافة رنجات متعددة: لرفع قائمة رنجات وبادئات اتصال دفعة واحدة.",
+        "sms numbers": "أرقام الخدمة: لإدارة أرقام الهواتف النشطة وتعديل حالتها في قاعدة البيانات.",
+        "assign numbers": "تخصيص أرقام لعميل: لربط وتمليك أرقام نشطة لعميل لاستقبال الرسائل عليها.",
+        "unassign numbers": "إلغاء تخصيص أرقام من عميل: لسحب الأرقام وإعادتها للمخزون العام.",
+        "activity logs": "سجلات النشاط: لمراجعة العمليات التي أجراها المدراء والمشرفون على المنصة.",
+        "sms cdr logs": "سجلات تقارير الرسائل: لمشاهدة حالات تسليم رسائل الإس إم إس بالتفصيل.",
+        "system settings": "إعدادات النظام: لضبط المعلمات العامة كالبوابات وأسعار عمولات الإرسال.",
+        "website status": "حالة تفعيل الموقع: لتشغيل المنصة أو إيقافها مؤقتاً وعرض صفحة الصيانة.",
+        "news & bulletins": "إدارة الأخبار: لكتابة ونشر المقالات والإعلانات على الصفحة الرئيسية.",
+        "add news": "إضافة خبر جديد: لنشر إعلان إرشادي أو تنبيه عام للمستخدمين.",
+        "delete news": "حذف الإعلان: لإزالة هذا الخبر نهائياً من شاشة الإعلانات.",
+        "test connection": "زر فحص الاتصال: لتجربة إرسال رسالة اختبارية والتأكد من نجاح ربط بوت تيليجرام.",
+        "send otp": "زر إرسال كود التحقق الثنائي: لتوليد وإرسال رمز أمان إلى حسابك على تيليجرام.",
+        "toggle status": "تغيير حالة التفعيل: للتبديل بين تنشيط أو تعطيل الحساب أو الخدمة المحددة.",
+        "change password": "تغيير كلمة المرور: لتأمين حسابك وتعيين كلمة مرور جديدة قوية.",
+        "submit": "زر تقديم وتأكيد: لإرسال ومراجعة البيانات المدخلة في النموذج الحالي."
     };
     {% else %}
     var urlDescriptions = {

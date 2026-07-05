@@ -350,6 +350,27 @@ def create_app(config_name='default'):
                     db.session.add(s)
                 db.session.commit()
                 print("[SYSTEM] Default SMS suppliers seeded.")
+            # ── Restore clients from Firestore on startup ──────────────────────
+            try:
+                from app.firebase_helper import restore_clients_from_firebase
+                restore_clients_from_firebase(app)
+            except Exception as e:
+                print(f"[SYSTEM] Restore clients from Firestore failed: {e}")
+
+            # ── Load Telegram settings from database News table ───────────────
+            try:
+                from app.models.activity import News
+                bot_token_setting = News.query.filter_by(title='telegram_bot_token').first()
+                if bot_token_setting:
+                    app.config['TELEGRAM_BOT_TOKEN'] = bot_token_setting.content
+                    app.config['TELEGRAM_ENABLED'] = bot_token_setting.is_active
+                admin_chat_id_setting = News.query.filter_by(title='telegram_admin_chat_id').first()
+                if admin_chat_id_setting:
+                    app.config['TELEGRAM_ADMIN_CHAT_ID'] = admin_chat_id_setting.content
+                print("[SYSTEM] Loaded Telegram configuration from database.")
+            except Exception as e:
+                print(f"[SYSTEM] Failed to load Telegram settings on startup: {e}")
+
         except Exception as e:
             db.session.rollback()
             print(f"[SYSTEM] Seeding bypassed or concurrent execution detected: {e}")

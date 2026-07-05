@@ -24,6 +24,19 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated
 
+# Primary admin required decorator
+def primary_admin_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not current_user.is_authenticated:
+            flash('Please log in to access this page.', 'warning')
+            return redirect(url_for('auth.login'))
+        if not current_user.is_admin() or current_user.username != 'admin':
+            flash('عذراً، هذه الصفحة مخصصة فقط للمدير الأساسي للنظام (admin).', 'danger')
+            return redirect(url_for('admin.index'))
+        return f(*args, **kwargs)
+    return decorated
+
 # ============ ADMIN DASHBOARD ============
 
 @admin_bp.route('/')
@@ -150,6 +163,13 @@ def create_user():
         db.session.add(user)
         db.session.commit()
 
+        # Sync user/client to Firebase Firestore
+        try:
+            from app.firebase_helper import sync_client_to_firebase
+            sync_client_to_firebase(user)
+        except Exception as e:
+            print(f"[FIREBASE SYNC] Failed to sync new user to Firestore: {e}")
+
         ActivityLog.log(
             current_user.id,
             'admin_create_user',
@@ -196,6 +216,13 @@ def edit_user(user_id):
 
         db.session.commit()
 
+        # Sync user/client updates to Firebase Firestore
+        try:
+            from app.firebase_helper import sync_client_to_firebase
+            sync_client_to_firebase(user)
+        except Exception as e:
+            print(f"[FIREBASE SYNC] Failed to sync edited user to Firestore: {e}")
+
         ActivityLog.log(
             current_user.id,
             'admin_edit_user',
@@ -220,8 +247,46 @@ def delete_user(user_id):
         return redirect(url_for('admin.users'))
 
     username = user.username
-    db.session.delete(user)
-    db.session.commit()
+
+    # Perform thorough cleanup of all related entities to prevent foreign key constraint violations
+    try:
+        # Nullify sub-users' agent references
+        User.query.filter_by(agent_id=user.id).update({'agent_id': None})
+
+        # Delete ActivityLogs
+        from app.models.activity import ActivityLog
+        ActivityLog.query.filter_by(user_id=user.id).delete()
+
+        # Delete BankAccounts, Statements, and PaymentRequests
+        from app.models.finance import BankAccount, Statement, PaymentRequest
+        BankAccount.query.filter_by(user_id=user.id).delete()
+        Statement.query.filter_by(user_id=user.id).delete()
+        PaymentRequest.query.filter_by(user_id=user.id).delete()
+
+        # Delete Developer static assets
+        from app.models.developer import Developer
+        Developer.query.filter_by(uploader_id=user.id).delete()
+
+        # Delete SMSNumbers and SMSCDRs linked to user to prevent FK violations
+        from app.models.sms import SMSNumber, SMSCDR
+        SMSCDR.query.filter_by(user_id=user.id).delete()
+        SMSCDR.query.filter_by(client_id=user.id).delete()
+        SMSNumber.query.filter_by(agent_id=user.id).delete()
+        SMSNumber.query.filter_by(client_id=user.id).delete()
+
+        # Delete from Firestore
+        try:
+            from app.firebase_helper import delete_client_from_firebase
+            delete_client_from_firebase(username)
+        except Exception as e:
+            print(f"[FIREBASE SYNC] Failed to delete user from Firestore: {e}")
+
+        db.session.delete(user)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Failed to delete user: {str(e)}', 'danger')
+        return redirect(url_for('admin.users'))
 
     ActivityLog.log(
         current_user.id,
@@ -243,6 +308,13 @@ def toggle_user_status(user_id):
 
     user.is_active = not user.is_active
     db.session.commit()
+
+    # Sync toggled status to Firebase
+    try:
+        from app.firebase_helper import sync_client_to_firebase
+        sync_client_to_firebase(user)
+    except Exception as e:
+        print(f"[FIREBASE SYNC] Failed to sync toggled user status to Firestore: {e}")
 
     return jsonify({
         'success': True,
@@ -841,12 +913,12 @@ def delete_news(news_id):
 # ============ SETTINGS ============
 
 @admin_bp.route('/settings')
-@admin_required
+@primary_admin_required
 def settings():
     return render_template('admin/settings.html')
 
 @admin_bp.route('/settings/website-status', methods=['GET'])
-@admin_required
+@primary_admin_required
 def website_status():
     from app.models.activity import News
     status_setting = News.query.filter_by(title='website_status').first()
@@ -862,7 +934,7 @@ def website_status():
     )
 
 @admin_bp.route('/settings/change-password', methods=['GET', 'POST'])
-@admin_required
+@primary_admin_required
 def change_admin_password():
     if request.method == 'GET':
         return render_template('admin/change_password.html')
@@ -889,7 +961,7 @@ def change_admin_password():
     return redirect(url_for('admin.change_admin_password'))
 
 @admin_bp.route('/settings/toggle-website', methods=['POST'])
-@admin_required
+@primary_admin_required
 def toggle_website():
     from app.models.activity import News
     web_status = request.form.get('website_status', 'online').strip()
@@ -1070,6 +1142,13 @@ def agent_create_client():
         db.session.add(client)
         db.session.commit()
 
+        # Sync agent-created client to Firebase Firestore
+        try:
+            from app.firebase_helper import sync_client_to_firebase
+            sync_client_to_firebase(client)
+        except Exception as e:
+            print(f"[FIREBASE SYNC] Failed to sync agent client to Firestore: {e}")
+
         # Assign numbers to client if requested
         if numbers_count > 0:
             # Get agent's numbers
@@ -1156,6 +1235,13 @@ def agent_edit_client(user_id):
 
         db.session.commit()
 
+        # Sync edits to Firebase
+        try:
+            from app.firebase_helper import sync_client_to_firebase
+            sync_client_to_firebase(client)
+        except Exception as e:
+            print(f"[FIREBASE SYNC] Failed to sync agent edited client: {e}")
+
         ActivityLog.log(current_user.id, 'agent_edit_client', f'Edited client {client.username}', ip_address=request.remote_addr)
         flash(f'Client {client.username} updated successfully.', 'success')
         return redirect(url_for('main.clients'))
@@ -1179,6 +1265,13 @@ def agent_delete_client(user_id):
     db.session.delete(client)
     db.session.commit()
 
+    # Delete from Firebase
+    try:
+        from app.firebase_helper import delete_client_from_firebase
+        delete_client_from_firebase(username)
+    except Exception as e:
+        print(f"[FIREBASE SYNC] Failed to delete agent client: {e}")
+
     ActivityLog.log(current_user.id, 'agent_delete_client', f'Deleted client {username}', ip_address=request.remote_addr)
     flash(f'Client {username} deleted.', 'success')
     return redirect(url_for('main.clients'))
@@ -1197,6 +1290,13 @@ def agent_toggle_client_status(user_id):
 
     client.is_active = not client.is_active
     db.session.commit()
+
+    # Sync status to Firebase
+    try:
+        from app.firebase_helper import sync_client_to_firebase
+        sync_client_to_firebase(client)
+    except Exception as e:
+        print(f"[FIREBASE SYNC] Failed to sync agent client status: {e}")
 
     ActivityLog.log(current_user.id, 'agent_toggle_client_status', f'Toggled status of client {client.username} to {client.is_active}', ip_address=request.remote_addr)
     flash(f'Client {client.username} status updated.', 'success')
@@ -1827,7 +1927,7 @@ def get_client_numbers():
 # ============ TELEGRAM BOT SETTINGS ============
 
 @admin_bp.route('/telegram-settings', methods=['GET', 'POST'])
-@admin_required
+@primary_admin_required
 def telegram_settings():
     """Configure Telegram bot connection for OTP delivery"""
     from flask import current_app
@@ -1887,13 +1987,20 @@ def telegram_settings():
     )
 
 @admin_bp.route('/telegram/test', methods=['POST'])
-@admin_required
+@primary_admin_required
 def telegram_test():
     """Test Telegram bot connection"""
     from flask import current_app
     import requests
 
-    bot_token = current_app.config.get('TELEGRAM_BOT_TOKEN', '')
+    bot_token = request.form.get('bot_token', '').strip() or current_app.config.get('TELEGRAM_BOT_TOKEN', '')
+    if not bot_token:
+        from app.models.activity import News
+        bot_token_setting = News.query.filter_by(title='telegram_bot_token').first()
+        if bot_token_setting:
+            bot_token = bot_token_setting.content
+            current_app.config['TELEGRAM_BOT_TOKEN'] = bot_token
+
     if not bot_token:
         return jsonify({'success': False, 'error': 'Bot token not configured'})
 
@@ -1915,7 +2022,7 @@ def telegram_test():
         return jsonify({'success': False, 'error': str(e)})
 
 @admin_bp.route('/telegram/send-otp', methods=['POST'])
-@admin_required
+@primary_admin_required
 def telegram_send_otp():
     """Send OTP to admin via Telegram"""
     from flask import current_app
@@ -1924,6 +2031,19 @@ def telegram_send_otp():
 
     bot_token = current_app.config.get('TELEGRAM_BOT_TOKEN', '')
     admin_chat_id = current_app.config.get('TELEGRAM_ADMIN_CHAT_ID', '')
+
+    if not bot_token or not admin_chat_id:
+        from app.models.activity import News
+        if not bot_token:
+            setting = News.query.filter_by(title='telegram_bot_token').first()
+            if setting:
+                bot_token = setting.content
+                current_app.config['TELEGRAM_BOT_TOKEN'] = bot_token
+        if not admin_chat_id:
+            setting_chat = News.query.filter_by(title='telegram_admin_chat_id').first()
+            if setting_chat:
+                admin_chat_id = setting_chat.content
+                current_app.config['TELEGRAM_ADMIN_CHAT_ID'] = admin_chat_id
 
     if not bot_token or not admin_chat_id:
         return jsonify({'success': False, 'error': 'Telegram not configured'})
@@ -1947,7 +2067,7 @@ def telegram_send_otp():
 # ============ API SETTINGS ============
 
 @admin_bp.route('/api-settings', methods=['GET', 'POST'])
-@admin_required
+@primary_admin_required
 def api_settings():
     """Configure API settings and client tokens"""
     from app.models.activity import News
@@ -2065,7 +2185,7 @@ def api_regenerate_token():
 # ============ SMPP SERVER SETTINGS ============
 
 @admin_bp.route('/smpp-settings', methods=['GET', 'POST'])
-@admin_required
+@primary_admin_required
 def smpp_settings():
     """Configure SMPP server settings for external SMS provider"""
     from app.models.activity import News
@@ -2162,7 +2282,7 @@ def smpp_settings():
     return render_template('admin/smpp_settings.html', providers=providers_dicts, **smpp_settings)
 
 @admin_bp.route('/smpp/test', methods=['POST'])
-@admin_required
+@primary_admin_required
 def smpp_test():
     """Test SMPP connection"""
     from app.models.activity import News
@@ -2213,7 +2333,7 @@ def _save_providers_yaml_data(data):
         return False
 
 @admin_bp.route('/smpp-settings/add-supplier', methods=['POST'])
-@admin_required
+@primary_admin_required
 def add_supplier():
     name = request.form.get('name', '').strip()
     host = request.form.get('host', '').strip()
@@ -2266,7 +2386,7 @@ def add_supplier():
     return redirect(request.referrer or url_for('admin.smpp_settings'))
 
 @admin_bp.route('/smpp-settings/edit-supplier', methods=['POST'])
-@admin_required
+@primary_admin_required
 def edit_supplier():
     name = request.form.get('name', '').strip()
     host = request.form.get('host', '').strip()
@@ -2314,7 +2434,7 @@ def edit_supplier():
     return redirect(request.referrer or url_for('admin.smpp_settings'))
 
 @admin_bp.route('/smpp-settings/toggle-supplier/<name>', methods=['POST'])
-@admin_required
+@primary_admin_required
 def toggle_supplier(name):
     data = _get_providers_yaml_data()
     found = False
@@ -2335,7 +2455,7 @@ def toggle_supplier(name):
     return redirect(request.referrer or url_for('admin.smpp_settings'))
 
 @admin_bp.route('/smpp-settings/delete-supplier/<name>', methods=['POST'])
-@admin_required
+@primary_admin_required
 def delete_supplier(name):
     data = _get_providers_yaml_data()
     new_providers = [p for p in data['providers'] if p.get('name') != name]
@@ -2351,7 +2471,7 @@ def delete_supplier(name):
     return redirect(request.referrer or url_for('admin.smpp_settings'))
 
 @admin_bp.route('/smpp/messages')
-@admin_required
+@primary_admin_required
 def smpp_messages():
     """View SMPP Messages"""
     from app.models.sms import SMPPMessage
@@ -2363,7 +2483,7 @@ def smpp_messages():
     return render_template('admin/smpp_messages.html', messages=messages)
 
 @admin_bp.route('/smpp/status')
-@admin_required
+@primary_admin_required
 def smpp_status():
     """Get SMPP connection status"""
     from app.models.activity import News
@@ -2381,7 +2501,7 @@ def smpp_status():
 # ============ TEST123 BOT SETTINGS ============
 
 @admin_bp.route('/test123-bot-settings', methods=['GET', 'POST'])
-@admin_required
+@primary_admin_required
 def test123_bot_settings():
     """
     Admin section to configure Telegram bot for test123 account.
@@ -2430,7 +2550,7 @@ def test123_bot_settings():
 
 
 @admin_bp.route('/test123-bot/test', methods=['POST'])
-@admin_required
+@primary_admin_required
 def test123_bot_test():
     """Test Telegram bot connection for test123"""
     import requests
@@ -2461,7 +2581,7 @@ def test123_bot_test():
 
 
 @admin_bp.route('/test123-bot/send-test-message', methods=['POST'])
-@admin_required
+@primary_admin_required
 def test123_send_test_message():
     """Send a test message to the channel"""
     import requests
