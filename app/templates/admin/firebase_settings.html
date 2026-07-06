@@ -434,6 +434,16 @@
                 statusFirebaseCol2.innerHTML = '<strong>🔴 خطأ غير متوقع:</strong> ' + err;
             });
         });
+
+        // Auto-trigger diagnostics on page load to check connection immediately and prevent failures
+        setTimeout(function() {
+            if (btnSupabase) {
+                btnSupabase.click();
+            }
+            if (btnFirebaseCol2) {
+                btnFirebaseCol2.click();
+            }
+        }, 300);
     });
 </script>
 {% endblock %}

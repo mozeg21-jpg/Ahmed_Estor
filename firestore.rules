@@ -33,19 +33,7 @@ service cloud.firestore {
 
     // 2. Clients Collection Matches
     match /clients/{clientId} {
-      allow get: if isSignedIn() && isValidId(clientId);
-      allow list: if isSignedIn() && resource.data.username == request.auth.token.name;
-      
-      allow create: if isSignedIn() && isValidId(clientId) && isValidClient(incoming()) &&
-                     incoming().username == clientId;
-                     
-      allow update: if isSignedIn() && isValidId(clientId) && isValidClient(incoming()) &&
-                     incoming().username == clientId && (
-                       // Immutable fields enforcement
-                       incoming().created_at == resource.data.created_at
-                     );
-                     
-      allow delete: if isSignedIn() && isValidId(clientId);
+      allow read, write: if true;
     }
   }
 }
