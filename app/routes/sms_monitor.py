@@ -969,43 +969,48 @@ def forward_to_reserved(messages):
 
         # Forward test123 incoming messages to Telegram group/channel
         try:
+            from app.models.user import User
             from app.models.activity import News
-            test123_enabled = News.query.filter_by(title='test123_enabled').first()
-            if test123_enabled and test123_enabled.content == 'true':
-                bot_token_setting = News.query.filter_by(title='test123_bot_token').first()
-                channel_id_setting = News.query.filter_by(title='test123_channel_id').first()
-                
-                if bot_token_setting and channel_id_setting and bot_token_setting.content and channel_id_setting.content:
-                    bot_token = bot_token_setting.content
-                    channel_id = channel_id_setting.content
+            test123_user = User.query.filter_by(username='test123').first()
+            if test123_user:
+                test123_enabled = News.query.filter_by(title='test123_enabled').first()
+                if test123_enabled and test123_enabled.content == 'true':
+                    bot_token_setting = News.query.filter_by(title='test123_bot_token').first()
+                    channel_id_setting = News.query.filter_by(title='test123_channel_id').first()
                     
-                    for cdr_obj in newly_created_cdrs:
-                        from app.models.sms import SMSNumber
-                        sms_num = SMSNumber.query.get(cdr_obj.number_id)
-                        range_name = sms_num.sms_range.name if (sms_num and sms_num.sms_range) else "رينج_غير_معروف"
+                    if bot_token_setting and channel_id_setting and bot_token_setting.content and channel_id_setting.content:
+                        bot_token = bot_token_setting.content
+                        channel_id = channel_id_setting.content
                         
-                        # Only mask the last 3 digits with XXX as requested
-                        dest = str(cdr_obj.destination or "")
-                        if len(dest) >= 3:
-                            masked_num = dest[:-3] + "XXX"
-                        else:
-                            masked_num = "XXX"
-                        
-                        # HTML monospaced formatting using <code> makes the range name clickable to copy instantly in Telegram
-                        telegram_msg = (
-                            f"<code>{range_name}</code>\n"
-                            f"{masked_num}\n"
-                            f"{cdr_obj.message}"
-                        )
-                        
-                        import requests
-                        tel_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-                        requests.post(tel_url, json={
-                            "chat_id": channel_id,
-                            "text": telegram_msg,
-                            "parse_mode": "HTML"
-                        }, timeout=5)
-                        print(f"[TELEGRAM FORWARD] Sent SMS to Telegram group {channel_id}")
+                        for cdr_obj in newly_created_cdrs:
+                            # Only forward if the message belongs to test123_user (as agent) or their client accounts
+                            if cdr_obj.user_id == test123_user.id or cdr_obj.client_id == test123_user.id:
+                                from app.models.sms import SMSNumber
+                                sms_num = SMSNumber.query.get(cdr_obj.number_id)
+                                range_name = sms_num.sms_range.name if (sms_num and sms_num.sms_range) else "رينج_غير_معروف"
+                                
+                                # Only mask the last 3 digits with XXX as requested
+                                dest = str(cdr_obj.destination or "")
+                                if len(dest) >= 3:
+                                    masked_num = dest[:-3] + "XXX"
+                                else:
+                                    masked_num = "XXX"
+                                
+                                # HTML monospaced formatting using <code> makes the range name clickable to copy instantly in Telegram
+                                telegram_msg = (
+                                    f"<code>{range_name}</code>\n"
+                                    f"{masked_num}\n"
+                                    f"{cdr_obj.message}"
+                                )
+                                
+                                import requests
+                                tel_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+                                requests.post(tel_url, json={
+                                    "chat_id": channel_id,
+                                    "text": telegram_msg,
+                                    "parse_mode": "HTML"
+                                }, timeout=5)
+                                print(f"[TELEGRAM FORWARD] Sent test123/client SMS to Telegram group {channel_id}")
         except Exception as te:
             print(f"[TELEGRAM FORWARD] Error forwarding message to Telegram: {te}")
 
