@@ -156,9 +156,9 @@
                 <span class="badge-fb">
                     <i class="fa fa-google"></i> مركز تكامل سحابة جوجل & فايربيز
                 </span>
-                <h2 class="mt-2" style="color: var(--txt); font-weight: 800; font-size: 24px; margin: 6px 0 0 0;">إعدادات ومزامنة قواعد بيانات Firebase ومستودع Storage</h2>
+                <h2 class="mt-2" style="color: var(--txt); font-weight: 800; font-size: 24px; margin: 6px 0 0 0;">إعدادات ومزامنة قواعد بيانات Firebase و Supabase</h2>
                 <p style="color: var(--muted); margin: 6px 0 0 0; font-size: 13.5px; line-height: 1.6;">
-                    قم بربط مشروعك سحابياً للاحتفاظ بنسخة احتياطية للعملاء (Clients) ومزامنتها لحظياً، واستخدام مستودع تخزين الملفات المجاني بالكامل (Free Firebase Storage) لرفع وإدارة المرفقات والصور بسهولة فائقة دون استهلاك مساحة الخادم المحلي.
+                    قم بربط مشروعك سحابياً للاحتفاظ بنسخة احتياطية للعملاء (Clients) ومزامنتها لحظياً، ومراقبة سلامة الاتصال بقواعد البيانات الأساسية والسحابية لضمان الاستجابة السريعة ومنع انقطاع الخدمة.
                 </p>
             </div>
         </div>
@@ -188,14 +188,6 @@
                     <div class="form-group-compact">
                         <label for="firebase_database_id">معرّف قاعدة البيانات (Firestore DB ID)</label>
                         <input type="text" id="firebase_database_id" name="firebase_database_id" class="form-control-compact" value="{{ firebase_database_id }}" placeholder="أبقه (default) إن لم يكن لديك قواعد مخصصة">
-                    </div>
-
-                    <div class="form-group-compact">
-                        <label for="firebase_storage_bucket">رابط مستودع التخزين المجاني (Storage Bucket)</label>
-                        <input type="text" id="firebase_storage_bucket" name="firebase_storage_bucket" class="form-control-compact" value="{{ firebase_storage_bucket }}" placeholder="مثال: your-project.firebasestorage.app">
-                        <small style="color: var(--muted); font-size: 11px; margin-top: 4px; display: block;">
-                            * يتم رفع المرفقات والصور مباشرة إلى هذا المجلد بشكل سحابي مجاني وموثوق.
-                        </small>
                     </div>
 
                     <button type="submit" class="btn btn-primary w-100" style="padding: 11px; font-weight: 600; border-radius: 8px; font-size: 13.5px; display: flex; align-items: center; justify-content: center; gap: 8px;">
@@ -275,55 +267,6 @@
 </div>
 
 <script>
-    // Copy To Clipboard
-    function copyToClipboard(btn, text) {
-        navigator.clipboard.writeText(text).then(function() {
-            const origHTML = btn.innerHTML;
-            btn.innerHTML = '<i class="fa fa-check"></i> تم!';
-            btn.style.background = '#10b981';
-            btn.style.color = 'white';
-            setTimeout(function() {
-                btn.innerHTML = origHTML;
-                btn.style.background = 'rgba(59, 130, 246, 0.1)';
-                btn.style.color = 'var(--accent)';
-            }, 1800);
-        });
-    }
-
-    // Delete uploaded record from database list
-    function deleteRecord(url, rowId) {
-        if (!confirm('هل أنت متأكد من رغبتك في إزالة هذا الملف من قائمة السجل؟ (لن يتم مسحه من سحابة Storage نفسها)')) return;
-        
-        const fd = new FormData();
-        fd.append('url', url);
-        fd.append('csrf_token', '{{ csrf_token() }}');
-        
-        fetch("{{ url_for('admin.firebase_delete_storage_record') }}", {
-            method: 'POST',
-            body: fd
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                document.getElementById(rowId).remove();
-                // If no rows left, reload or show placeholder
-                const rows = document.getElementById('uploaded-files-body').getElementsByTagName('tr');
-                if (rows.length === 0) {
-                    document.getElementById('uploaded-files-body').innerHTML = `
-                        <tr id="no-files-placeholder">
-                            <td colspan="4" class="text-center" style="padding: 30px; color: var(--muted);">
-                                <i class="fa fa-folder-open-o" style="font-size: 24px; display: block; margin-bottom: 8px;"></i>
-                                لا توجد ملفات مرفوعة حالياً. ابدأ برفع ملفك الأول!
-                            </td>
-                        </tr>
-                    `;
-                }
-            } else {
-                alert('فشل في إزالة الملف: ' + data.error);
-            }
-        });
-    }
-
     document.addEventListener("DOMContentLoaded", function() {
         const csrfToken = '{{ csrf_token() }}';
 
