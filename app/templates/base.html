@@ -477,7 +477,7 @@
             </span>
             <ul class="sb-sub {% if request.endpoint in ('admin.smpp_settings', 'admin.telegram_settings', 'admin.api_settings', 'admin.website_status', 'admin.change_admin_password', 'admin.settings', 'admin.firebase_settings') %}expanded{% endif %}" id="sub-admin-settings" style="list-style: none; padding-left: 20px;">
                 <li><a href="{{ url_for('admin.settings') }}" class="sb-link {% if request.endpoint == 'admin.settings' %}active{% endif %}"><i class="fa fa-cog"></i> Settings Hub</a></li>
-                <li><a href="{{ url_for('admin.firebase_settings') }}" class="sb-link {% if request.endpoint == 'admin.firebase_settings' %}active{% endif %}"><i class="fa fa-google" style="color: #f59e0b;"></i> Firebase & Storage</a></li>
+                <li><a href="{{ url_for('admin.firebase_settings') }}" class="sb-link {% if request.endpoint == 'admin.firebase_settings' %}active{% endif %}"><i class="fa fa-google" style="color: #f59e0b;"></i> Firebase & Supabase</a></li>
                 <li><a href="{{ url_for('admin.website_status') }}" class="sb-link {% if request.endpoint == 'admin.website_status' %}active{% endif %}"><i class="fa fa-power-off"></i> Website Status</a></li>
                 <li><a href="{{ url_for('admin.change_admin_password') }}" class="sb-link {% if request.endpoint == 'admin.change_admin_password' %}active{% endif %}"><i class="fa fa-key"></i> Change Password</a></li>
                 <li><a href="{{ url_for('admin.smpp_settings') }}" class="sb-link {% if request.endpoint == 'admin.smpp_settings' %}active{% endif %}"><i class="fa fa-plug"></i> SMPP Settings</a></li>
