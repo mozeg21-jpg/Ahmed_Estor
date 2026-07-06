@@ -354,7 +354,7 @@ def reset_user_payout(user_id):
 # ============ SMS RANGES MANAGEMENT ============
 
 @admin_bp.route('/ranges')
-@admin_required
+@primary_admin_required
 def sms_ranges():
     page = request.args.get('page', 1, type=int)
     per_page = 25
@@ -423,7 +423,7 @@ def generate_150_test_numbers(range_id, base_number=None):
     return added_count
 
 @admin_bp.route('/ranges/create', methods=['GET', 'POST'])
-@admin_required
+@primary_admin_required
 def create_sms_range():
     """Create single SMS range with file upload"""
     if request.method == 'POST':
@@ -468,20 +468,15 @@ def create_sms_range():
         db.session.add(sms_range)
         db.session.commit()
 
-        # Upload range file to Firebase Storage
-        if csv_file and csv_file.filename and raw:
+        # Store range file content in local database to bypass Firebase Storage costs
+        if raw:
             try:
-                from app.firebase_helper import FirebaseFirestoreRESTClient
-                client = FirebaseFirestoreRESTClient()
-                if client.project_id:
-                    filename = csv_file.filename.replace('/', '_')
-                    success, download_url = client.upload_to_firebase_storage(f"ranges/{sms_range.id}_{filename}", raw, content_type="text/plain")
-                    if success:
-                        sms_range.file_url = download_url
-                        db.session.commit()
-                        print(f"[FIREBASE STORAGE] Uploaded range file to storage: {download_url}")
+                sms_range.file_content = raw.decode('utf-8', errors='ignore')
+                sms_range.file_url = url_for('admin.download_range_file', range_id=sms_range.id)
+                db.session.commit()
+                print(f"[LOCAL STORAGE] Saved range file content locally, download URL set to: {sms_range.file_url}")
             except Exception as fe:
-                print(f"[FIREBASE STORAGE] Failed uploading range file: {fe}")
+                print(f"[LOCAL STORAGE] Failed saving range file content: {fe}")
 
         # Add numbers from CSV only
         created_count = 0
@@ -535,7 +530,7 @@ def create_sms_range():
 
 
 @admin_bp.route('/ranges/create-multiple', methods=['GET', 'POST'])
-@admin_required
+@primary_admin_required
 def create_sms_ranges_multiple():
     """Create multiple SMS ranges at once with separate files and prices"""
     if request.method == 'POST':
@@ -593,6 +588,15 @@ def create_sms_ranges_multiple():
                 db.session.add(sms_range)
                 db.session.commit()
 
+                # Store range file content locally
+                if csv_file and csv_file.filename and raw:
+                    try:
+                        sms_range.file_content = raw.decode('utf-8', errors='ignore')
+                        sms_range.file_url = url_for('admin.download_range_file', range_id=sms_range.id)
+                        db.session.commit()
+                    except Exception as fe:
+                        print(f"[LOCAL MULTI STORAGE] Failed saving multi range file content: {fe}")
+
                 # Add numbers
                 created_count = 0
                 existing_numbers = set(
@@ -647,7 +651,7 @@ def create_sms_ranges_multiple():
     return render_template('admin/range_form_multiple.html')
 
 @admin_bp.route('/ranges/<int:range_id>/edit', methods=['GET', 'POST'])
-@admin_required
+@primary_admin_required
 def edit_sms_range(range_id):
     range_obj = SMDRange.query.get_or_404(range_id)
 
@@ -689,7 +693,7 @@ def edit_sms_range(range_id):
     return render_template('admin/range_form.html', range_obj=range_obj)
 
 @admin_bp.route('/ranges/<int:range_id>/delete', methods=['GET', 'POST'])
-@admin_required
+@primary_admin_required
 def delete_sms_range(range_id):
     range_obj = SMDRange.query.get_or_404(range_id)
     
@@ -710,10 +714,29 @@ def delete_sms_range(range_id):
     flash(f'Range deleted successfully.', 'success')
     return redirect(url_for('admin.sms_ranges'))
 
+
+@admin_bp.route('/ranges/<int:range_id>/download-file')
+@login_required
+def download_range_file(range_id):
+    """Serve the raw file content directly from the database to avoid Firebase Storage costs."""
+    from flask import Response
+    range_obj = SMDRange.query.get_or_404(range_id)
+    if not range_obj.file_content:
+        flash('No file content stored in database for this range.', 'warning')
+        return redirect(request.referrer or url_for('admin.sms_ranges'))
+    
+    # Generate the download response
+    response = Response(range_obj.file_content, mimetype='text/plain')
+    safe_name = "".join(c for c in range_obj.name if c.isalnum() or c in (' ', '_', '-')).strip().replace(' ', '_')
+    filename = f"range_{range_obj.id}_{safe_name if safe_name else 'file'}.txt"
+    response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+
 # ============ SMS MANAGEMENT ============
 
 @admin_bp.route('/sms/numbers')
-@admin_required
+@primary_admin_required
 def sms_numbers():
     page = request.args.get('page', 1, type=int)
     per_page = 50
@@ -737,7 +760,7 @@ def sms_numbers():
     return render_template('admin/sms_numbers.html', numbers=numbers, agents=agents)
 
 @admin_bp.route('/sms/send', methods=['GET', 'POST'])
-@admin_required
+@primary_admin_required
 def sms_send():
     if request.method == 'POST':
         number = request.form.get('number')
@@ -789,7 +812,7 @@ def sms_send():
     return render_template('admin/sms_send.html', sms_numbers=sms_numbers)
 
 @admin_bp.route('/sms/cdr')
-@admin_required
+@primary_admin_required
 def sms_cdr():
     page = request.args.get('page', 1, type=int)
     per_page = 50
@@ -840,7 +863,7 @@ def sms_cdr():
 # ============ ACTIVITY LOGS ============
 
 @admin_bp.route('/activity')
-@admin_required
+@primary_admin_required
 def activity_logs():
     page = request.args.get('page', 1, type=int)
     per_page = 50
@@ -866,7 +889,7 @@ def activity_logs():
 # ============ NEWS MANAGEMENT ============
 
 @admin_bp.route('/news')
-@admin_required
+@primary_admin_required
 def news():
     page = request.args.get('page', 1, type=int)
     per_page = 20
@@ -878,7 +901,7 @@ def news():
     return render_template('admin/news.html', news_list=news_list)
 
 @admin_bp.route('/news/create', methods=['GET', 'POST'])
-@admin_required
+@primary_admin_required
 def create_news():
     if request.method == 'POST':
         headline = request.form.get('headline')
@@ -904,7 +927,7 @@ def create_news():
     return render_template('admin/news_form.html', news=None)
 
 @admin_bp.route('/news/<int:news_id>/edit', methods=['GET', 'POST'])
-@admin_required
+@primary_admin_required
 def edit_news(news_id):
     news = News.query.get_or_404(news_id)
 
@@ -923,7 +946,7 @@ def edit_news(news_id):
     return render_template('admin/news_form.html', news=news)
 
 @admin_bp.route('/news/<int:news_id>/delete', methods=['GET', 'POST'])
-@admin_required
+@primary_admin_required
 def delete_news(news_id):
     news = News.query.get_or_404(news_id)
     db.session.delete(news)
@@ -1421,7 +1444,7 @@ def agent_my_numbers():
     )
 
 @admin_bp.route('/sms/numbers/<int:number_id>/unassign', methods=['POST'])
-@admin_required
+@primary_admin_required
 def unassign_number(number_id):
     """Unassign a number from its agent and client without deleting it from the system."""
     number = SMSNumber.query.get_or_404(number_id)
@@ -1444,7 +1467,7 @@ def unassign_number(number_id):
     return redirect(url_for('admin.sms_numbers'))
 
 @admin_bp.route('/sms/numbers/<int:number_id>/delete', methods=['POST'])
-@admin_required
+@primary_admin_required
 def delete_number(number_id):
     """Delete a number from the system even if it's assigned to a user."""
     number = SMSNumber.query.get_or_404(number_id)
@@ -2807,3 +2830,103 @@ def firebase_delete_storage_record():
             return jsonify({'success': False, 'error': str(e)})
             
     return jsonify({'success': False, 'error': 'لم يتم العثور على أي سجلات مرفوعة'})
+
+
+# ============ DATABASE & SUPABASE SETTINGS ============
+
+@admin_bp.route('/database-settings', methods=['GET', 'POST'])
+@primary_admin_required
+def database_settings():
+    from flask import current_app
+    env_path = os.path.abspath(os.path.join(current_app.root_path, '..', '.env'))
+    h_env_path = os.path.abspath(os.path.join(current_app.root_path, '..', 'h.env'))
+    
+    if request.method == 'POST':
+        db_url = request.form.get('database_url', '').strip()
+        config_mode = request.form.get('config_mode', 'uri').strip()
+        
+        if config_mode == 'fields':
+            host = request.form.get('db_host', '').strip()
+            port = request.form.get('db_port', '5432').strip() or '5432'
+            name = request.form.get('db_name', '').strip()
+            user = request.form.get('db_user', '').strip()
+            pass_val = request.form.get('db_password', '').strip()
+            
+            if host and name and user:
+                db_url = f"postgresql://{user}:{pass_val}@{host}:{port}/{name}"
+                
+        if not db_url:
+            flash('❌ عذراً، لم يتم إدخال رابط قاعدة البيانات بالكامل.', 'danger')
+            return redirect(url_for('admin.database_settings'))
+            
+        # Ensure .env exists by copying h.env if not present
+        if not os.path.exists(env_path) and os.path.exists(h_env_path):
+            import shutil
+            shutil.copy(h_env_path, env_path)
+            
+        # Update .env
+        lines = []
+        if os.path.exists(env_path):
+            with open(env_path, 'r') as f:
+                lines = f.readlines()
+                
+        new_lines = []
+        found = False
+        for line in lines:
+            if line.strip().startswith('DATABASE_URL='):
+                new_lines.append(f'DATABASE_URL={db_url}\n')
+                found = True
+            else:
+                new_lines.append(line)
+                
+        if not found:
+            new_lines.append(f'DATABASE_URL={db_url}\n')
+            
+        with open(env_path, 'w') as f:
+            f.writelines(new_lines)
+            
+        # Also update os.environ so that the current session or a reload can reflect it
+        os.environ['DATABASE_URL'] = db_url
+        
+        flash('✅ تم حفظ الإعدادات بنجاح! سيتم تطبيق الاتصال الجديد فوراً عند إعادة التشغيل.', 'success')
+        return redirect(url_for('admin.database_settings'))
+        
+    # GET request
+    # Read DATABASE_URL from .env or os.environ
+    current_db_url = os.environ.get('DATABASE_URL', '')
+    if os.path.exists(env_path):
+        with open(env_path, 'r') as f:
+            for line in f:
+                if line.strip().startswith('DATABASE_URL='):
+                    current_db_url = line.strip().split('=', 1)[1]
+                    break
+                    
+    is_using_postgres = current_db_url and ('postgres://' in current_db_url or 'postgresql://' in current_db_url)
+    
+    return render_template(
+        'admin/database_settings.html',
+        current_db_url=current_db_url,
+        is_using_postgres=is_using_postgres
+    )
+
+
+@admin_bp.route('/database/test-connection', methods=['POST'])
+@primary_admin_required
+def database_test_connection():
+    db_url = request.form.get('database_url', '').strip()
+    if not db_url:
+        return jsonify({'success': False, 'message': 'رابط الاتصال فارغ'})
+        
+    # Replace postgres:// with postgresql:// if needed for compatibility
+    if db_url.startswith('postgres://'):
+        db_url = db_url.replace('postgres://', 'postgresql://', 1)
+        
+    try:
+        from sqlalchemy import create_engine, text
+        # Create a temporary engine and test connection with short timeout
+        engine = create_engine(db_url, connect_args={'connect_timeout': 5})
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})

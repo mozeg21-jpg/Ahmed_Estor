@@ -1,0 +1,342 @@
+{% extends "base.html" %}
+
+{% block title %}إعدادات قاعدة بيانات Supabase / Postgres - DREEM SMS{% endblock %}
+
+{% block content %}
+<style>
+    .db-header {
+        background: linear-gradient(135deg, rgba(20, 35, 30, 0.9), rgba(15, 23, 42, 0.9));
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 24px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+
+    .db-card {
+        background-color: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 24px;
+        margin-bottom: 24px;
+        transition: all 0.2s ease-in-out;
+    }
+
+    .db-card:hover {
+        border-color: rgba(16, 185, 129, 0.4);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.05);
+    }
+
+    .form-group-compact {
+        margin-bottom: 18px;
+    }
+
+    .form-group-compact label {
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--txt);
+        margin-bottom: 6px;
+        display: block;
+    }
+
+    .form-control-compact {
+        background-color: rgba(17, 24, 39, 0.5) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 8px !important;
+        color: var(--txt) !important;
+        padding: 11px 14px !important;
+        font-size: 13.5px !important;
+        width: 100%;
+        transition: border-color 0.2s;
+    }
+
+    .form-control-compact:focus {
+        border-color: #10b981 !important;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15) !important;
+        outline: none;
+    }
+
+    .badge-db {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+        padding: 4px 10px;
+        border-radius: 99px;
+        font-size: 11px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .status-box {
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-size: 13.3px;
+        margin-top: 15px;
+        display: none;
+        line-height: 1.6;
+    }
+
+    .status-success {
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+        color: #10b981;
+    }
+
+    .status-error {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+    }
+
+    .nav-tabs-custom {
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 20px;
+        display: flex;
+        gap: 10px;
+    }
+
+    .nav-tab-btn {
+        background: transparent;
+        border: none;
+        color: var(--muted);
+        padding: 10px 16px;
+        font-size: 14px;
+        font-weight: 600;
+        border-bottom: 2px solid transparent;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .nav-tab-btn.active {
+        color: #10b981;
+        border-bottom-color: #10b981;
+    }
+</style>
+
+<div class="container-fluid" style="direction: rtl;">
+    <!-- Header -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="db-header">
+                <span class="badge-db">
+                    <i class="fa fa-database"></i> مركز تكامل قواعد البيانات الخارجية
+                </span>
+                <h2 class="mt-2" style="color: var(--txt); font-weight: 800; font-size: 24px; margin: 6px 0 0 0;">إعدادات وربط قاعدة بيانات Supabase / PostgreSQL</h2>
+                <p style="color: var(--muted); margin: 6px 0 0 0; font-size: 13.5px; line-height: 1.6;">
+                    قم بربط موقعك بقاعدة بيانات سحابية من نوع PostgreSQL أو Supabase لإدارة الأرقام، وتوجيه الرسائل، وتخزين بيانات العملاء وحمايتها من الضياع عند انتهاء الجلسة أو مسح التخزين المؤقت لفايربيز.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row">
+        <!-- Settings Form -->
+        <div class="col-lg-8 col-md-12">
+            <div class="db-card">
+                <h4 style="color: var(--txt); font-weight: 700; font-size: 17px; margin-bottom: 15px;">
+                    <i class="fa fa-plug" style="color: #10b981; margin-left: 8px;"></i> بيانات الاتصال بقاعدة البيانات
+                </h4>
+                <p style="color: var(--muted); font-size: 12.5px; margin-bottom: 20px;">
+                    يمكنك إدخال رابط الاتصال المباشر بالكامل، أو تعبئة حقول الاتصال المنفصلة. سيتم حفظ الإعدادات في ملف البيئة الخاص بالموقع وإعادة الاتصال فوراً.
+                </p>
+
+                <div class="nav-tabs-custom">
+                    <button class="nav-tab-btn active" id="btn-uri-mode" onclick="switchMode('uri')">رابط الاتصال المباشر (URI)</button>
+                    <button class="nav-tab-btn" id="btn-fields-mode" onclick="switchMode('fields')">بيانات الاتصال منفصلة</button>
+                </div>
+
+                <form id="db-settings-form" method="POST" action="{{ url_for('admin.database_settings') }}">
+                    <input type="hidden" name="config_mode" id="config_mode" value="uri">
+
+                    <!-- URI Mode Fields -->
+                    <div id="uri-config-section">
+                        <div class="form-group-compact">
+                            <label for="database_url">رابط اتصال قاعدة البيانات (DATABASE_URL)</label>
+                            <input type="text" class="form-control-compact text-left" id="database_url" name="database_url" 
+                                   placeholder="postgresql://postgres:password@db.supabase.co:5432/postgres" 
+                                   style="direction: ltr;" value="{{ current_db_url or '' }}">
+                            <small class="text-muted mt-1 d-block" style="font-size: 11px;">
+                                انسخ رابط الاتصال (Connection String) من لوحة تحكم Supabase أو أي مزود خدمة PostgreSQL آخر. تأكد من استخدام البروتوكول <code style="color: #10b981;">postgresql://</code> أو <code style="color: #10b981;">postgres://</code>.
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Fields Mode Fields -->
+                    <div id="fields-config-section" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-9 col-sm-12">
+                                <div class="form-group-compact">
+                                    <label for="db_host">المضيف (Host / Endpoint)</label>
+                                    <input type="text" class="form-control-compact text-left" id="db_host" name="db_host" 
+                                           placeholder="aws-0-eu-central-1.pooler.supabase.com" style="direction: ltr;">
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-sm-12">
+                                <div class="form-group-compact">
+                                    <label for="db_port">المنفذ (Port)</label>
+                                    <input type="number" class="form-control-compact text-left" id="db_port" name="db_port" 
+                                           placeholder="5432" style="direction: ltr;" value="5432">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 col-sm-12">
+                                <div class="form-group-compact">
+                                    <label for="db_name">اسم قاعدة البيانات (Database Name)</label>
+                                    <input type="text" class="form-control-compact text-left" id="db_name" name="db_name" 
+                                           placeholder="postgres" style="direction: ltr;">
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-sm-12">
+                                <div class="form-group-compact">
+                                    <label for="db_user">اسم المستخدم (User)</label>
+                                    <input type="text" class="form-control-compact text-left" id="db_user" name="db_user" 
+                                           placeholder="postgres" style="direction: ltr;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group-compact">
+                            <label for="db_password">كلمة المرور (Password)</label>
+                            <input type="password" class="form-control-compact text-left" id="db_password" name="db_password" 
+                                   placeholder="••••••••••••••••" style="direction: ltr;">
+                        </div>
+                    </div>
+
+                    <hr style="border-top: 1px solid var(--border); margin: 24px 0;">
+
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <button type="button" class="btn btn-outline-success" id="btn-test-connection" style="font-size: 13.5px; font-weight: 600; padding: 10px 20px;">
+                            <i class="fa fa-wifi"></i> فحص جودة الاتصال بقاعدة البيانات
+                        </button>
+                        
+                        <button type="submit" class="btn btn-success" style="font-size: 13.5px; font-weight: 700; padding: 10px 24px; background-color: #10b981; border-color: #10b981;">
+                            <i class="fa fa-save"></i> حفظ وتطبيق الإعدادات
+                        </button>
+                    </div>
+                </form>
+
+                <div class="status-box" id="test-status-box"></div>
+            </div>
+        </div>
+
+        <!-- Sidebar Info -->
+        <div class="col-lg-4 col-md-12">
+            <div class="db-card">
+                <h4 style="color: var(--txt); font-weight: 700; font-size: 16px; margin-bottom: 15px;">
+                    <i class="fa fa-info-circle" style="color: var(--accent); margin-left: 8px;"></i> حالة الاتصال النشط
+                </h4>
+                
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <div style="width: 12px; height: 12px; border-radius: 50%; background-color: {% if is_using_postgres %}#10b981{% else %}#f59e0b{% endif %}; box-shadow: 0 0 10px {% if is_using_postgres %}#10b981{% else %}#f59e0b{% endif %};"></div>
+                    <div>
+                        <span style="color: var(--txt); font-weight: 600; font-size: 14px;">
+                            قاعدة البيانات النشطة:
+                        </span>
+                        <div style="color: var(--muted); font-size: 12px; margin-top: 2px;">
+                            {% if is_using_postgres %}
+                                PostgreSQL / Supabase
+                            {% else %}
+                                SQLite (قاعدة محلية مؤقتة)
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info text-right" style="background-color: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.15); border-radius: 10px; color: var(--txt); padding: 14px; font-size: 12.5px; line-height: 1.6;">
+                    <strong style="color: var(--accent); display: block; margin-bottom: 6px;"><i class="fa fa-lightbulb-o"></i> إرشادات سريعة لـ Supabase:</strong>
+                    1. اذهب لـ <a href="https://supabase.com" target="_blank" style="color: var(--accent); text-decoration: underline;">Supabase Console</a>.<br>
+                    2. اختر مشروعك واذهب إلى <strong>Project Settings</strong> ثم <strong>Database</strong>.<br>
+                    3. انسخ الرابط من خيار <strong>Connection String (URI)</strong>.<br>
+                    4. تأكد من تفعيل وضع <strong style="color: #10b981;">Session Mode (Port 5432)</strong> أو استخدام رابط المنفذ السحابي مباشرة.<br>
+                    5. ألصقه هنا واضغط فحص الاتصال للتأكد من نجاح الربط.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function switchMode(mode) {
+        document.getElementById('config_mode').value = mode;
+        
+        // Update tabs active state
+        document.getElementById('btn-uri-mode').classList.toggle('active', mode === 'uri');
+        document.getElementById('btn-fields-mode').classList.toggle('active', mode === 'fields');
+        
+        // Show/hide sections
+        document.getElementById('uri-config-section').style.display = mode === 'uri' ? 'block' : 'none';
+        document.getElementById('fields-config-section').style.display = mode === 'fields' ? 'block' : 'none';
+    }
+
+    // JS code to build the URI if fields are changed
+    document.addEventListener('DOMContentLoaded', function() {
+        const testBtn = document.getElementById('btn-test-connection');
+        const statusBox = document.getElementById('test-status-box');
+
+        testBtn.addEventListener('click', function() {
+            statusBox.style.display = 'block';
+            statusBox.className = 'status-box';
+            statusBox.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+            statusBox.style.color = 'var(--txt)';
+            statusBox.innerHTML = '<i class="fa fa-spinner fa-spin"></i> جاري محاولة الاتصال بقاعدة البيانات وفحص جودة واستجابة السيرفر...';
+
+            const mode = document.getElementById('config_mode').value;
+            let dbUrl = '';
+
+            if (mode === 'uri') {
+                dbUrl = document.getElementById('database_url').value.trim();
+            } else {
+                const host = document.getElementById('db_host').value.trim();
+                const port = document.getElementById('db_port').value.trim() || '5432';
+                const name = document.getElementById('db_name').value.trim();
+                const user = document.getElementById('db_user').value.trim();
+                const pass = document.getElementById('db_password').value.trim();
+
+                if (!host || !name || !user) {
+                    statusBox.className = 'status-box status-error';
+                    statusBox.innerHTML = '❌ عذراً، يرجى ملء حقول المضيف، اسم قاعدة البيانات، واسم المستخدم لإكمال بيانات الاتصال.';
+                    return;
+                }
+                dbUrl = `postgresql://${user}:${pass}@${host}:${port}/${name}`;
+            }
+
+            if (!dbUrl) {
+                statusBox.className = 'status-box status-error';
+                statusBox.innerHTML = '❌ يرجى إدخال رابط الاتصال بالكامل لفحصه.';
+                return;
+            }
+
+            // Create a FormData to send the URL to testing endpoint
+            const formData = new FormData();
+            formData.append('database_url', dbUrl);
+
+            fetch("{{ url_for('admin.database_test_connection') }}", {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    statusBox.className = 'status-box status-success';
+                    statusBox.innerHTML = '<h4><i class="fa fa-check-circle"></i> تم الاتصال بنجاح!</h4>' + 
+                                          'قناة الاتصال بقاعدة بيانات Supabase مستقرة وقوية ومستعدة لحفظ وتوجيه الأرقام والرسائل بنجاح.';
+                } else {
+                    statusBox.className = 'status-box status-error';
+                    statusBox.innerHTML = '<h4><i class="fa fa-times-circle"></i> فشل الاتصال بقاعدة البيانات</h4>' + 
+                                          'خطأ السيرفر: ' + data.message;
+                }
+            })
+            .catch(error => {
+                statusBox.className = 'status-box status-error';
+                statusBox.innerHTML = '<h4><i class="fa fa-times-circle"></i> حدث خطأ أثناء فحص الاتصال</h4>' + 
+                                      'تأكد من اتصال السيرفر بالإنترنت وصحة الرابط المدخل. تفاصيل: ' + error;
+            });
+        });
+    });
+</script>
+{% endblock %}

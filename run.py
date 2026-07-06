@@ -8,8 +8,11 @@ import os
 sys_server_port = os.environ.get('SERVER_PORT')
 sys_port = os.environ.get('PORT')
 
-from dotenv import load_dotenv
-load_dotenv()  # Load .env file if it exists
+try:
+    from dotenv import load_dotenv
+    load_dotenv()  # Load .env file if it exists
+except ImportError:
+    print("[WARN] dotenv package not found, proceeding with system environment.")
 
 from app import create_app, db
 from app.models.user import User, Role

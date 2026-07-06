@@ -30,6 +30,7 @@ class SMDRange(db.Model):
     test_number = db.Column(db.String(50))
     memo = db.Column(db.Text)
     file_url = db.Column(db.String(512), nullable=True)
+    file_content = db.Column(db.Text, nullable=True)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'))

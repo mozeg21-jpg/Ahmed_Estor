@@ -17,13 +17,14 @@ bcrypt = Bcrypt()
 @event.listens_for(Engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
     # Enable WAL mode for SQLite to prevent locking issues under concurrent serverless requests
-    try:
-        cursor = dbapi_connection.cursor()
-        cursor.execute("PRAGMA journal_mode=WAL")
-        cursor.execute("PRAGMA synchronous=NORMAL")
-        cursor.close()
-    except Exception:
-        pass
+    if dbapi_connection.__class__.__module__.startswith("sqlite3"):
+        try:
+            cursor = dbapi_connection.cursor()
+            cursor.execute("PRAGMA journal_mode=WAL")
+            cursor.execute("PRAGMA synchronous=NORMAL")
+            cursor.close()
+        except Exception:
+            pass
 
 # Security headers added to every response
 SECURITY_HEADERS = {
@@ -293,9 +294,13 @@ def create_app(config_name='default'):
                         db.session.execute(text("ALTER TABLE sms_ranges ADD COLUMN file_url VARCHAR(512) NULL"))
                         db.session.commit()
                         print("[MIGRATION] Added file_url column to sms_ranges")
+                    if 'file_content' not in range_cols:
+                        db.session.execute(text("ALTER TABLE sms_ranges ADD COLUMN file_content TEXT NULL"))
+                        db.session.commit()
+                        print("[MIGRATION] Added file_content column to sms_ranges")
                 except Exception as e:
                     db.session.rollback()
-                    print(f"[MIGRATION] Failed adding file_url to sms_ranges: {e}")
+                    print(f"[MIGRATION] Failed adding columns to sms_ranges: {e}")
 
         except Exception as e:
             print(f"[MIGRATION] Bypassed auto-migrate: {e}")
@@ -410,7 +415,7 @@ def create_app(config_name='default'):
                         setting = News.query.filter_by(title=key).first()
                         if not setting:
                             if val:
-                                db.session.add(News(title=key, content=val))
+                                db.session.add(News(title=key, headline=key.replace('_', ' ').title(), content=val))
                         elif not setting.content and val:
                             setting.content = val
                     db.session.commit()

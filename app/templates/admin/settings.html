@@ -168,5 +168,19 @@
             تعديل الـ API <i class="fa fa-arrow-left"></i>
         </a>
     </div>
+
+    <!-- Supabase / Database Settings -->
+    <div class="settings-card-compact">
+        <div>
+            <div class="settings-icon-box-compact" style="background: linear-gradient(135deg, #3ecf8e, #10b981);">
+                <i class="fa fa-database"></i>
+            </div>
+            <div class="settings-title-compact">قاعدة بيانات Supabase / Postgres</div>
+            <div class="settings-desc-compact">ربط وإدارة قاعدة بيانات Supabase / PostgreSQL مخصصة لحفظ أرقام المستخدمين والوصول والتوجيه بشكل مستقل.</div>
+        </div>
+        <a href="{{ url_for('admin.database_settings') }}" class="btn btn-success settings-action-btn-compact" style="background-color: #10b981; border-color: #10b981; color: white;">
+            إعدادات قاعدة البيانات <i class="fa fa-arrow-left"></i>
+        </a>
+    </div>
 </div>
 {% endblock %}
