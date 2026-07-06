@@ -173,7 +173,7 @@
                 </h4>
                 
                 <form method="POST" action="{{ url_for('admin.firebase_settings') }}">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="csrf_token" value="none">
                     
                     <div class="form-group-compact">
                         <label for="firebase_project_id">معرّف المشروع (Project ID)</label>
@@ -268,7 +268,7 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        const csrfToken = '{{ csrf_token() }}';
+        const csrfToken = 'none';
 
         // 1. Test Firestore Connection
         const btnTest = document.getElementById('btn-test-connection');
