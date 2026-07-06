@@ -231,102 +231,43 @@
             </div>
         </div>
 
-        <!-- Firebase Free Storage File Upload & Gallery -->
+        <!-- Connection Diagnostics Control Panel -->
         <div class="col-lg-6 col-md-12">
-            <div class="fb-card">
-                <h4 style="color: var(--txt); font-weight: 700; font-size: 16px; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
-                    <i class="fa fa-cloud-upload" style="color: #3b82f6;"></i> مستودع التخزين السحابي المجاني (Firebase Storage)
+            <div class="fb-card" style="height: 100%;">
+                <h4 style="color: var(--txt); font-weight: 700; font-size: 17px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa fa-dashboard" style="color: #10b981;"></i> لوحة فحص الاتصال الفوري ومنع أعطال قواعد البيانات
                 </h4>
-                <p style="color: var(--muted); font-size: 12px; margin-bottom: 18px;">
-                    ارفع أي ملف، صورة، أو مستند مباشرة لسحابة جوجل مجاناً واحصل على رابط مباشر للاستخدام في رسائل SMS أو التصاميم.
+                <p style="color: var(--muted); font-size: 12.5px; margin-bottom: 24px; line-height: 1.6;">
+                    تتيح لك هذه اللوحة مراقبة واختبار الاتصال اللحظي بكلا قاعدتي البيانات (Supabase & Firebase) فوراً لمنع الأعطال وتجنب أي توقف للخدمة.
                 </p>
 
-                <!-- Drag & drop zone -->
-                <div class="upload-zone" id="upload-zone">
-                    <i class="fa fa-cloud-upload" id="upload-icon"></i>
-                    <h5 style="color: var(--txt); font-size: 14px; font-weight: 700; margin-bottom: 6px;" id="upload-text">اسحب الملف هنا أو اضغط للاختيار</h5>
-                    <p style="color: var(--muted); font-size: 11.5px; margin: 0;">يدعم كافة صيغ الصور، المستندات، وملفات النصوص</p>
-                    <input type="file" id="file-input" style="display: none;">
+                <!-- 1. Supabase Connection Check Section -->
+                <div style="background: rgba(16, 185, 129, 0.03); border: 1px solid rgba(16, 185, 129, 0.15); border-radius: 12px; padding: 18px; margin-bottom: 20px;">
+                    <h5 style="color: #10b981; font-weight: 700; font-size: 14.5px; margin-top: 0; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                        <img src="https://supabase.com/favicon.ico" style="width: 16px; height: 16px; border-radius: 2px;" onerror="this.src='https://ycsxnernlzkifoiyeggb.supabase.co/favicon.ico';"> 
+                        مراقبة اتصال سوبابيس (Supabase PostgreSQL)
+                    </h5>
+                    <p style="color: var(--muted); font-size: 12px; margin-bottom: 14px; line-height: 1.5;">
+                        قاعدة البيانات الأساسية لحفظ وجلب الأرقام والرينجات وجداول الـ CDR والعمليات المالية والفوترة. يضمن هذا الفحص سلامة استعلامات محرك PostgreSQL.
+                    </p>
+                    <button type="button" id="btn-test-supabase" class="btn btn-outline-success w-100" style="padding: 10px; font-weight: 600; border-radius: 8px; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <i class="fa fa-refresh" id="icon-supabase-test"></i> اختبار اتصال قاعدة بيانات Supabase الآن
+                    </button>
+                    <div id="status-supabase-test" class="status-box"></div>
                 </div>
 
-                <!-- Upload progress bar -->
-                <div id="upload-progress-container" style="display: none; margin-top: 16px;">
-                    <div class="d-flex justify-content-between mb-1" style="font-size: 12px; color: var(--muted);">
-                        <span id="upload-filename">جاري رفع الملف...</span>
-                        <span id="upload-percentage">0%</span>
-                    </div>
-                    <div class="progress" style="height: 6px; background-color: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden;">
-                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" id="upload-progress-bar" style="width: 0%"></div>
-                    </div>
-                </div>
-
-                <div id="status-upload" class="status-box" style="margin-top: 16px;"></div>
-            </div>
-
-            <!-- Uploaded Files Gallery -->
-            <div class="fb-card" style="max-height: 480px; overflow-y: auto;">
-                <h4 style="color: var(--txt); font-weight: 700; font-size: 16px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
-                    <i class="fa fa-picture-o" style="color: var(--accent);"></i> الملفات والمرفقات المرفوعة
-                </h4>
-
-                <div class="table-responsive">
-                    <table class="table table-dark table-compact" style="background: transparent; border: none;">
-                        <thead>
-                            <tr>
-                                <th>الملف / المعاينة</th>
-                                <th>الحجم والتاريخ</th>
-                                <th>رابط التحميل Direct Link</th>
-                                <th>إجراء</th>
-                            </tr>
-                        </thead>
-                        <tbody id="uploaded-files-body">
-                            {% if uploaded_files %}
-                                {% for file in uploaded_files %}
-                                <tr id="row-{{ loop.index }}">
-                                    <td>
-                                        <div class="d-flex align-items-center gap-2">
-                                            {% if 'image' in file.content_type %}
-                                                <img src="{{ file.url }}" style="width: 38px; height: 38px; border-radius: 6px; object-fit: cover; border: 1px solid var(--border);" referrerPolicy="no-referrer">
-                                            {% else %}
-                                                <div style="width: 38px; height: 38px; border-radius: 6px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; border: 1px solid var(--border);">
-                                                    <i class="fa fa-file-text-o" style="color: var(--muted);"></i>
-                                                </div>
-                                            {% endif %}
-                                            <div style="max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                                <span style="font-weight: 600; font-size: 12.5px;">{{ file.filename }}</span>
-                                                <br>
-                                                <small style="color: var(--muted); font-size: 11px;">{{ file.content_type }}</small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span style="font-size: 11px; color: var(--muted);">{{ (file.size / 1024) | round(1) }} KB</span>
-                                        <br>
-                                        <span style="font-size: 10px; color: var(--muted);">{{ file.uploaded_at }}</span>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex align-items-center gap-1">
-                                            <input type="text" class="form-control" style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); color: var(--muted); font-size: 10px; padding: 3px 6px; border-radius: 4px; width: 100px;" value="{{ file.url }}" readonly>
-                                            <button class="copy-btn" onclick="copyToClipboard(this, '{{ file.url }}')"><i class="fa fa-copy"></i> نسخ</button>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <button class="btn btn-sm btn-danger" style="padding: 4px 8px; font-size: 11px;" onclick="deleteRecord('{{ file.url }}', 'row-{{ loop.index }}')">
-                                            <i class="fa fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            {% else %}
-                                <tr id="no-files-placeholder">
-                                    <td colspan="4" class="text-center" style="padding: 30px; color: var(--muted);">
-                                        <i class="fa fa-folder-open-o" style="font-size: 24px; display: block; margin-bottom: 8px;"></i>
-                                        لا توجد ملفات مرفوعة حالياً. ابدأ برفع ملفك الأول!
-                                    </td>
-                                </tr>
-                            {% endif %}
-                        </tbody>
-                    </table>
+                <!-- 2. Firebase Connection Check Section -->
+                <div style="background: rgba(245, 158, 11, 0.03); border: 1px solid rgba(245, 158, 11, 0.15); border-radius: 12px; padding: 18px;">
+                    <h5 style="color: #f59e0b; font-weight: 700; font-size: 14.5px; margin-top: 0; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa fa-google" style="color: #f59e0b;"></i> مراقبة اتصال فايربيز (Firebase Firestore)
+                    </h5>
+                    <p style="color: var(--muted); font-size: 12px; margin-bottom: 14px; line-height: 1.5;">
+                        قاعدة البيانات السحابية والمسؤولة عن حفظ وإدارة وتأمين حسابات المستخدمين والعملاء ومزامنة كلمات المرور وبيانات الاعتماد.
+                    </p>
+                    <button type="button" id="btn-test-firebase" class="btn btn-outline-warning w-100" style="padding: 10px; font-weight: 600; border-radius: 8px; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <i class="fa fa-refresh" id="icon-firebase-test"></i> اختبار اتصال قواعد بيانات Firebase Firestore
+                    </button>
+                    <div id="status-firebase-test" class="status-box"></div>
                 </div>
             </div>
         </div>
@@ -470,142 +411,86 @@
             });
         });
 
-        // 3. Drag & Drop File Upload directly to Firebase Storage via REST API
-        const uploadZone = document.getElementById('upload-zone');
-        const fileInput = document.getElementById('file-input');
-        const progressContainer = document.getElementById('upload-progress-container');
-        const progressBar = document.getElementById('upload-progress-bar');
-        const progressPercentage = document.getElementById('upload-percentage');
-        const progressFilename = document.getElementById('upload-filename');
-        const statusUpload = document.getElementById('status-upload');
+        // 3. Supabase Test Connection
+        const btnSupabase = document.getElementById('btn-test-supabase');
+        const iconSupabase = document.getElementById('icon-supabase-test');
+        const statusSupabase = document.getElementById('status-supabase-test');
 
-        uploadZone.addEventListener('click', () => fileInput.click());
-
-        ['dragenter', 'dragover'].forEach(eventName => {
-            uploadZone.addEventListener(eventName, (e) => {
-                e.preventDefault();
-                uploadZone.classList.add('dragover');
-            }, false);
-        });
-
-        ['dragleave', 'drop'].forEach(eventName => {
-            uploadZone.addEventListener(eventName, (e) => {
-                e.preventDefault();
-                uploadZone.classList.remove('dragover');
-            }, false);
-        });
-
-        uploadZone.addEventListener('drop', (e) => {
-            const dt = e.dataTransfer;
-            const files = dt.files;
-            if (files.length) handleFiles(files[0]);
-        });
-
-        fileInput.addEventListener('change', function() {
-            if (this.files.length) handleFiles(this.files[0]);
-        });
-
-        function handleFiles(file) {
-            progressContainer.style.display = 'block';
-            progressBar.style.width = '0%';
-            progressPercentage.textContent = '0%';
-            progressFilename.textContent = 'جاري رفع: ' + file.name;
-            statusUpload.style.display = 'none';
+        btnSupabase.addEventListener('click', function() {
+            btnSupabase.disabled = true;
+            iconSupabase.className = 'fa fa-refresh fa-spin';
+            statusSupabase.style.display = 'none';
 
             const fd = new FormData();
-            fd.append('file', file);
             fd.append('csrf_token', csrfToken);
 
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', "{{ url_for('admin.firebase_upload_storage') }}", true);
-
-            xhr.upload.addEventListener('progress', function(e) {
-                if (e.lengthComputable) {
-                    const percent = Math.round((e.loaded / e.total) * 100);
-                    progressBar.style.width = percent + '%';
-                    progressPercentage.textContent = percent + '%';
-                }
-            });
-
-            xhr.onload = function() {
-                progressContainer.style.display = 'none';
-                statusUpload.style.display = 'block';
-                
-                if (xhr.status === 200) {
-                    const data = JSON.parse(xhr.responseText);
-                    if (data.success) {
-                        statusUpload.className = 'status-box status-success';
-                        statusUpload.innerHTML = '<strong>🟢 تم الرفع بنجاح سحابياً!</strong><br><small>الرابط المباشر للملف:</small><br>' +
-                            `<div class="d-flex align-items-center gap-1 mt-1">` +
-                            `<input type="text" class="form-control" style="background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);color:white;font-size:11px;" value="${data.url}" readonly>` +
-                            `<button class="copy-btn" onclick="copyToClipboard(this, '${data.url}')">نسخ الرابط</button>` +
-                            `</div>`;
-                        
-                        // Append newly uploaded file row to table
-                        const tbody = document.getElementById('uploaded-files-body');
-                        const placeholder = document.getElementById('no-files-placeholder');
-                        if (placeholder) placeholder.remove();
-                        
-                        const isImg = file.type.includes('image');
-                        const previewHtml = isImg ? 
-                            `<img src="${data.url}" style="width:38px;height:38px;border-radius:6px;object-fit:cover;border:1px solid var(--border);" referrerPolicy="no-referrer">` :
-                            `<div style="width:38px;height:38px;border-radius:6px;background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;border:1px solid var(--border);"><i class="fa fa-file-text-o" style="color:var(--muted);"></i></div>`;
-                        
-                        const rowId = 'row-new-' + Date.now();
-                        const sizeKB = (file.size / 1024).toFixed(1);
-                        const dateStr = new Date().toISOString().slice(0, 19).replace('T', ' ');
-                        
-                        const tr = document.createElement('tr');
-                        tr.id = rowId;
-                        tr.innerHTML = `
-                            <td>
-                                <div class="d-flex align-items-center gap-2">
-                                    ${previewHtml}
-                                    <div style="max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-                                        <span style="font-weight:600;font-size:12.5px;">${file.name}</span>
-                                        <br>
-                                        <small style="color:var(--muted);font-size:11px;">${file.type || 'unknown'}</small>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <span style="font-size:11px;color:var(--muted);">${sizeKB} KB</span>
-                                <br>
-                                <span style="font-size:10px;color:var(--muted);">${dateStr}</span>
-                            </td>
-                            <td>
-                                <div class="d-flex align-items-center gap-1">
-                                    <input type="text" class="form-control" style="background:rgba(0,0,0,0.3);border:1px solid var(--border);color:var(--muted);font-size:10px;padding:3px 6px;border-radius:4px;width:100px;" value="${data.url}" readonly>
-                                    <button class="copy-btn" onclick="copyToClipboard(this, '${data.url}')"><i class="fa fa-copy"></i> نسخ</button>
-                                </div>
-                            </td>
-                            <td>
-                                <button class="btn btn-sm btn-danger" style="padding:4px 8px;font-size:11px;" onclick="deleteRecord('${data.url}', '${rowId}')">
-                                    <i class="fa fa-trash"></i>
-                                </button>
-                            </td>
-                        `;
-                        tbody.insertBefore(tr, tbody.firstChild);
-                        
-                    } else {
-                        statusUpload.className = 'status-box status-error';
-                        statusUpload.innerHTML = '<strong>🔴 فشل الرفع:</strong> ' + data.error;
-                    }
+            fetch("{{ url_for('admin.supabase_test_connection') }}", {
+                method: 'POST',
+                body: fd
+            })
+            .then(res => res.json())
+            .then(data => {
+                btnSupabase.disabled = false;
+                iconSupabase.className = 'fa fa-refresh';
+                statusSupabase.style.display = 'block';
+                if (data.success) {
+                    statusSupabase.className = 'status-box status-success';
+                    statusSupabase.innerHTML = '<strong>🟢 نجاح الاتصال:</strong> ' + data.message;
                 } else {
-                    statusUpload.className = 'status-box status-error';
-                    statusUpload.innerHTML = '<strong>🔴 فشل في رفع الملف.</strong> كود الاستجابة: ' + xhr.status;
+                    statusSupabase.className = 'status-box status-error';
+                    statusSupabase.innerHTML = '<strong>🔴 فشل الاتصال:</strong> ' + data.message;
                 }
-            };
+            })
+            .catch(err => {
+                btnSupabase.disabled = false;
+                iconSupabase.className = 'fa fa-refresh';
+                statusSupabase.style.display = 'block';
+                statusSupabase.className = 'status-box status-error';
+                statusSupabase.innerHTML = '<strong>🔴 خطأ غير متوقع:</strong> ' + err;
+            });
+        });
 
-            xhr.onerror = function() {
-                progressContainer.style.display = 'none';
-                statusUpload.style.display = 'block';
-                statusUpload.className = 'status-box status-error';
-                statusUpload.innerHTML = '<strong>🔴 خطأ شبكة غير متوقع.</strong>';
-            };
+        // 4. Firebase Test Connection (from Col 2)
+        const btnFirebaseCol2 = document.getElementById('btn-test-firebase');
+        const iconFirebaseCol2 = document.getElementById('icon-firebase-test');
+        const statusFirebaseCol2 = document.getElementById('status-firebase-test');
 
-            xhr.send(fd);
-        }
+        btnFirebaseCol2.addEventListener('click', function() {
+            btnFirebaseCol2.disabled = true;
+            iconFirebaseCol2.className = 'fa fa-refresh fa-spin';
+            statusFirebaseCol2.style.display = 'none';
+
+            const fd = new FormData();
+            fd.append('project_id', document.getElementById('firebase_project_id').value);
+            fd.append('api_key', document.getElementById('firebase_api_key').value);
+            fd.append('database_id', document.getElementById('firebase_database_id').value);
+            fd.append('csrf_token', csrfToken);
+
+            fetch("{{ url_for('admin.firebase_test_connection') }}", {
+                method: 'POST',
+                body: fd
+            })
+            .then(res => res.json())
+            .then(data => {
+                btnFirebaseCol2.disabled = false;
+                iconFirebaseCol2.className = 'fa fa-refresh';
+                statusFirebaseCol2.style.display = 'block';
+                if (data.success) {
+                    statusFirebaseCol2.className = 'status-box status-success';
+                    statusFirebaseCol2.innerHTML = '<strong>🟢 نجاح الاتصال:</strong> ' + data.message;
+                } else {
+                    statusFirebaseCol2.className = 'status-box status-error';
+                    statusFirebaseCol2.innerHTML = '<strong>🔴 فشل الاتصال:</strong> ' + data.message;
+                }
+            })
+            .catch(err => {
+                btnFirebaseCol2.disabled = false;
+                iconFirebaseCol2.className = 'fa fa-refresh';
+                statusFirebaseCol2.style.display = 'block';
+                statusFirebaseCol2.className = 'status-box status-error';
+                statusFirebaseCol2.innerHTML = '<strong>🔴 خطأ غير متوقع:</strong> ' + err;
+            });
+        });
     });
 </script>
 {% endblock %}

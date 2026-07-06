@@ -2712,6 +2712,20 @@ def firebase_settings():
     return render_template('admin/firebase_settings.html', **settings_data)
 
 
+@admin_bp.route('/supabase/test-connection', methods=['POST'])
+@primary_admin_required
+def supabase_test_connection():
+    """Test Supabase Database Connection"""
+    from sqlalchemy import text
+    from app import db
+    try:
+        # Run a simple query to verify connection to the database (which is Supabase)
+        db.session.execute(text("SELECT 1"))
+        return jsonify({'success': True, 'message': 'تم الاتصال بقاعدة بيانات Supabase بنجاح واستجابة الاستعلام لحظية وعالية السرعة!'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'فشل الاتصال بـ Supabase: {str(e)}'})
+
+
 @admin_bp.route('/firebase/test-connection', methods=['POST'])
 @primary_admin_required
 def firebase_test_connection():
