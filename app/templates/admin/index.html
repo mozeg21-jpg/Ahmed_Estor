@@ -422,6 +422,16 @@
             </a>
 
             {% if current_user.username == 'admin' %}
+            <a href="{{ url_for('admin.firebase_settings') }}" class="admin-module-card">
+                <div class="module-icon-box" style="background: linear-gradient(135deg, #f59e0b, #b45309);">
+                    <i class="fa fa-google"></i>
+                </div>
+                <div class="module-info">
+                    <span class="module-name">Firebase Integration &amp; Storage</span>
+                    <span class="module-desc">Firestore sync and free cloud storage uploads</span>
+                </div>
+            </a>
+
             <a href="{{ url_for('admin.settings') }}" class="admin-module-card">
                 <div class="module-icon-box" style="background: linear-gradient(135deg, #4b5563, #1f2937);">
                     <i class="fa fa-cog"></i>

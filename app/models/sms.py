@@ -29,6 +29,7 @@ class SMDRange(db.Model):
     application = db.Column(db.String(50))   # e.g. 'facebook', 'whatsapp'
     test_number = db.Column(db.String(50))
     memo = db.Column(db.Text)
+    file_url = db.Column(db.String(512), nullable=True)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'))
@@ -69,6 +70,7 @@ class SMDRange(db.Model):
             'application': self.application,
             'test_number': self.test_number,
             'memo': self.memo,
+            'file_url': self.file_url,
             'is_active': self.is_active,
             'number_count': self.numbers.count()
         }

@@ -130,6 +130,13 @@ def create_app(config_name='default'):
         except Exception:
             pass
 
+        # Trigger automatic monthly reset checks
+        try:
+            from app.firebase_helper import check_and_process_monthly_resets
+            check_and_process_monthly_resets()
+        except Exception as cre:
+            print(f"[AUTO RESET TRIGGER ERROR] {cre}")
+
     from app.routes.auth import auth_bp
     from app.routes.main import main_bp
     from app.routes.admin import admin_bp
@@ -249,8 +256,46 @@ def create_app(config_name='default'):
                             except Exception as ex2:
                                 db.session.rollback()
                                 print(f"[MIGRATION] Failed adding telegram_enabled: {ex2}")
+
+                    # New Monthly Limit & Reset Columns
+                    if 'monthly_limit' not in user_cols:
+                        try:
+                            db.session.execute(text("ALTER TABLE users ADD COLUMN monthly_limit FLOAT DEFAULT 50.0"))
+                            db.session.commit()
+                        except Exception as ex:
+                            db.session.rollback()
+                            print(f"[MIGRATION] Failed adding monthly_limit: {ex}")
+
+                    if 'reset_day' not in user_cols:
+                        try:
+                            db.session.execute(text("ALTER TABLE users ADD COLUMN reset_day INTEGER DEFAULT 1"))
+                            db.session.commit()
+                        except Exception as ex:
+                            db.session.rollback()
+                            print(f"[MIGRATION] Failed adding reset_day: {ex}")
+
+                    if 'last_reset_date' not in user_cols:
+                        try:
+                            db.session.execute(text("ALTER TABLE users ADD COLUMN last_reset_date TIMESTAMP NULL"))
+                            db.session.commit()
+                        except Exception as ex:
+                            db.session.rollback()
+                            print(f"[MIGRATION] Failed adding last_reset_date: {ex}")
+
                 except Exception as e:
                     print(f"[MIGRATION] Bypassed users telegram column checks: {e}")
+
+            # ── Add file_url to sms_ranges table ────────────────────────────
+            if 'sms_ranges' in tables:
+                try:
+                    range_cols = [c['name'] for c in inspector.get_columns('sms_ranges')]
+                    if 'file_url' not in range_cols:
+                        db.session.execute(text("ALTER TABLE sms_ranges ADD COLUMN file_url VARCHAR(512) NULL"))
+                        db.session.commit()
+                        print("[MIGRATION] Added file_url column to sms_ranges")
+                except Exception as e:
+                    db.session.rollback()
+                    print(f"[MIGRATION] Failed adding file_url to sms_ranges: {e}")
 
         except Exception as e:
             print(f"[MIGRATION] Bypassed auto-migrate: {e}")
@@ -350,6 +395,29 @@ def create_app(config_name='default'):
                     db.session.add(s)
                 db.session.commit()
                 print("[SYSTEM] Default SMS suppliers seeded.")
+            # ── Auto-initialize Firebase settings in Database if not present ────
+            try:
+                from app.models.activity import News
+                from app.firebase_helper import FirebaseFirestoreRESTClient
+                client = FirebaseFirestoreRESTClient()
+                if client.project_id:
+                    for key, val in [
+                        ('firebase_project_id', client.project_id),
+                        ('firebase_api_key', client.api_key),
+                        ('firebase_database_id', client.database_id),
+                        ('firebase_storage_bucket', client.storage_bucket)
+                    ]:
+                        setting = News.query.filter_by(title=key).first()
+                        if not setting:
+                            if val:
+                                db.session.add(News(title=key, content=val))
+                        elif not setting.content and val:
+                            setting.content = val
+                    db.session.commit()
+                    print("[SYSTEM] Firebase configuration seeded to database.")
+            except Exception as fe:
+                print(f"[SYSTEM] Failed to auto-initialize Firebase database settings: {fe}")
+
             # ── Restore clients from Firestore on startup ──────────────────────
             try:
                 from app.firebase_helper import restore_clients_from_firebase

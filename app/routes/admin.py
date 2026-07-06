@@ -132,6 +132,8 @@ def create_user():
         company = request.form.get('company')
         country = request.form.get('country')
         sms_limit = request.form.get('sms_limit', 0, type=int)
+        monthly_limit = request.form.get('monthly_limit', 50.0, type=float)
+        reset_day = request.form.get('reset_day', 1, type=int)
 
         if not username or not email or not password:
             flash('Username, email, and password are required.', 'danger')
@@ -155,6 +157,8 @@ def create_user():
             country=country,
             agent_id=agent_id if agent_id else None,
             sms_limit=sms_limit,
+            monthly_limit=monthly_limit,
+            reset_day=reset_day,
             is_active=True
         )
         user.set_password(password)
@@ -197,6 +201,8 @@ def edit_user(user_id):
         user.skype = request.form.get('skype')
         user.contact = request.form.get('contact')
         user.sms_limit = request.form.get('sms_limit', 0, type=int)
+        user.monthly_limit = request.form.get('monthly_limit', 50.0, type=float)
+        user.reset_day = request.form.get('reset_day', 1, type=int)
         user.agent_id = request.form.get('agent_id', type=int)
         if not user.agent_id:
             user.agent_id = None
@@ -431,6 +437,7 @@ def create_sms_range():
         # Verify TXT or CSV file
         csv_file = request.files.get('csv_file')
         csv_numbers = []
+        raw = None
         if csv_file and csv_file.filename:
             try:
                 raw = csv_file.read()
@@ -460,6 +467,21 @@ def create_sms_range():
         )
         db.session.add(sms_range)
         db.session.commit()
+
+        # Upload range file to Firebase Storage
+        if csv_file and csv_file.filename and raw:
+            try:
+                from app.firebase_helper import FirebaseFirestoreRESTClient
+                client = FirebaseFirestoreRESTClient()
+                if client.project_id:
+                    filename = csv_file.filename.replace('/', '_')
+                    success, download_url = client.upload_to_firebase_storage(f"ranges/{sms_range.id}_{filename}", raw, content_type="text/plain")
+                    if success:
+                        sms_range.file_url = download_url
+                        db.session.commit()
+                        print(f"[FIREBASE STORAGE] Uploaded range file to storage: {download_url}")
+            except Exception as fe:
+                print(f"[FIREBASE STORAGE] Failed uploading range file: {fe}")
 
         # Add numbers from CSV only
         created_count = 0
@@ -2606,3 +2628,182 @@ def test123_send_test_message():
             return jsonify({'success': False, 'error': 'Failed to send message'})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
+
+
+# ============ FIREBASE SETTINGS & FREE STORAGE ============
+
+@admin_bp.route('/firebase-settings', methods=['GET', 'POST'])
+@primary_admin_required
+def firebase_settings():
+    """Configure Firebase Firestore and Storage integration settings"""
+    from app.models.activity import News
+    from app.firebase_helper import FirebaseFirestoreRESTClient
+    
+    if request.method == 'POST':
+        proj_id = request.form.get('firebase_project_id', '').strip()
+        api_key = request.form.get('firebase_api_key', '').strip()
+        db_id = request.form.get('firebase_database_id', '').strip() or '(default)'
+        bucket = request.form.get('firebase_storage_bucket', '').strip()
+        
+        # Save to database (using News model as key-value store)
+        for key, val in [
+            ('firebase_project_id', proj_id),
+            ('firebase_api_key', api_key),
+            ('firebase_database_id', db_id),
+            ('firebase_storage_bucket', bucket)
+        ]:
+            setting = News.query.filter_by(title=key).first()
+            if not setting:
+                setting = News(title=key, content=val)
+                db.session.add(setting)
+            else:
+                setting.content = val
+        
+        db.session.commit()
+        flash('✅ تم حفظ إعدادات فايربيز بنجاح!', 'success')
+        return redirect(url_for('admin.firebase_settings'))
+    
+    # Load settings
+    proj_id_setting = News.query.filter_by(title='firebase_project_id').first()
+    api_key_setting = News.query.filter_by(title='firebase_api_key').first()
+    db_id_setting = News.query.filter_by(title='firebase_database_id').first()
+    bucket_setting = News.query.filter_by(title='firebase_storage_bucket').first()
+    uploads_setting = News.query.filter_by(title='firebase_uploaded_files').first()
+    
+    import json
+    try:
+        uploaded_files = json.loads(uploads_setting.content) if (uploads_setting and uploads_setting.content) else []
+    except Exception:
+        uploaded_files = []
+        
+    client = FirebaseFirestoreRESTClient()
+    
+    settings_data = {
+        'firebase_project_id': proj_id_setting.content if proj_id_setting else (client.project_id or ''),
+        'firebase_api_key': api_key_setting.content if api_key_setting else (client.api_key or ''),
+        'firebase_database_id': db_id_setting.content if db_id_setting else (client.database_id or '(default)'),
+        'firebase_storage_bucket': bucket_setting.content if bucket_setting else (client.storage_bucket or ''),
+        'uploaded_files': uploaded_files
+    }
+    
+    return render_template('admin/firebase_settings.html', **settings_data)
+
+
+@admin_bp.route('/firebase/test-connection', methods=['POST'])
+@primary_admin_required
+def firebase_test_connection():
+    """Test Firestore Connection"""
+    from app.firebase_helper import FirebaseFirestoreRESTClient
+    
+    proj_id = request.form.get('project_id', '').strip()
+    api_key = request.form.get('api_key', '').strip()
+    db_id = request.form.get('database_id', '').strip() or '(default)'
+    
+    client = FirebaseFirestoreRESTClient(project_id=proj_id, api_key=api_key, database_id=db_id)
+    success, msg = client.test_connection()
+    return jsonify({'success': success, 'message': msg})
+
+
+@admin_bp.route('/firebase/sync-restore', methods=['POST'])
+@primary_admin_required
+def firebase_sync_restore():
+    """Fetch registered users from Firestore and restore them in the local SQLite db"""
+    from app.firebase_helper import restore_clients_from_firebase
+    from flask import current_app
+    
+    try:
+        success = restore_clients_from_firebase(current_app)
+        if success:
+            return jsonify({'success': True, 'message': 'تم استعادة ومزامنة جميع المستخدمين والعملاء المسجلين من Firestore بنجاح!'})
+        else:
+            return jsonify({'success': False, 'error': 'فشلت عملية المزامنة. تأكد من صحة بيانات الاتصال بفايربيز.'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+
+@admin_bp.route('/firebase/upload-storage', methods=['POST'])
+@primary_admin_required
+def firebase_upload_storage():
+    """Uploads file directly to free Firebase Storage bucket and saves to uploads gallery"""
+    from app.firebase_helper import FirebaseFirestoreRESTClient
+    from app.models.activity import News
+    import json
+    from datetime import datetime
+    
+    if 'file' not in request.files:
+        return jsonify({'success': False, 'error': 'لم يتم العثور على أي ملف للرفع'})
+        
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'success': False, 'error': 'اسم الملف فارغ'})
+        
+    # Read file data
+    file_data = file.read()
+    filename = file.filename
+    content_type = file.content_type or 'application/octet-stream'
+    
+    client = FirebaseFirestoreRESTClient()
+    if not client.project_id:
+        return jsonify({'success': False, 'error': 'إعدادات فايربيز غير مكتملة في الخادم.'})
+        
+    success, result_url = client.upload_to_firebase_storage(filename, file_data, content_type)
+    if success:
+        # Save to local gallery list in News database setting
+        uploads_setting = News.query.filter_by(title='firebase_uploaded_files').first()
+        try:
+            uploaded_files = json.loads(uploads_setting.content) if (uploads_setting and uploads_setting.content) else []
+        except Exception:
+            uploaded_files = []
+            
+        # Add new file details
+        new_file_record = {
+            'filename': filename,
+            'url': result_url,
+            'content_type': content_type,
+            'uploaded_at': datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'),
+            'size': len(file_data)
+        }
+        uploaded_files.insert(0, new_file_record)
+        
+        # Save back to database
+        if not uploads_setting:
+            uploads_setting = News(title='firebase_uploaded_files', content=json.dumps(uploaded_files))
+            db.session.add(uploads_setting)
+        else:
+            uploads_setting.content = json.dumps(uploaded_files)
+            
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'تم رفع الملف بنجاح إلى Firebase Storage!',
+            'url': result_url,
+            'file': new_file_record
+        })
+    else:
+        return jsonify({'success': False, 'error': result_url})
+
+
+@admin_bp.route('/firebase/delete-storage-record', methods=['POST'])
+@primary_admin_required
+def firebase_delete_storage_record():
+    """Deletes upload record from local list gallery (does not delete from Firebase Storage)"""
+    from app.models.activity import News
+    import json
+    
+    url_to_delete = request.form.get('url', '').strip()
+    if not url_to_delete:
+        return jsonify({'success': False, 'error': 'الملف غير محدد'})
+        
+    uploads_setting = News.query.filter_by(title='firebase_uploaded_files').first()
+    if uploads_setting:
+        try:
+            uploaded_files = json.loads(uploads_setting.content)
+            updated_files = [f for f in uploaded_files if f.get('url') != url_to_delete]
+            uploads_setting.content = json.dumps(updated_files)
+            db.session.commit()
+            return jsonify({'success': True})
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)})
+            
+    return jsonify({'success': False, 'error': 'لم يتم العثور على أي سجلات مرفوعة'})

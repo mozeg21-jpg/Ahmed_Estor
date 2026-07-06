@@ -65,6 +65,11 @@ class User(UserMixin, db.Model):
     # Message deletion settings (in minutes, 0 = never delete)
     delete_messages_after = db.Column(db.Integer, default=0)
 
+    # Monthly limit & Reset settings
+    monthly_limit = db.Column(db.Float, default=50.0)
+    reset_day = db.Column(db.Integer, default=1)  # Day of month (1-28)
+    last_reset_date = db.Column(db.DateTime, nullable=True)
+
     # Telegram settings for this user
     telegram_bot_token = db.Column(db.String(255))
     telegram_chat_id = db.Column(db.String(100))
@@ -153,7 +158,10 @@ class User(UserMixin, db.Model):
             'country': self.country,
             'role': self.role.name if self.role else None,
             'is_active': self.is_active,
-            'created_at': self.created_at.isoformat() if self.created_at else None
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'monthly_limit': self.monthly_limit,
+            'reset_day': self.reset_day,
+            'last_reset_date': self.last_reset_date.isoformat() if self.last_reset_date else None
         }
 
     @staticmethod

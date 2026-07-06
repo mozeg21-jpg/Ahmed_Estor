@@ -76,6 +76,9 @@
                             {% endif %}
                         </td>
                         <td>
+                            {% if range.file_url %}
+                            <a href="{{ range.file_url }}" target="_blank" class="btn btn-xs btn-info" title="Download File"><i class="fa fa-download"></i></a>
+                            {% endif %}
                             <a href="{{ url_for('admin.edit_sms_range', range_id=range.id) }}" class="btn btn-xs btn-warning"><i class="fa fa-edit"></i></a>
                             <form action="{{ url_for('admin.delete_sms_range', range_id=range.id) }}" method="POST" style="display:inline;">
                                 <button type="submit" class="btn btn-xs btn-danger" onclick="return confirm('Are you sure? This will delete the range.')">

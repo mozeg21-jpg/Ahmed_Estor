@@ -8,10 +8,11 @@ class FirebaseFirestoreRESTClient:
     A lightweight, pure-Python REST client for Firebase Firestore.
     Bypasses python pip install restrictions by using standard requests.
     """
-    def __init__(self, project_id=None, api_key=None, database_id=None):
+    def __init__(self, project_id=None, api_key=None, database_id=None, storage_bucket=None):
         self.project_id = project_id or os.environ.get("FIREBASE_PROJECT_ID")
         self.api_key = api_key or os.environ.get("FIREBASE_API_KEY")
         self.database_id = database_id or os.environ.get("FIREBASE_DATABASE_ID")
+        self.storage_bucket = storage_bucket or os.environ.get("FIREBASE_STORAGE_BUCKET")
         
         # Try loading from firebase-applet-config.json automatically
         try:
@@ -27,6 +28,8 @@ class FirebaseFirestoreRESTClient:
                         self.api_key = cfg.get("apiKey")
                     if not self.database_id:
                         self.database_id = cfg.get("firestoreDatabaseId")
+                    if not self.storage_bucket:
+                        self.storage_bucket = cfg.get("storageBucket")
         except Exception:
             pass
 
@@ -39,6 +42,7 @@ class FirebaseFirestoreRESTClient:
             proj_setting = News.query.filter_by(title='firebase_project_id').first()
             key_setting = News.query.filter_by(title='firebase_api_key').first()
             db_setting = News.query.filter_by(title='firebase_database_id').first()
+            bucket_setting = News.query.filter_by(title='firebase_storage_bucket').first()
             
             if proj_setting and proj_setting.content:
                 self.project_id = proj_setting.content
@@ -46,6 +50,8 @@ class FirebaseFirestoreRESTClient:
                 self.api_key = key_setting.content
             if db_setting and db_setting.content:
                 self.database_id = db_setting.content
+            if bucket_setting and bucket_setting.content:
+                self.storage_bucket = bucket_setting.content
         except Exception:
             pass # Not in Flask app context or DB not initialized yet
 
@@ -228,6 +234,52 @@ class FirebaseFirestoreRESTClient:
                 err_msg = res.text
             return False, err_msg
 
+    def upload_to_firebase_storage(self, filename, file_data, content_type="application/octet-stream"):
+        """
+        Uploads a file directly to the configured Firebase Storage bucket via REST API.
+        No credentials required if the bucket has public write rules.
+        URL: https://firebasestorage.googleapis.com/v0/b/{bucket_name}/o?uploadType=media&name={filename}
+        Returns: (success, download_url or error_message)
+        """
+        bucket_name = self.storage_bucket
+        if not bucket_name and self.project_id:
+            bucket_name = f"{self.project_id}.firebasestorage.app"
+        if not bucket_name:
+            return False, "Storage bucket not configured."
+        
+        url = f"https://firebasestorage.googleapis.com/v0/b/{bucket_name}/o"
+        params = {
+            "uploadType": "media",
+            "name": filename
+        }
+        headers = {
+            "Content-Type": content_type
+        }
+        if self.api_key:
+            params["key"] = self.api_key
+            
+        try:
+            res = requests.post(url, params=params, headers=headers, data=file_data, timeout=15)
+            if res.status_code == 200:
+                res_data = res.json()
+                # Firebase Storage returns downloadTokens which are used to generate public links:
+                download_token = res_data.get("downloadTokens", "")
+                import urllib.parse
+                encoded_name = urllib.parse.quote(filename, safe='')
+                if download_token:
+                    download_url = f"https://firebasestorage.googleapis.com/v0/b/{bucket_name}/o/{encoded_name}?alt=media&token={download_token}"
+                else:
+                    download_url = f"https://firebasestorage.googleapis.com/v0/b/{bucket_name}/o/{encoded_name}?alt=media"
+                return True, download_url
+            else:
+                try:
+                    err_text = res.json().get("error", {}).get("message", res.text)
+                except Exception:
+                    err_text = res.text
+                return False, f"Upload failed with status {res.status_code}: {err_text}"
+        except Exception as e:
+            return False, f"Upload exception: {str(e)}"
+
 # Ready-to-use helpers for Client / Client Data syncing as requested by user
 
 def sync_client_to_firebase(client_user_object):
@@ -401,4 +453,87 @@ def sync_cdr_to_firebase(cdr_object):
         return success, res
     except Exception as e:
         return False, str(e)
+
+
+def check_and_process_monthly_resets():
+    """
+    Check if any user has reached their configured reset day for the current month.
+    If they did, create an automatic payout/withdrawal request for their current balance,
+    reset their balance to 0, and log the activity.
+    """
+    from datetime import datetime
+    from app import db
+    from app.models.user import User
+    from app.models.finance import BankAccount, PaymentRequest
+    from app.models.activity import ActivityLog
+
+    try:
+        now = datetime.utcnow()
+        # Find all users with a balance > 0
+        users = User.query.filter(User.balance > 0).all()
+
+        for u in users:
+            # Check if today is equal to or past their reset_day of this month
+            if now.day >= (u.reset_day or 1):
+                # Also ensure they haven't been reset yet in this calendar month
+                if u.last_reset_date:
+                    if u.last_reset_date.year == now.year and u.last_reset_date.month == now.month:
+                        # Already reset this month
+                        continue
+
+                balance_amount = u.balance
+                if balance_amount <= 0.0:
+                    continue
+
+                # Find or create a bank account for the PaymentRequest
+                bank_acc = BankAccount.query.filter_by(user_id=u.id, status='active').first()
+                if not bank_acc:
+                    bank_acc = BankAccount.query.filter_by(user_id=u.id).first()
+                if not bank_acc:
+                    # Create a seeded default bank account for this user so constraints are met
+                    bank_acc = BankAccount(
+                        user_id=u.id,
+                        bank_name="Auto Payout System",
+                        account_name=f"{u.username.upper()} AUTO",
+                        iban=f"AUTO-IBAN-{u.id}-{now.strftime('%Y%m%d')}",
+                        bic_swift="AUTOPAY",
+                        currency="USD",
+                        status="active"
+                    )
+                    db.session.add(bank_acc)
+                    db.session.commit()
+
+                # Create the payment request (payout)
+                p_req = PaymentRequest(
+                    user_id=u.id,
+                    amount=balance_amount,
+                    currency="USD",
+                    bank_account_id=bank_acc.id,
+                    status="pending",
+                    requested_at=now
+                )
+                db.session.add(p_req)
+
+                # Log the reset
+                log_desc = f"طلب سحب تلقائي وتصفير حساب بقيمة ${balance_amount:.2f} بسبب الوصول لليوم المحدد للمزامنة والتصفير ({u.reset_day})"
+                ActivityLog.log(
+                    user_id=u.id,
+                    action="auto_reset_payout",
+                    description=log_desc,
+                    ip_address="127.0.0.1"
+                )
+
+                # Reset user balance
+                u.balance = 0.0
+                u.last_reset_date = now
+                db.session.commit()
+
+                # Sync to Firebase
+                try:
+                    sync_client_to_firebase(u)
+                except Exception as fe:
+                    print(f"[RESET SYNC] Failed to sync reset balance to firebase: {fe}")
+    except Exception as e:
+        print(f"[RESET CHECK ERROR] {e}")
+
 
