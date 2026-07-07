@@ -1,15 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}الصندوق الوارد | Volt SMS{% endblock %}
+{% block title %}{% if session.get('lang', 'en') == 'en' %}Inbox{% else %}الصندوق الوارد{% endif %} | DREEM SMS{% endblock %}
 
 {% block content %}
 <style>
-    .inbox-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 24px;
-    }
     .speak-btn {
         background: rgba(59, 130, 246, 0.1);
         color: var(--accent);
@@ -37,45 +31,52 @@
     }
 </style>
 
-<div class="inbox-header">
-    <div>
-        <h3 style="font-weight: 800; margin: 0; color: var(--txt);"><i class="fa fa-inbox" style="color: var(--accent); margin-left: 10px;"></i> الصندوق الوارد</h3>
-        <p style="color: var(--muted); margin-top: 5px; font-size: 14px;">استعراض ومراقبة جميع الرسائل المستلمة على أرقامك.</p>
+<div class="row" style="margin-bottom: 24px; align-items: center; display: flex; flex-wrap: wrap;">
+    <div class="col-md-6">
+        <h3 style="font-weight: 800; margin: 0; color: var(--txt);">
+            <i class="fa fa-inbox" style="color: var(--accent); {% if session.get('lang', 'en') == 'en' %}margin-right: 10px;{% else %}margin-left: 10px;{% endif %}"></i>
+            {% if session.get('lang', 'en') == 'en' %}Inbox{% else %}الصندوق الوارد{% endif %}
+        </h3>
+        <p style="color: var(--muted); margin-top: 5px; font-size: 14px;">
+            {% if session.get('lang', 'en') == 'en' %}Review and monitor all incoming messages.{% else %}استعراض ومراقبة جميع الرسائل المستلمة على أرقامك.{% endif %}
+        </p>
     </div>
-    <form method="GET" action="{{ url_for('main.inbox') }}" style="display: flex; gap: 10px;">
-        <input type="text" name="fcli" class="form-control" style="width: 250px;" value="{{ fcli }}" placeholder="ابحث برقم المرسل أو المحتوى...">
-        <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i></button>
-    </form>
+    <div class="col-md-6">
+        <form method="GET" action="{{ url_for('main.inbox') }}" style="display: flex; gap: 10px; {% if session.get('lang', 'en') == 'en' %}justify-content: flex-end;{% else %}justify-content: flex-start;{% endif %}">
+            <input type="text" name="fcli" class="form-control" style="width: 280px; border-radius: 12px;" value="{{ fcli }}" placeholder="{% if session.get('lang', 'en') == 'en' %}Search sender or content...{% else %}ابحث برقم المرسل أو المحتوى...{% endif %}">
+            <button type="submit" class="btn btn-primary" style="border-radius: 12px;"><i class="fa fa-search"></i></button>
+        </form>
+    </div>
 </div>
 
 <div class="panel">
-    <div class="panel-heading">سجل الرسائل الواردة</div>
+    <div class="panel-heading">{% if session.get('lang', 'en') == 'en' %}Received SMS Logs{% else %}سجل الرسائل الواردة{% endif %}</div>
     <div class="panel-body" style="padding: 0;">
         <div class="table-responsive">
             <table class="table table-hover" style="margin-bottom: 0;">
                 <thead>
                     <tr>
-                        <th style="padding-right: 20px;">التاريخ والوقت</th>
-                        <th>الرينج / المصدر</th>
-                        <th>الرقم المستلم</th>
-                        <th>العميل</th>
-                        <th>نص الرسالة</th>
-                        <th class="text-center">الإجراءات</th>
+                        <th style="padding: 15px 20px;">{% if session.get('lang', 'en') == 'en' %}Date & Time{% else %}التاريخ والوقت{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Range{% else %}الرينج{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Destination{% else %}الرقم المستلم{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Client{% else %}العميل{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Message Content{% else %}نص الرسالة{% endif %}</th>
+                        <th class="text-center">{% if session.get('lang', 'en') == 'en' %}Actions{% else %}الإجراءات{% endif %}</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% if cdr_records and cdr_records.items %}
                     {% for cdr in cdr_records.items %}
                     <tr>
-                        <td style="padding-right: 20px; font-size: 13px; white-space: nowrap;">{{ cdr.created_at.strftime('%Y-%m-%d %H:%M:%S') if cdr.created_at else 'N/A' }}</td>
+                        <td style="padding: 15px 20px; font-size: 13px; white-space: nowrap; font-family: var(--font-mono);">{{ cdr.created_at.strftime('%Y-%m-%d %H:%M:%S') if cdr.created_at else 'N/A' }}</td>
                         <td>
                             {% if cdr.sms_number and cdr.sms_number.sms_range %}
-                                <span class="btn btn-xs btn-default" style="font-size: 11px;">{{ cdr.sms_number.sms_range.country }}</span>
+                                <span class="btn btn-xs btn-default" style="font-size: 11px; border-radius: 6px;">{{ cdr.sms_number.sms_range.country }}</span>
                             {% else %}
                                 <span class="text-muted">-</span>
                             {% endif %}
                         </td>
-                        <td style="font-family: var(--font-mono); font-weight: 700;">
+                        <td style="font-family: var(--font-mono); font-weight: 700; color: var(--txt);">
                             {% if apply_masking %}
                             {% set num = cdr.sms_number.number if cdr.sms_number else cdr.destination %}
                             {{ num|mask_last_7 }}
@@ -83,15 +84,21 @@
                             {{ cdr.sms_number.number if cdr.sms_number else cdr.destination }}
                             {% endif %}
                         </td>
-                        <td>{{ cdr.sms_number.client.username if cdr.sms_number and cdr.sms_number.client else '-' }}</td>
+                        <td>
+                            {% if cdr.sms_number and cdr.sms_number.client %}
+                            <span style="color: var(--accent); font-weight: 600;">{{ cdr.sms_number.client.username }}</span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
                         <td style="max-width: 350px;">
                             {% if apply_masking %}
-                            <span class="mask-badge"><i class="fa fa-lock"></i> المحتوى مخفي</span>
+                            <span class="mask-badge"><i class="fa fa-lock"></i> {% if session.get('lang', 'en') == 'en' %}Content Hidden{% else %}المحتوى مخفي{% endif %}</span>
                             {% else %}
                             <div style="display: flex; flex-direction: column; gap: 5px;">
                                 <span style="font-size: 14px; color: var(--txt); line-height: 1.4;">{{ cdr.message }}</span>
                                 {% if cdr.agent_payout > 0 %}
-                                <span style="font-size: 11px; color: var(--success); font-weight: 700;">الربح: ${{ "%.4f"|format(cdr.agent_payout) }}</span>
+                                <span style="font-size: 11px; color: var(--success); font-weight: 700;">{% if session.get('lang', 'en') == 'en' %}Profit:{% else %}الربح:{% endif %} ${{ "%.4f"|format(cdr.agent_payout) }}</span>
                                 {% endif %}
                             </div>
                             {% endif %}
@@ -99,11 +106,11 @@
                         <td>
                             <div style="display: flex; justify-content: center; gap: 8px;">
                                 {% if not apply_masking %}
-                                <button type="button" class="speak-btn" onclick="speakMessage(this)" data-msg="{{ cdr.message|e }}" title="استماع لكود التحقق">
-                                    <i class="fa fa-volume-up"></i> استماع
+                                <button type="button" class="speak-btn" onclick="speakMessage(this)" data-msg="{{ cdr.message|e }}" title="{% if session.get('lang', 'en') == 'en' %}Listen to OTP{% else %}استماع لكود التحقق{% endif %}">
+                                    <i class="fa fa-volume-up"></i> {% if session.get('lang', 'en') == 'en' %}Listen{% else %}استماع{% endif %}
                                 </button>
                                 {% endif %}
-                                <button class="btn btn-default btn-xs" onclick="copyToClipboard('{{ cdr.message|e }}')" title="نسخ النص">
+                                <button class="btn btn-default btn-xs" style="border-radius: 8px; padding: 5px 10px;" onclick="copyToClipboard('{{ cdr.message|e }}')" title="{% if session.get('lang', 'en') == 'en' %}Copy Content{% else %}نسخ النص{% endif %}">
                                     <i class="fa fa-copy"></i>
                                 </button>
                             </div>
@@ -112,11 +119,11 @@
                     {% endfor %}
                     {% else %}
                     <tr>
-                        <td colspan="6" class="text-center" style="padding: 60px;">
+                        <td colspan="6" class="text-center" style="padding: 80px 20px;">
                             <div style="color: var(--muted);">
-                                <i class="fa fa-envelope-open-o fa-3x" style="margin-bottom: 15px; opacity: 0.3;"></i>
-                                <p style="font-size: 16px; font-weight: 600;">لا توجد رسائل واردة حالياً</p>
-                                <p style="font-size: 13px;">تأكد من تفعيل الأرقام والبدء في استقبال الرسائل.</p>
+                                <i class="fa fa-envelope-open-o fa-4x" style="margin-bottom: 20px; opacity: 0.2;"></i>
+                                <h4 style="font-weight: 700;">{% if session.get('lang', 'en') == 'en' %}No messages found{% else %}لا توجد رسائل واردة حالياً{% endif %}</h4>
+                                <p style="font-size: 14px;">{% if session.get('lang', 'en') == 'en' %}Make sure your numbers are active and receiving traffic.{% else %}تأكد من تفعيل الأرقام والبدء في استقبال الرسائل.{% endif %}</p>
                             </div>
                         </td>
                     </tr>
@@ -128,10 +135,10 @@
 </div>
 
 {% if cdr_records and cdr_records.pages > 1 %}
-<div style="display: flex; justify-content: center; margin-top: 20px;">
+<div style="display: flex; justify-content: center; margin-top: 30px;">
     <ul class="pagination">
         {% if cdr_records.has_prev %}
-        <li><a href="{{ url_for('main.inbox', page=cdr_records.prev_num, fcli=fcli) }}">السابق</a></li>
+        <li><a href="{{ url_for('main.inbox', page=cdr_records.prev_num, fcli=fcli) }}">{% if session.get('lang', 'en') == 'en' %}Previous{% else %}السابق{% endif %}</a></li>
         {% endif %}
         {% for p in range(1, cdr_records.pages + 1) %}
         <li class="{% if p == cdr_records.page %}active{% endif %}">
@@ -139,7 +146,7 @@
         </li>
         {% endfor %}
         {% if cdr_records.has_next %}
-        <li><a href="{{ url_for('main.inbox', page=cdr_records.next_num, fcli=fcli) }}">التالي</a></li>
+        <li><a href="{{ url_for('main.inbox', page=cdr_records.next_num, fcli=fcli) }}">{% if session.get('lang', 'en') == 'en' %}Next{% else %}التالي{% endif %}</a></li>
         {% endif %}
     </ul>
 </div>
@@ -154,12 +161,13 @@ function speakMessage(btn) {
     var url = "";
 
     var origHtml = btn.innerHTML;
-    btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> جاري التحميل...';
+    var loadingText = "{% if session.get('lang', 'en') == 'en' %}Loading...{% else %}جاري التحميل...{% endif %}";
+    btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> ' + loadingText;
     btn.disabled = true;
 
     if (match) {
         var code = match[0];
-        url = "/api/tts/otp?code=" + encodeURIComponent(code) + "&bot_name=Volt%20SMS";
+        url = "/api/tts/otp?code=" + encodeURIComponent(code) + "&bot_name=DREEM%20SMS";
     } else {
         url = "/api/tts?text=" + encodeURIComponent(msg);
     }
@@ -172,7 +180,7 @@ function speakMessage(btn) {
         }, 1500);
     }).catch(function(err) {
         console.error("TTS failed:", err);
-        btn.innerHTML = '<i class="fa fa-times text-danger"></i> خطأ';
+        btn.innerHTML = '<i class="fa fa-times text-danger"></i> {% if session.get('lang', 'en') == 'en' %}Error{% else %}خطأ{% endif %}';
         setTimeout(function() { btn.innerHTML = origHtml; btn.disabled = false; }, 2000);
     });
 }
@@ -182,7 +190,8 @@ function copyToClipboard(text) {
     el.value = text;
     document.body.appendChild(el); el.select();
     document.execCommand('copy'); document.body.removeChild(el);
-    alert('تم نسخ محتوى الرسالة!');
+    var alertMsg = "{% if session.get('lang', 'en') == 'en' %}Content copied to clipboard!{% else %}تم نسخ محتوى الرسالة!{% endif %}";
+    alert(alertMsg);
 }
 </script>
 {% endblock %}

@@ -1,179 +1,118 @@
 {% extends "base.html" %}
 
-{% block title %}إعدادات النظام الفائقة | Volt SMS{% endblock %}
+{% block title %}{% if session.get('lang', 'en') == 'en' %}System Settings{% else %}إعدادات النظام{% endif %} | DREEM SMS{% endblock %}
 
 {% block content %}
-<style>
-    .settings-hero {
-        background: linear-gradient(135deg, rgba(17, 24, 39, 0.9), rgba(31, 41, 55, 0.9));
-        border: 1px solid var(--border);
-        border-radius: 24px;
-        padding: 40px;
-        margin-bottom: 40px;
-        backdrop-filter: blur(20px);
-        box-shadow: var(--shadow);
-    }
-
-    .settings-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 25px;
-        margin-bottom: 50px;
-    }
-
-    .settings-card {
-        background-color: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 20px;
-        padding: 28px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        min-height: 220px;
-    }
-
-    .settings-card:hover {
-        transform: translateY(-8px);
-        border-color: var(--accent);
-        box-shadow: 0 20px 40px -10px rgba(59, 130, 246, 0.2);
-    }
-
-    .icon-box {
-        width: 56px;
-        height: 56px;
-        border-radius: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 20px;
-    }
-
-    .icon-box i {
-        font-size: 24px;
-        color: white;
-    }
-
-    .card-title {
-        font-size: 18px;
-        font-weight: 800;
-        color: var(--txt);
-        margin-bottom: 10px;
-    }
-
-    .card-desc {
-        font-size: 13.5px;
-        color: var(--muted);
-        line-height: 1.6;
-        margin-bottom: 20px;
-    }
-
-    .action-btn {
-        width: 100%;
-        padding: 12px;
-        border-radius: 12px;
-        font-size: 14px;
-        font-weight: 700;
-        text-align: center;
-        text-decoration: none !important;
-        transition: all 0.2s;
-    }
-</style>
-
-<div class="settings-hero">
-    <div class="admin-title-badge">
-        <i class="fa fa-gears"></i> مركز التحكم والسيادة
+<div class="row" style="margin-bottom: 30px;">
+    <div class="col-md-12 text-center">
+        <div style="padding: 40px; background: linear-gradient(135deg, rgba(31, 41, 55, 0.4), rgba(17, 24, 39, 0.4)); border: 1px solid var(--border); border-radius: 24px; backdrop-filter: blur(10px);">
+            <h1 style="font-weight: 900; color: var(--txt); margin-bottom: 10px; font-size: 32px;">{% if session.get('lang', 'en') == 'en' %}System Control Center{% else %}مركز التحكم في النظام{% endif %}</h1>
+            <p style="color: var(--muted); font-size: 16px; max-width: 600px; margin: 0 auto;">
+                {% if session.get('lang', 'en') == 'en' %}
+                Manage the core components of your SMS platform, from connections to advanced security.
+                {% else %}
+                إدارة المكونات الأساسية لمنصة الرسائل الخاصة بك، من الاتصالات إلى الأمان المتقدم.
+                {% endif %}
+            </p>
+        </div>
     </div>
-    <h2 style="font-weight: 900; color: var(--txt); margin: 0; font-size: 28px;">إعدادات النظام والتحكم الأساسي</h2>
-    <p style="color: var(--muted); margin-top: 10px; max-width: 800px; font-size: 15px;">
-        من هنا يمكنك إدارة عصب المنصة بالكامل، بدءاً من بروتوكولات الاتصال وصولاً إلى إعدادات قواعد البيانات المتقدمة والأمان.
-    </p>
 </div>
 
-<div class="settings-grid">
+<div class="row">
     <!-- Website Status -->
-    <div class="settings-card">
-        <div>
-            <div class="icon-box" style="background: linear-gradient(135deg, #ef4444, #991b1b);">
-                <i class="fa fa-power-off"></i>
+    <div class="col-md-4 col-sm-6" style="margin-bottom: 25px;">
+        <div class="panel h-100" style="display: flex; flex-direction: column; height: 100%;">
+            <div class="panel-body text-center" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px;">
+                <div style="width: 60px; height: 60px; background: rgba(239, 68, 68, 0.1); color: var(--danger); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 20px;">
+                    <i class="fa fa-power-off"></i>
+                </div>
+                <h4 style="font-weight: 800; color: var(--txt); margin-bottom: 10px;">{% if session.get('lang', 'en') == 'en' %}Website Status{% else %}حالة المنصة{% endif %}</h4>
+                <p style="color: var(--muted); font-size: 13px; margin-bottom: 20px;">{% if session.get('lang', 'en') == 'en' %}Control maintenance mode and public access.{% else %}التحكم في وضع الصيانة والوصول العام.{% endif %}</p>
+                <a href="{{ url_for('admin.website_status') }}" class="btn btn-danger btn-block" style="margin-top: auto;">
+                    {% if session.get('lang', 'en') == 'en' %}Manage Status{% else %}إدارة الحالة{% endif %} <i class="fa fa-chevron-right" style="font-size: 10px; margin-left: 5px;"></i>
+                </a>
             </div>
-            <div class="card-title">حالة المنصة والتشغيل</div>
-            <div class="card-desc">التحكم في وضع الصيانة وإيقاف استقبال الطلبات بشكل مؤقت مع رسالة مخصصة.</div>
         </div>
-        <a href="{{ url_for('admin.website_status') }}" class="action-btn" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2);">
-            إدارة حالة الموقع <i class="fa fa-chevron-left"></i>
-        </a>
     </div>
 
     <!-- SMPP Settings -->
-    <div class="settings-card">
-        <div>
-            <div class="icon-box" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
-                <i class="fa fa-plug"></i>
+    <div class="col-md-4 col-sm-6" style="margin-bottom: 25px;">
+        <div class="panel h-100" style="display: flex; flex-direction: column; height: 100%;">
+            <div class="panel-body text-center" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px;">
+                <div style="width: 60px; height: 60px; background: rgba(59, 130, 246, 0.1); color: var(--accent); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 20px;">
+                    <i class="fa fa-plug"></i>
+                </div>
+                <h4 style="font-weight: 800; color: var(--txt); margin-bottom: 10px;">{% if session.get('lang', 'en') == 'en' %}SMPP Gateway{% else %}خادم SMPP{% endif %}</h4>
+                <p style="color: var(--muted); font-size: 13px; margin-bottom: 20px;">{% if session.get('lang', 'en') == 'en' %}Configure external supplier connections.{% else %}تهيئة بروتوكولات الربط الخارجي مع الموردين.{% endif %}</p>
+                <a href="{{ url_for('admin.smpp_settings') }}" class="btn btn-primary btn-block" style="margin-top: auto;">
+                    {% if session.get('lang', 'en') == 'en' %}Configure SMPP{% else %}تكوين SMPP{% endif %} <i class="fa fa-chevron-right" style="font-size: 10px; margin-left: 5px;"></i>
+                </a>
             </div>
-            <div class="card-title">خادم SMPP والموردين</div>
-            <div class="card-desc">تهيئة بروتوكولات الربط الخارجي مع الموردين وإدارة حسابات SMPP النشطة.</div>
         </div>
-        <a href="{{ url_for('admin.smpp_settings') }}" class="action-btn" style="background: rgba(59, 130, 246, 0.1); color: var(--accent); border: 1px solid rgba(59, 130, 246, 0.2);">
-            تكوين SMPP <i class="fa fa-chevron-left"></i>
-        </a>
     </div>
 
-    <!-- Supabase / Database Settings -->
-    <div class="settings-card">
-        <div>
-            <div class="icon-box" style="background: linear-gradient(135deg, #3ecf8e, #10b981);">
-                <i class="fa fa-database"></i>
+    <!-- Database Settings -->
+    <div class="col-md-4 col-sm-6" style="margin-bottom: 25px;">
+        <div class="panel h-100" style="display: flex; flex-direction: column; height: 100%;">
+            <div class="panel-body text-center" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px;">
+                <div style="width: 60px; height: 60px; background: rgba(16, 185, 129, 0.1); color: var(--success); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 20px;">
+                    <i class="fa fa-database"></i>
+                </div>
+                <h4 style="font-weight: 800; color: var(--txt); margin-bottom: 10px;">{% if session.get('lang', 'en') == 'en' %}Database Center{% else %}مركز قواعد البيانات{% endif %}</h4>
+                <p style="color: var(--muted); font-size: 13px; margin-bottom: 20px;">{% if session.get('lang', 'en') == 'en' %}Connect and sync with Supabase / Postgres.{% else %}ربط وتكامل قاعدة بيانات Supabase.{% endif %}</p>
+                <a href="{{ url_for('admin.database_settings') }}" class="btn btn-success btn-block" style="margin-top: auto;">
+                    {% if session.get('lang', 'en') == 'en' %}Supabase Settings{% else %}إعدادات Supabase{% endif %} <i class="fa fa-chevron-right" style="font-size: 10px; margin-left: 5px;"></i>
+                </a>
             </div>
-            <div class="card-title">إدارة Supabase / Postgres</div>
-            <div class="card-desc">ربط قاعدة البيانات المستقلة لحفظ الأرقام وضبط معايير الوصول والتوجيه.</div>
         </div>
-        <a href="{{ url_for('admin.database_settings') }}" class="action-btn" style="background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2);">
-            إعدادات Supabase <i class="fa fa-chevron-left"></i>
-        </a>
     </div>
 
     <!-- Telegram Settings -->
-    <div class="settings-card">
-        <div>
-            <div class="icon-box" style="background: linear-gradient(135deg, #06b6d4, #0891b2);">
-                <i class="fa fa-telegram"></i>
+    <div class="col-md-4 col-sm-6" style="margin-bottom: 25px;">
+        <div class="panel h-100" style="display: flex; flex-direction: column; height: 100%;">
+            <div class="panel-body text-center" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px;">
+                <div style="width: 60px; height: 60px; background: rgba(6, 182, 212, 0.1); color: #06b6d4; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 20px;">
+                    <i class="fa fa-telegram"></i>
+                </div>
+                <h4 style="font-weight: 800; color: var(--txt); margin-bottom: 10px;">{% if session.get('lang', 'en') == 'en' %}Telegram Bot{% else %}تنبيهات التلغرام{% endif %}</h4>
+                <p style="color: var(--muted); font-size: 13px; margin-bottom: 20px;">{% if session.get('lang', 'en') == 'en' %}Configure bot notifications and alerts.{% else %}إعداد البوت وتخصيص قنوات الإشعارات.{% endif %}</p>
+                <a href="{{ url_for('admin.telegram_settings') }}" class="btn btn-info btn-block" style="margin-top: auto; background: #06b6d4;">
+                    {% if session.get('lang', 'en') == 'en' %}Bot Settings{% else %}ضبط التلغرام{% endif %} <i class="fa fa-chevron-right" style="font-size: 10px; margin-left: 5px;"></i>
+                </a>
             </div>
-            <div class="card-title">تنبيهات التلغرام</div>
-            <div class="card-desc">إعداد البوت وتخصيص قنوات الإشعارات لاستلام تقارير الإرسال والعمليات.</div>
         </div>
-        <a href="{{ url_for('admin.telegram_settings') }}" class="action-btn" style="background: rgba(6, 182, 212, 0.1); color: #06b6d4; border: 1px solid rgba(6, 182, 212, 0.2);">
-            ضبط التلغرام <i class="fa fa-chevron-left"></i>
-        </a>
     </div>
 
-    <!-- Master Password -->
-    <div class="settings-card">
-        <div>
-            <div class="icon-box" style="background: linear-gradient(135deg, #f59e0b, #b45309);">
-                <i class="fa fa-shield"></i>
+    <!-- Admin Password -->
+    <div class="col-md-4 col-sm-6" style="margin-bottom: 25px;">
+        <div class="panel h-100" style="display: flex; flex-direction: column; height: 100%;">
+            <div class="panel-body text-center" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px;">
+                <div style="width: 60px; height: 60px; background: rgba(245, 158, 11, 0.1); color: var(--warn); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 20px;">
+                    <i class="fa fa-lock"></i>
+                </div>
+                <h4 style="font-weight: 800; color: var(--txt); margin-bottom: 10px;">{% if session.get('lang', 'en') == 'en' %}Security Settings{% else %}إعدادات الأمان{% endif %}</h4>
+                <p style="color: var(--muted); font-size: 13px; margin-bottom: 20px;">{% if session.get('lang', 'en') == 'en' %}Change master admin password and keys.{% else %}تغيير كلمة المرور الرئيسية وتأمين النظام.{% endif %}</p>
+                <a href="{{ url_for('admin.change_admin_password') }}" class="btn btn-warning btn-block" style="margin-top: auto;">
+                    {% if session.get('lang', 'en') == 'en' %}Change Password{% else %}تغيير كلمة المرور{% endif %} <i class="fa fa-chevron-right" style="font-size: 10px; margin-left: 5px;"></i>
+                </a>
             </div>
-            <div class="card-title">كلمة مرور النظام</div>
-            <div class="card-desc">تغيير كلمة المرور الرئيسية للمدير (admin) لضمان أقصى درجات الأمان.</div>
         </div>
-        <a href="{{ url_for('admin.change_admin_password') }}" class="action-btn" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.2);">
-            تغيير كلمة المرور <i class="fa fa-chevron-left"></i>
-        </a>
     </div>
 
-    <!-- Global Reset -->
-    <div class="settings-card">
-        <div>
-            <div class="icon-box" style="background: linear-gradient(135deg, #a855f7, #6b21a8);">
-                <i class="fa fa-refresh"></i>
+    <!-- API Settings -->
+    <div class="col-md-4 col-sm-6" style="margin-bottom: 25px;">
+        <div class="panel h-100" style="display: flex; flex-direction: column; height: 100%;">
+            <div class="panel-body text-center" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px;">
+                <div style="width: 60px; height: 60px; background: rgba(139, 92, 246, 0.1); color: #8b5cf6; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 20px;">
+                    <i class="fa fa-code"></i>
+                </div>
+                <h4 style="font-weight: 800; color: var(--txt); margin-bottom: 10px;">{% if session.get('lang', 'en') == 'en' %}API Integration{% else %}تكامل الـ API{% endif %}</h4>
+                <p style="color: var(--muted); font-size: 13px; margin-bottom: 20px;">{% if session.get('lang', 'en') == 'en' %}Manage system API keys and endpoints.{% else %}إدارة مفاتيح الـ API ونقاط الربط الخاصة بالنظام.{% endif %}</p>
+                <a href="{{ url_for('admin.api_settings') }}" class="btn btn-block" style="margin-top: auto; background: #8b5cf6; color: white;">
+                    {% if session.get('lang', 'en') == 'en' %}API Keys{% else %}إعدادات الـ API{% endif %} <i class="fa fa-chevron-right" style="font-size: 10px; margin-left: 5px;"></i>
+                </a>
             </div>
-            <div class="card-title">الفوترة والتصفير</div>
-            <div class="card-desc">ضبط مواعيد تصفير الحسابات الشهرية وتعيين حدود السحب المالي لجميع العملاء.</div>
         </div>
-        <a href="{{ url_for('admin.global_reset_settings') }}" class="action-btn" style="background: rgba(168, 85, 247, 0.1); color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.2);">
-            إعدادات الفوترة <i class="fa fa-chevron-left"></i>
-        </a>
     </div>
 </div>
 {% endblock %}

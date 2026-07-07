@@ -1,50 +1,55 @@
 {% extends "base.html" %}
 
-{% block title %}سجلات CDR | Volt SMS{% endblock %}
+{% block title %}{% if session.get('lang', 'en') == 'en' %}CDR Logs{% else %}سجلات CDR{% endif %} | DREEM SMS{% endblock %}
 
 {% block content %}
-<div class="row">
+<div class="row" style="margin-bottom: 24px;">
     <div class="col-md-12">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-            <h3 style="font-weight: 800; margin: 0; color: var(--txt);"><i class="fa fa-file-text" style="color: var(--accent); margin-left: 10px;"></i> سجلات تفاصيل الرسائل (CDR)</h3>
-            <div style="color: var(--muted); font-size: 14px;">إجمالي السجلات المسجلة في النظام</div>
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+            <div>
+                <h3 style="font-weight: 800; margin: 0; color: var(--txt);"><i class="fa fa-file-text" style="color: var(--accent); {% if session.get('lang', 'en') == 'en' %}margin-right: 10px;{% else %}margin-left: 10px;{% endif %}"></i> {% if session.get('lang', 'en') == 'en' %}CDR Logs{% else %}سجلات تفاصيل الرسائل (CDR){% endif %}</h3>
+                <p style="color: var(--muted); margin-top: 5px; font-size: 14px;">{% if session.get('lang', 'en') == 'en' %}Detailed logs of all outgoing messages and system profit.{% else %}سجل تفصيلي بجميع الرسائل الصادرة وحالة الأرباح في النظام.{% endif %}</p>
+            </div>
+            <div style="color: var(--muted); font-size: 14px;">{% if session.get('lang', 'en') == 'en' %}Total logs recorded in system{% else %}إجمالي السجلات المسجلة في النظام{% endif %}</div>
         </div>
     </div>
 </div>
 
 <div class="panel">
-    <div class="panel-heading">سجل تفصيلي بجميع الرسائل الصادرة وحالة الأرباح</div>
+    <div class="panel-heading">{% if session.get('lang', 'en') == 'en' %}Message Detail Logs{% else %}سجلات الرسائل التفصيلية{% endif %}</div>
     <div class="panel-body" style="padding: 0;">
         <div class="table-responsive">
             <table class="table table-hover" style="margin-bottom: 0;">
                 <thead>
                     <tr>
-                        <th style="padding-right: 20px;">الرقم المستلم</th>
-                        <th>التاريخ والوقت</th>
-                        <th>المرسل (CLI)</th>
-                        <th>اسم الرينج</th>
-                        <th>محتوى الرسالة</th>
-                        <th class="text-left">الربح</th>
+                        <th style="{% if session.get('lang', 'en') == 'en' %}padding-left: 20px;{% else %}padding-right: 20px;{% endif %}">{% if session.get('lang', 'en') == 'en' %}Receiver{% else %}الرقم المستلم{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Date & Time{% else %}التاريخ والوقت{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Sender (CLI){% else %}المرسل (CLI){% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Range{% else %}اسم الرينج{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Message{% else %}محتوى الرسالة{% endif %}</th>
+                        <th class="{% if session.get('lang', 'en') == 'en' %}text-right{% else %}text-left{% endif %}" style="{% if session.get('lang', 'en') == 'en' %}padding-right: 20px;{% else %}padding-left: 20px;{% endif %}">{% if session.get('lang', 'en') == 'en' %}Profit{% else %}الربح{% endif %}</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% if cdr_records.items %}
                     {% for cdr in cdr_records.items %}
                     <tr>
-                        <td style="padding-right: 20px;"><strong>{{ cdr.sms_number.number if cdr.sms_number else (cdr.destination if cdr.destination else 'N/A') }}</strong></td>
-                        <td style="font-size: 13px;">{{ cdr.created_at.strftime('%Y-%m-%d %H:%M') if cdr.created_at else 'N/A' }}</td>
-                        <td><span class="btn btn-xs btn-default">{{ cdr.cli or 'N/A' }}</span></td>
-                        <td>{{ cdr.range_info.name if cdr.range_info and cdr.range_info.name else (cdr.range_info.name if cdr.range_info else 'N/A') }}</td>
+                        <td style="{% if session.get('lang', 'en') == 'en' %}padding-left: 20px;{% else %}padding-right: 20px;{% endif %}">
+                            <strong>{{ cdr.sms_number.number if cdr.sms_number else (cdr.destination if cdr.destination else 'N/A') }}</strong>
+                        </td>
+                        <td style="font-size: 13px; color: var(--muted);">{{ cdr.created_at.strftime('%Y-%m-%d %H:%M') if cdr.created_at else '-' }}</td>
+                        <td><span class="btn btn-xs btn-default" style="font-size: 11px;">{{ cdr.cli or '-' }}</span></td>
+                        <td style="font-size: 13px; color: var(--muted);">{{ cdr.range_info.name if cdr.range_info and cdr.range_info.name else (cdr.range_info.name if cdr.range_info else '-') }}</td>
                         <td>
                             {% if cdr.message %}
-                            <span title="{{ cdr.message }}" style="color: var(--muted); font-size: 13px;">
-                                {{ cdr.message[:40] }}{% if cdr.message|length > 40 %}...{% endif %}
+                            <span title="{{ cdr.message }}" style="color: var(--muted); font-size: 12px; display: block; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                {{ cdr.message }}
                             </span>
                             {% else %}
                             <span class="text-muted">-</span>
                             {% endif %}
                         </td>
-                        <td class="text-left">
+                        <td class="{% if session.get('lang', 'en') == 'en' %}text-right{% else %}text-left{% endif %}" style="{% if session.get('lang', 'en') == 'en' %}padding-right: 20px;{% else %}padding-left: 20px;{% endif %}">
                             {% if cdr.profit > 0 %}
                             <strong style="color: var(--success); font-family: var(--font-mono);">${{ "%.4f"|format(cdr.profit) }}</strong>
                             {% else %}
@@ -55,7 +60,7 @@
                     {% endfor %}
                     {% else %}
                     <tr>
-                        <td colspan="6" class="text-center" style="padding: 40px; color: var(--muted);">لا توجد سجلات رسائل مسجلة حالياً.</td>
+                        <td colspan="6" class="text-center" style="padding: 40px; color: var(--muted);">{% if session.get('lang', 'en') == 'en' %}No message logs found.{% else %}لا توجد سجلات رسائل مسجلة حالياً.{% endif %}</td>
                     </tr>
                     {% endif %}
                 </tbody>
@@ -68,7 +73,7 @@
 <div style="display: flex; justify-content: center; margin-top: 20px;">
     <ul class="pagination">
         {% if cdr_records.has_prev %}
-        <li><a href="{{ url_for('admin.sms_cdr', page=cdr_records.prev_num) }}">السابق</a></li>
+        <li><a href="{{ url_for('admin.sms_cdr', page=cdr_records.prev_num) }}">{% if session.get('lang', 'en') == 'en' %}Previous{% else %}السابق{% endif %}</a></li>
         {% endif %}
 
         {% for p in range(1, cdr_records.pages + 1) %}
@@ -78,7 +83,7 @@
         {% endfor %}
 
         {% if cdr_records.has_next %}
-        <li><a href="{{ url_for('admin.sms_cdr', page=cdr_records.next_num) }}">التالي</a></li>
+        <li><a href="{{ url_for('admin.sms_cdr', page=cdr_records.next_num) }}">{% if session.get('lang', 'en') == 'en' %}Next{% else %}التالي{% endif %}</a></li>
         {% endif %}
     </ul>
 </div>

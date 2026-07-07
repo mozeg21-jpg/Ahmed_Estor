@@ -1,46 +1,49 @@
 {% extends "base.html" %}
 
-{% block title %}رينجات الرسائل | Volt SMS{% endblock %}
+{% block title %}{% if session.get('lang', 'en') == 'en' %}SMS Ranges{% else %}رينجات الرسائل{% endif %} | DREEM SMS{% endblock %}
 
 {% block content %}
-<div class="row">
+<div class="row" style="margin-bottom: 24px;">
     <div class="col-md-12">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-            <h3 style="font-weight: 800; margin: 0; color: var(--txt);"><i class="fa fa-flag" style="color: var(--accent); margin-left: 10px;"></i> رينجات الرسائل</h3>
-            <div style="display: flex; gap: 10px;">
-                <a href="{{ url_for('admin.admin_allocate_range_numbers') }}" class="btn btn-default"><i class="fa fa-share-square"></i> توزيع أرقام</a>
-                <a href="{{ url_for('admin.create_sms_range') }}" class="btn btn-primary"><i class="fa fa-plus"></i> إضافة رينج فردي</a>
-                <a href="{{ url_for('admin.create_sms_ranges_multiple') }}" class="btn btn-success"><i class="fa fa-layer-group"></i> إضافة رينجات متعددة</a>
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+            <div>
+                <h3 style="font-weight: 800; margin: 0; color: var(--txt);"><i class="fa fa-flag" style="color: var(--accent); {% if session.get('lang', 'en') == 'en' %}margin-right: 10px;{% else %}margin-left: 10px;{% endif %}"></i> {% if session.get('lang', 'en') == 'en' %}SMS Ranges{% else %}رينجات الرسائل{% endif %}</h3>
+                <p style="color: var(--muted); margin-top: 5px; font-size: 14px;">{% if session.get('lang', 'en') == 'en' %}Manage available SMS number ranges in the system.{% else %}قائمة بنطاقات أرقام الرسائل المتاحة في النظام وإدارتها.{% endif %}</p>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <a href="{{ url_for('admin.admin_allocate_range_numbers') }}" class="btn btn-default"><i class="fa fa-share-square"></i> {% if session.get('lang', 'en') == 'en' %}Allocate Numbers{% else %}توزيع أرقام{% endif %}</a>
+                <a href="{{ url_for('admin.create_sms_range') }}" class="btn btn-primary"><i class="fa fa-plus"></i> {% if session.get('lang', 'en') == 'en' %}Add Single Range{% else %}إضافة رينج فردي{% endif %}</a>
+                <a href="{{ url_for('admin.create_sms_ranges_multiple') }}" class="btn btn-success"><i class="fa fa-layer-group"></i> {% if session.get('lang', 'en') == 'en' %}Add Multiple{% else %}إضافة رينجات متعددة{% endif %}</a>
             </div>
         </div>
     </div>
 </div>
 
 <div class="panel">
-    <div class="panel-heading">قائمة بنطاقات أرقام الرسائل المتاحة في النظام</div>
+    <div class="panel-heading">{% if session.get('lang', 'en') == 'en' %}Available SMS Ranges{% else %}قائمة بنطاقات أرقام الرسائل المتاحة{% endif %}</div>
     <div class="panel-body" style="padding: 0;">
         <div class="table-responsive">
             <table class="table table-hover" style="margin-bottom: 0;">
                 <thead>
                     <tr>
-                        <th style="padding-right: 20px;">المعرف</th>
-                        <th>الاسم</th>
-                        <th>الدولة</th>
-                        <th>التطبيق</th>
-                        <th>السعر</th>
-                        <th>دورة الفوترة</th>
-                        <th>الأرقام (متاح/محجوز)</th>
-                        <th>الحالة</th>
-                        <th class="text-center">الإجراءات</th>
+                        <th style="{% if session.get('lang', 'en') == 'en' %}padding-left: 20px;{% else %}padding-right: 20px;{% endif %}">{% if session.get('lang', 'en') == 'en' %}ID{% else %}المعرف{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Name{% else %}الاسم{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Country{% else %}الدولة{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}App{% else %}التطبيق{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Price{% else %}السعر{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Billing{% else %}الفوترة{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Numbers (Avail/Resvv){% else %}الأرقام (متاح/محجوز){% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Status{% else %}الحالة{% endif %}</th>
+                        <th class="text-center">{% if session.get('lang', 'en') == 'en' %}Actions{% else %}الإجراءات{% endif %}</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% if ranges.items %}
                     {% for range in ranges.items %}
                     <tr>
-                        <td style="padding-right: 20px;">#{{ range.id }}</td>
-                        <td><strong>{{ range.name or 'N/A' }}</strong></td>
-                        <td>{{ range.country }}</td>
+                        <td style="{% if session.get('lang', 'en') == 'en' %}padding-left: 20px;{% else %}padding-right: 20px;{% endif %}">#{{ range.id }}</td>
+                        <td><strong>{{ range.name or '-' }}</strong></td>
+                        <td style="color: var(--txt);">{{ range.country }}</td>
                         <td>
                             {% if range.application %}
                                 <span class="btn btn-xs btn-default" style="font-size: 11px;">{{ range.application }}</span>
@@ -49,41 +52,41 @@
                             {% endif %}
                         </td>
                         <td>
-                            <strong style="color: var(--success);">${{ range.manual_price if range.manual_price else '0.00' }}</strong>
+                            <strong style="color: var(--success); font-family: var(--font-mono);">${{ range.manual_price if range.manual_price else '0.00' }}</strong>
                         </td>
                         <td>
                             {% if range.billing_cycle == 'monthly' %}
-                                <span style="color: var(--accent);"><i class="fa fa-calendar"></i> شهري</span>
+                                <span style="color: var(--accent); font-size: 13px;"><i class="fa fa-calendar"></i> {% if session.get('lang', 'en') == 'en' %}Monthly{% else %}شهري{% endif %}</span>
                             {% else %}
-                                <span style="color: var(--warn);"><i class="fa fa-calendar-o"></i> أسبوعي</span>
+                                <span style="color: var(--warn); font-size: 13px;"><i class="fa fa-calendar-o"></i> {% if session.get('lang', 'en') == 'en' %}Weekly{% else %}أسبوعي{% endif %}</span>
                             {% endif %}
                         </td>
-                        <td>
+                        <td style="font-size: 13px;">
                             <span style="color: var(--success); font-weight: 700;">{{ range.get_available_count() }}</span> /
                             <span style="color: var(--accent);">{{ range.get_reserved_count() }}</span>
                         </td>
                         <td>
                             {% if range.is_active %}
-                            <span style="color: var(--success); font-weight: 700;"><i class="fa fa-check-circle"></i> نشط</span>
+                            <span style="color: var(--success); font-weight: 700; font-size: 12px;"><i class="fa fa-check-circle"></i> {% if session.get('lang', 'en') == 'en' %}Active{% else %}نشط{% endif %}</span>
                             {% else %}
-                            <span style="color: var(--danger); font-weight: 700;"><i class="fa fa-times-circle"></i> غير نشط</span>
+                            <span style="color: var(--danger); font-weight: 700; font-size: 12px;"><i class="fa fa-times-circle"></i> {% if session.get('lang', 'en') == 'en' %}Inactive{% else %}غير نشط{% endif %}</span>
                             {% endif %}
                         </td>
                         <td>
                             <div class="btn-group action-buttons" style="justify-content: center;">
                                 {% if range.file_url %}
-                                <a href="{{ range.file_url }}" target="_blank" class="btn btn-default" title="تحميل الملف">
+                                <a href="{{ range.file_url }}" target="_blank" class="btn btn-default" title="{% if session.get('lang', 'en') == 'en' %}Download{% else %}تحميل{% endif %}">
                                     <i class="fa fa-download text-primary"></i>
                                 </a>
                                 {% endif %}
-                                <a href="{{ url_for('admin.admin_allocate_range_numbers', range_id=range.id) }}" class="btn btn-default" title="توزيع أرقام">
+                                <a href="{{ url_for('admin.admin_allocate_range_numbers', range_id=range.id) }}" class="btn btn-default" title="{% if session.get('lang', 'en') == 'en' %}Allocate{% else %}توزيع{% endif %}">
                                     <i class="fa fa-share-square text-success"></i>
                                 </a>
-                                <a href="{{ url_for('admin.edit_sms_range', range_id=range.id) }}" class="btn btn-default" title="تعديل">
+                                <a href="{{ url_for('admin.edit_sms_range', range_id=range.id) }}" class="btn btn-default" title="{% if session.get('lang', 'en') == 'en' %}Edit{% else %}تعديل{% endif %}">
                                     <i class="fa fa-edit text-info"></i>
                                 </a>
                                 <form action="{{ url_for('admin.delete_sms_range', range_id=range.id) }}" method="POST" style="display:inline;">
-                                    <button type="submit" class="btn btn-default" title="حذف" onclick="return confirm('هل أنت متأكد من حذف هذا الرينج؟ سيتم حذف جميع الأرقام المرتبطة به.')">
+                                    <button type="submit" class="btn btn-default" title="{% if session.get('lang', 'en') == 'en' %}Delete{% else %}حذف{% endif %}" onclick="return confirm('{% if session.get('lang', 'en') == 'en' %}Are you sure you want to delete this range? All associated numbers will be removed.{% else %}هل أنت متأكد من حذف هذا الرينج؟ سيتم حذف جميع الأرقام المرتبطة به.{% endif %}')">
                                         <i class="fa fa-trash text-danger"></i>
                                     </button>
                                 </form>
@@ -93,7 +96,7 @@
                     {% endfor %}
                     {% else %}
                     <tr>
-                        <td colspan="9" class="text-center" style="padding: 40px; color: var(--muted);">لا توجد رينجات مضافة حالياً.</td>
+                        <td colspan="9" class="text-center" style="padding: 40px; color: var(--muted);">{% if session.get('lang', 'en') == 'en' %}No ranges added yet.{% else %}لا توجد رينجات مضافة حالياً.{% endif %}</td>
                     </tr>
                     {% endif %}
                 </tbody>
@@ -106,7 +109,7 @@
 <div style="display: flex; justify-content: center; margin-top: 20px;">
     <ul class="pagination">
         {% if ranges.has_prev %}
-        <li><a href="{{ url_for('admin.sms_ranges', page=ranges.prev_num) }}">السابق</a></li>
+        <li><a href="{{ url_for('admin.sms_ranges', page=ranges.prev_num) }}">{% if session.get('lang', 'en') == 'en' %}Previous{% else %}السابق{% endif %}</a></li>
         {% endif %}
 
         {% for p in range(1, ranges.pages + 1) %}
@@ -116,7 +119,7 @@
         {% endfor %}
 
         {% if ranges.has_next %}
-        <li><a href="{{ url_for('admin.sms_ranges', page=ranges.next_num) }}">التالي</a></li>
+        <li><a href="{{ url_for('admin.sms_ranges', page=ranges.next_num) }}">{% if session.get('lang', 'en') == 'en' %}Next{% else %}التالي{% endif %}</a></li>
         {% endif %}
     </ul>
 </div>

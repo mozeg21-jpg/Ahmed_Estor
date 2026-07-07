@@ -1,49 +1,58 @@
 {% extends "base.html" %}
 
-{% block title %}Payment Requests - Volt SMS{% endblock %}
+{% block title %}{% if session.get('lang', 'en') == 'en' %}Payment Requests{% else %}طلبات السحب والمدفوعات{% endif %} | DREEM SMS{% endblock %}
 
 {% block content %}
-<div class="row">
+<div class="row" style="margin-bottom: 24px;">
     <div class="col-md-12">
-        <ol class="breadcrumb" style="background-color: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 12px 16px; margin-bottom: 24px;">
-            <li><a href="{{ url_for('main.dashboard') }}" style="color: var(--accent);"><i class="fa fa-home"></i> Home</a></li>
-            <li class="active" style="color: var(--muted);">Payment Requests</li>
-        </ol>
+        <h3 style="font-weight: 800; margin: 0; color: var(--txt);">
+            <i class="fa fa-money" style="color: var(--accent); {% if session.get('lang', 'en') == 'en' %}margin-right: 10px;{% else %}margin-left: 10px;{% endif %}"></i>
+            {% if session.get('lang', 'en') == 'en' %}Payment Requests{% else %}طلبات السحب والمدفوعات{% endif %}
+        </h3>
+        <p style="color: var(--muted); margin-top: 5px; font-size: 14px;">
+            {% if session.get('lang', 'en') == 'en' %}Manage your earnings and request payouts to your bank accounts.{% else %}إدارة أرباحك وطلب سحب الرصيد إلى حساباتك البنكية.{% endif %}
+        </p>
     </div>
 </div>
 
 <!-- Balance Cards Row -->
-<div class="row" style="margin-bottom: 24px;">
+<div class="row" style="margin-bottom: 30px;">
     <div class="col-md-4">
-        <div class="stat-card" style="border-left: 5px solid #F39C12;">
-            <div class="stat-icon" style="background-color: rgba(243, 156, 18, 0.1);">
-                <i class="fa fa-usd" style="color: #F39C12;"></i>
-            </div>
-            <div class="stat-content">
-                <h3>${{ "%.2f"|format(usd_balance) }}</h3>
-                <p style="color: #F39C12; font-weight: 600;">USD Balance</p>
+        <div class="panel" style="border-radius: 20px; border-left: 4px solid #F39C12;">
+            <div class="panel-body" style="padding: 25px; display: flex; align-items: center;">
+                <div style="width: 50px; height: 50px; background: rgba(243, 156, 18, 0.1); color: #F39C12; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; {% if session.get('lang', 'en') == 'en' %}margin-right: 20px;{% else %}margin-left: 20px;{% endif %}">
+                    <i class="fa fa-usd"></i>
+                </div>
+                <div>
+                    <p style="color: var(--muted); margin: 0; font-size: 13px; font-weight: 600;">{% if session.get('lang', 'en') == 'en' %}USD Balance{% else %}رصيد الدولار{% endif %}</p>
+                    <h3 style="margin: 5px 0 0; font-weight: 900; color: var(--txt); font-family: var(--font-mono);">${{ "%.2f"|format(usd_balance) }}</h3>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-4">
-        <div class="stat-card" style="border-left: 5px solid #2ECC71;">
-            <div class="stat-icon" style="background-color: rgba(46, 204, 113, 0.1);">
-                <i class="fa fa-eur" style="color: #2ECC71;"></i>
-            </div>
-            <div class="stat-content">
-                <h3>€{{ "%.2f"|format(eur_balance) }}</h3>
-                <p style="color: #2ECC71; font-weight: 600;">EUR Balance</p>
+        <div class="panel" style="border-radius: 20px; border-left: 4px solid #2ECC71;">
+            <div class="panel-body" style="padding: 25px; display: flex; align-items: center;">
+                <div style="width: 50px; height: 50px; background: rgba(46, 204, 113, 0.1); color: #2ECC71; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; {% if session.get('lang', 'en') == 'en' %}margin-right: 20px;{% else %}margin-left: 20px;{% endif %}">
+                    <i class="fa fa-eur"></i>
+                </div>
+                <div>
+                    <p style="color: var(--muted); margin: 0; font-size: 13px; font-weight: 600;">{% if session.get('lang', 'en') == 'en' %}EUR Balance{% else %}رصيد اليورو{% endif %}</p>
+                    <h3 style="margin: 5px 0 0; font-weight: 900; color: var(--txt); font-family: var(--font-mono);">€{{ "%.2f"|format(eur_balance) }}</h3>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-4">
-        <div class="stat-card" style="border-left: 5px solid #A29BFE;">
-            <div class="stat-icon" style="background-color: rgba(162, 155, 254, 0.1);">
-                <i class="fa fa-gbp" style="color: #A29BFE;"></i>
-            </div>
-            <div class="stat-content">
-                <h3>£{{ "%.2f"|format(gbp_balance) }}</h3>
-                <p style="color: #A29BFE; font-weight: 600;">GBP Balance</p>
+        <div class="panel" style="border-radius: 20px; border-left: 4px solid #A29BFE;">
+            <div class="panel-body" style="padding: 25px; display: flex; align-items: center;">
+                <div style="width: 50px; height: 50px; background: rgba(162, 155, 254, 0.1); color: #A29BFE; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; {% if session.get('lang', 'en') == 'en' %}margin-right: 20px;{% else %}margin-left: 20px;{% endif %}">
+                    <i class="fa fa-gbp"></i>
+                </div>
+                <div>
+                    <p style="color: var(--muted); margin: 0; font-size: 13px; font-weight: 600;">{% if session.get('lang', 'en') == 'en' %}GBP Balance{% else %}رصيد الجنيه{% endif %}</p>
+                    <h3 style="margin: 5px 0 0; font-weight: 900; color: var(--txt); font-family: var(--font-mono);">£{{ "%.2f"|format(gbp_balance) }}</h3>
+                </div>
             </div>
         </div>
     </div>
@@ -51,98 +60,117 @@
 
 <div class="panel">
     <div class="panel-heading" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-        <span style="font-weight: 600; font-size: 16px;"><i class="fa fa-wallet" style="color: var(--accent);"></i> Payment Requests</span>
-        <button class="btn btn-success" data-toggle="modal" data-target="#payoutModal" style="background-color: var(--success);">
-            <i class="fa fa-plus"></i> Request Payout
+        <span style="font-weight: 700; font-size: 16px;"><i class="fa fa-history" style="color: var(--accent); {% if session.get('lang', 'en') == 'en' %}margin-right: 8px;{% else %}margin-left: 8px;{% endif %}"></i> {% if session.get('lang', 'en') == 'en' %}Payout History{% else %}سجل طلبات السحب{% endif %}</span>
+        <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#payoutModal" style="border-radius: 10px; padding: 8px 16px;">
+            <i class="fa fa-plus"></i> {% if session.get('lang', 'en') == 'en' %}Request Payout{% else %}طلب سحب جديد{% endif %}
         </button>
     </div>
-    <div class="panel-body">
+    <div class="panel-body" style="padding: 0;">
         <div class="table-responsive">
-            <table class="table table-striped table-hover" id="payoutsTable">
+            <table class="table table-hover" id="payoutsTable" style="margin-bottom: 0;">
                 <thead>
                     <tr>
-                        <th>Request ID</th>
-                        <th>Date</th>
-                        <th>Amount</th>
-                        <th>Currency</th>
-                        <th>Bank Account</th>
-                        <th>Status</th>
-                        <th>Receipt</th>
+                        <th style="padding: 15px 20px;">{% if session.get('lang', 'en') == 'en' %}Request ID{% else %}رقم الطلب{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Date{% else %}التاريخ{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Amount{% else %}المبلغ{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Bank Account{% else %}الحساب البنكي{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Status{% else %}الحالة{% endif %}</th>
+                        <th class="text-center">{% if session.get('lang', 'en') == 'en' %}Actions{% else %}الإجراءات{% endif %}</th>
                     </tr>
                 </thead>
                 <tbody>
+                    {% if requests %}
                     {% for req in requests %}
                     <tr>
-                        <td><strong>PAY-{{ req.id }}</strong></td>
-                        <td>{{ req.requested_at.strftime('%Y-%m-%d %H:%M') if req.requested_at else 'N/A' }}</td>
-                        <td style="font-weight: 600; color: var(--danger);">-{{ req.amount }}</td>
-                        <td><span class="label label-info" style="background-color: var(--info); color: white;">{{ req.currency }}</span></td>
-                        <td><strong>{{ req.bank_account.bank_name if req.bank_account else 'N/A' }}</strong> ({{ req.bank_account.iban if req.bank_account else 'N/A' }})</td>
-                        <td>
-                            {% if req.status == 'pending' %}
-                            <span class="label label-warning" style="background-color: var(--warn);">Pending</span>
-                            {% elif req.status == 'approved' %}
-                            <span class="label label-success" style="background-color: var(--success);">Approved</span>
-                            {% elif req.status == 'rejected' %}
-                            <span class="label label-danger" style="background-color: var(--danger);">Rejected</span>
-                            {% else %}
-                            <span class="label label-default" style="background-color: var(--muted);">Cancelled</span>
-                            {% endif %}
+                        <td style="padding: 15px 20px;"><strong style="font-family: var(--font-mono);">PAY-{{ req.id }}</strong></td>
+                        <td style="font-size: 13px; color: var(--muted);">{{ req.requested_at.strftime('%Y-%m-%d %H:%M') if req.requested_at else 'N/A' }}</td>
+                        <td style="font-weight: 700; color: var(--danger); font-family: var(--font-mono);">
+                            -{{ req.amount }} <small style="font-weight: 400; color: var(--muted);">{{ req.currency }}</small>
                         </td>
                         <td>
+                            <div style="display: flex; flex-direction: column;">
+                                <span style="font-weight: 600; font-size: 13px;">{{ req.bank_account.bank_name if req.bank_account else 'N/A' }}</span>
+                                <span style="font-size: 11px; color: var(--muted); font-family: var(--font-mono);">{{ req.bank_account.iban if req.bank_account else 'N/A' }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            {% if req.status == 'pending' %}
+                            <span class="btn btn-xs" style="background: rgba(245, 158, 11, 0.1); color: var(--warn); border: 1px solid rgba(245, 158, 11, 0.2); font-weight: 700; font-size: 11px;">{% if session.get('lang', 'en') == 'en' %}Pending{% else %}قيد المراجعة{% endif %}</span>
+                            {% elif req.status == 'approved' %}
+                            <span class="btn btn-xs" style="background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2); font-weight: 700; font-size: 11px;">{% if session.get('lang', 'en') == 'en' %}Approved{% else %}تم الموافقة{% endif %}</span>
+                            {% elif req.status == 'rejected' %}
+                            <span class="btn btn-xs" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); font-weight: 700; font-size: 11px;">{% if session.get('lang', 'en') == 'en' %}Rejected{% else %}مرفوض{% endif %}</span>
+                            {% else %}
+                            <span class="btn btn-xs btn-default" style="font-weight: 700; font-size: 11px;">{% if session.get('lang', 'en') == 'en' %}Cancelled{% else %}ملغي{% endif %}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
                             {% if req.attachment_path %}
-                            <a href="#" class="btn btn-xs btn-default" onclick="alert('Viewing receipt: ' + '{{ req.attachment_path }}'); return false;">
-                                <i class="fa fa-paperclip"></i> View Receipt
+                            <a href="#" class="btn btn-xs btn-default" onclick="alert('Viewing receipt: ' + '{{ req.attachment_path }}'); return false;" style="border-radius: 6px;">
+                                <i class="fa fa-file-text-o"></i> {% if session.get('lang', 'en') == 'en' %}Receipt{% else %}الإيصال{% endif %}
                             </a>
                             {% else %}
-                            <span class="text-muted" style="font-size: 12px;">No receipt uploaded</span>
+                            <span class="text-muted" style="font-size: 12px;">{% if session.get('lang', 'en') == 'en' %}No attachment{% else %}لا يوجد مرفقات{% endif %}</span>
                             {% endif %}
                         </td>
                     </tr>
                     {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center" style="padding: 60px;">
+                            <div style="color: var(--muted);">
+                                <i class="fa fa-money fa-3x" style="margin-bottom: 15px; opacity: 0.2;"></i>
+                                <p>{% if session.get('lang', 'en') == 'en' %}No payment requests found.{% else %}لم تقم بأي طلبات سحب حتى الآن.{% endif %}</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endif %}
                 </tbody>
             </table>
         </div>
     </div>
 </div>
 
-<!-- Centered Payout Request Modal -->
+<!-- Payout Request Modal -->
 <div class="modal fade" id="payoutModal" tabindex="-1" role="dialog" aria-labelledby="payoutModalLabel">
     <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content" style="background: var(--card); border: 1px solid var(--border); border-radius: 8px; color: var(--txt);">
-            <div class="modal-header" style="border-bottom: 1px solid var(--border);">
+        <div class="modal-content" style="background: var(--card); border: 1px solid var(--border); border-radius: 20px; color: var(--txt); overflow: hidden;">
+            <div class="modal-header" style="border-bottom: 1px solid var(--border); padding: 20px 25px;">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: var(--txt); opacity: 0.8;"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="payoutModalLabel" style="font-weight: 600;"><i class="fa fa-money" style="color: var(--accent);"></i> Request Payout</h4>
+                <h4 class="modal-title" id="payoutModalLabel" style="font-weight: 800; color: var(--txt);">
+                    <i class="fa fa-money" style="color: var(--accent); {% if session.get('lang', 'en') == 'en' %}margin-right: 10px;{% else %}margin-left: 10px;{% endif %}"></i>
+                    {% if session.get('lang', 'en') == 'en' %}Request Payout{% else %}طلب سحب رصيد جديد{% endif %}
+                </h4>
             </div>
             <form method="POST" action="{{ url_for('main.payment_requests') }}">
-                <div class="modal-body" style="padding: 24px;">
+                <div class="modal-body" style="padding: 25px;">
                     <div class="form-group">
-                        <label for="bank_account_id" class="control-label" style="font-weight: 500;">Select Bank Account</label>
-                        <select name="bank_account_id" id="bank_account_id" class="form-control" required>
-                            <option value="">-- Select Active Bank Account --</option>
+                        <label style="font-weight: 700; color: var(--txt); margin-bottom: 8px;">{% if session.get('lang', 'en') == 'en' %}Select Bank Account{% else %}اختر الحساب البنكي{% endif %}</label>
+                        <select name="bank_account_id" class="form-control" style="background: var(--bg); border: 1px solid var(--border); color: var(--txt); border-radius: 12px; height: 45px;" required>
+                            <option value="">-- {% if session.get('lang', 'en') == 'en' %}Choose an account{% else %}اختر حساباً بنكياً{% endif %} --</option>
                             {% for bank in bank_accounts %}
                             <option value="{{ bank.id }}">{{ bank.bank_name }} - {{ bank.iban }} ({{ bank.currency }})</option>
                             {% endfor %}
                         </select>
                     </div>
 
-                    <div class="form-group" style="margin-top: 15px;">
-                        <label for="amount" class="control-label" style="font-weight: 500;">Amount</label>
-                        <input type="number" step="0.01" name="amount" id="amount" class="form-control" placeholder="0.00" required>
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label style="font-weight: 700; color: var(--txt); margin-bottom: 8px;">{% if session.get('lang', 'en') == 'en' %}Amount to withdraw{% else %}المبلغ المراد سحبه{% endif %}</label>
+                        <input type="number" step="0.01" name="amount" class="form-control" style="background: var(--bg); border: 1px solid var(--border); color: var(--txt); border-radius: 12px; height: 45px;" placeholder="0.00" required>
                     </div>
 
-                    <div class="form-group" style="margin-top: 15px;">
-                        <label for="currency" class="control-label" style="font-weight: 500;">Currency</label>
-                        <select name="currency" id="currency" class="form-control" required>
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label style="font-weight: 700; color: var(--txt); margin-bottom: 8px;">{% if session.get('lang', 'en') == 'en' %}Currency{% else %}العملة{% endif %}</label>
+                        <select name="currency" class="form-control" style="background: var(--bg); border: 1px solid var(--border); color: var(--txt); border-radius: 12px; height: 45px;" required>
                             <option value="USD">USD</option>
                             <option value="EUR">EUR</option>
                             <option value="GBP">GBP</option>
                         </select>
                     </div>
                 </div>
-                <div class="modal-footer" style="border-top: 1px solid var(--border);">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary" style="background-color: var(--accent);">Submit Request</button>
+                <div class="modal-footer" style="border-top: 1px solid var(--border); padding: 20px 25px;">
+                    <button type="button" class="btn btn-default" data-dismiss="modal" style="border-radius: 10px;">{% if session.get('lang', 'en') == 'en' %}Cancel{% else %}إلغاء{% endif %}</button>
+                    <button type="submit" class="btn btn-primary" style="border-radius: 10px; padding: 10px 25px; font-weight: 700;">{% if session.get('lang', 'en') == 'en' %}Submit Request{% else %}تأكيد الطلب{% endif %}</button>
                 </div>
             </form>
         </div>
@@ -156,10 +184,10 @@
         $('#payoutsTable').DataTable({
             "pageLength": 10,
             "order": [[ 1, "desc" ]],
-            "dom": '<"row"<"col-sm-6"l><"col-sm-6"f>>rt<"row"<"col-sm-6"i><"col-sm-6"p>>',
+            "dom": 'rt<"row"<"col-sm-6"i><"col-sm-6"p>>',
             "language": {
                 "search": "_INPUT_",
-                "searchPlaceholder": "Search payouts..."
+                "searchPlaceholder": "{% if session.get('lang', 'en') == 'en' %}Search payouts...{% else %}بحث في السجل...{% endif %}"
             }
         });
     });

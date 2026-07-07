@@ -1,62 +1,62 @@
 {% extends "base.html" %}
 
-{% block title %}Bank Accounts - Volt SMS{% endblock %}
+{% block title %}{% if session.get('lang', 'en') == 'en' %}Bank Accounts{% else %}الحسابات البنكية{% endif %} | DREEM SMS{% endblock %}
 
 {% block content %}
-<div class="row">
+<div class="row" style="margin-bottom: 24px;">
     <div class="col-md-12">
-        <ol class="breadcrumb" style="background-color: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 12px 16px; margin-bottom: 24px;">
-            <li><a href="{{ url_for('main.dashboard') }}" style="color: var(--accent);"><i class="fa fa-home"></i> Home</a></li>
-            <li class="active" style="color: var(--muted);">Bank Accounts</li>
-        </ol>
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+            <div>
+                <h3 style="font-weight: 800; margin: 0; color: var(--txt);"><i class="fa fa-university" style="color: var(--accent); {% if session.get('lang', 'en') == 'en' %}margin-right: 10px;{% else %}margin-left: 10px;{% endif %}"></i> {% if session.get('lang', 'en') == 'en' %}Bank Accounts{% else %}الحسابات البنكية{% endif %}</h3>
+                <p style="color: var(--muted); margin-top: 5px; font-size: 14px;">{% if session.get('lang', 'en') == 'en' %}Manage your payout destinations.{% else %}إدارة وجهات سحب الأرباح الخاصة بك.{% endif %}</p>
+            </div>
+            <button class="btn btn-primary" data-toggle="modal" data-target="#addBankModal" style="border-radius: 12px; font-weight: 700;">
+                <i class="fa fa-plus" style="{% if session.get('lang', 'en') == 'en' %}margin-right: 8px;{% else %}margin-left: 8px;{% endif %}"></i> {% if session.get('lang', 'en') == 'en' %}Add Account{% else %}إضافة حساب{% endif %}
+            </button>
+        </div>
     </div>
 </div>
 
 <div class="panel">
-    <div class="panel-heading" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-        <span style="font-weight: 600; font-size: 16px;"><i class="fa fa-university" style="color: var(--accent);"></i> Bank Accounts</span>
-        <button class="btn btn-primary" data-toggle="modal" data-target="#addBankModal" style="background-color: var(--accent);">
-            <i class="fa fa-plus"></i> Add Bank Account
-        </button>
-    </div>
-    <div class="panel-body">
+    <div class="panel-heading">{% if session.get('lang', 'en') == 'en' %}Stored Bank Accounts{% else %}الحسابات البنكية المخزنة{% endif %}</div>
+    <div class="panel-body" style="padding: 0;">
         <div class="table-responsive">
-            <table class="table table-striped table-hover" id="bankAccountsTable">
+            <table class="table table-hover" id="bankAccountsTable" style="margin-bottom: 0;">
                 <thead>
                     <tr>
-                        <th>Bank Name</th>
-                        <th>Beneficiary Name</th>
-                        <th>IBAN</th>
-                        <th>SWIFT / BIC</th>
-                        <th>Currency</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th style="{% if session.get('lang', 'en') == 'en' %}padding-left: 20px;{% else %}padding-right: 20px;{% endif %}">{% if session.get('lang', 'en') == 'en' %}Bank Name{% else %}اسم البنك{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Beneficiary{% else %}المستفيد{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}IBAN{% else %}الآيبان{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}SWIFT{% else %}سويفت{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Currency{% else %}العملة{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Status{% else %}الحالة{% endif %}</th>
+                        <th class="text-center" style="{% if session.get('lang', 'en') == 'en' %}padding-right: 20px;{% else %}padding-left: 20px;{% endif %}">{% if session.get('lang', 'en') == 'en' %}Actions{% else %}إجراءات{% endif %}</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for account in bank_accounts %}
                     <tr>
-                        <td><strong>{{ account.bank_name }}</strong></td>
-                        <td>{{ account.account_name }}</td>
-                        <td><code style="font-family: monospace; font-size: 13px;">{{ account.iban }}</code></td>
-                        <td><code>{{ account.bic_swift }}</code></td>
-                        <td><span class="label label-info" style="background-color: var(--info); color: white;">{{ account.currency }}</span></td>
+                        <td style="{% if session.get('lang', 'en') == 'en' %}padding-left: 20px;{% else %}padding-right: 20px;{% endif %}"><strong>{{ account.bank_name }}</strong></td>
+                        <td style="color: var(--txt);">{{ account.account_name }}</td>
+                        <td><code style="font-family: var(--font-mono); font-size: 13px; color: var(--accent);">{{ account.iban }}</code></td>
+                        <td><code style="font-family: var(--font-mono);">{{ account.bic_swift }}</code></td>
+                        <td><span class="label" style="background: var(--info); color: white;">{{ account.currency }}</span></td>
                         <td>
                             {% if account.status == 'active' %}
-                            <span class="label label-success" style="background-color: var(--success);">Active</span>
+                            <span style="color: var(--success); font-weight: 700; font-size: 12px;"><i class="fa fa-check-circle"></i> {% if session.get('lang', 'en') == 'en' %}Active{% else %}نشط{% endif %}</span>
                             {% else %}
-                            <span class="label label-danger" style="background-color: var(--danger);">Inactive</span>
+                            <span style="color: var(--muted); font-size: 12px;"><i class="fa fa-times-circle"></i> {% if session.get('lang', 'en') == 'en' %}Inactive{% else %}غير نشط{% endif %}</span>
                             {% endif %}
                         </td>
-                        <td>
-                            <div class="btn-group action-buttons">
-                                <form method="POST" action="{{ url_for('main.toggle_bank_account', account_id=account.id) }}" style="display:inline;">
-                                    <button type="submit" class="btn btn-xs {% if account.status == 'active' %}btn-warning{% else %}btn-success{% endif %}" title="{% if account.status == 'active' %}Deactivate{% else %}Activate{% endif %}">
+                        <td class="text-center" style="{% if session.get('lang', 'en') == 'en' %}padding-right: 20px;{% else %}padding-left: 20px;{% endif %}">
+                            <div style="display: flex; gap: 5px; justify-content: center;">
+                                <form method="POST" action="{{ url_for('main.toggle_bank_account', account_id=account.id) }}">
+                                    <button type="submit" class="btn btn-xs {% if account.status == 'active' %}btn-warning{% else %}btn-success{% endif %}" title="Toggle">
                                         <i class="fa fa-power-off"></i>
                                     </button>
                                 </form>
-                                <form method="POST" action="{{ url_for('main.delete_bank_account', account_id=account.id) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this bank account?');">
-                                    <button type="submit" class="btn btn-xs btn-danger" title="Delete">
+                                <form method="POST" action="{{ url_for('main.delete_bank_account', account_id=account.id) }}" onsubmit="return confirm('{% if session.get('lang', 'en') == 'en' %}Are you sure?{% else %}هل أنت متأكد؟{% endif %}');">
+                                    <button type="submit" class="btn btn-xs btn-danger">
                                         <i class="fa fa-trash"></i>
                                     </button>
                                 </form>
@@ -64,73 +64,60 @@
                         </td>
                     </tr>
                     {% endfor %}
+                    {% if not bank_accounts %}
+                    <tr>
+                        <td colspan="7" class="text-center" style="padding: 40px; color: var(--muted);">
+                            {% if session.get('lang', 'en') == 'en' %}No bank accounts added yet.{% else %}لا توجد حسابات بنكية مضافة بعد.{% endif %}
+                        </td>
+                    </tr>
+                    {% endif %}
                 </tbody>
             </table>
         </div>
     </div>
 </div>
 
-<!-- Centered Add Bank Account Modal -->
-<div class="modal fade" id="addBankModal" tabindex="-1" role="dialog" aria-labelledby="addBankModalLabel">
+<!-- Modal -->
+<div class="modal fade" id="addBankModal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content" style="background: var(--card); border: 1px solid var(--border); border-radius: 8px; color: var(--txt);">
-            <div class="modal-header" style="border-bottom: 1px solid var(--border);">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: var(--txt); opacity: 0.8;"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="addBankModalLabel" style="font-weight: 600;"><i class="fa fa-university" style="color: var(--accent);"></i> Add Bank Account</h4>
+        <div class="modal-content" style="background: var(--card); border: 1px solid var(--border); border-radius: 20px; color: var(--txt); overflow: hidden;">
+            <div class="modal-header" style="border-bottom: 1px solid var(--border); padding: 20px 25px;">
+                <button type="button" class="close" data-dismiss="modal" style="color: var(--txt); opacity: 0.8;">&times;</button>
+                <h4 class="modal-title" style="font-weight: 800;"><i class="fa fa-university" style="color: var(--accent); {% if session.get('lang', 'en') == 'en' %}margin-right: 10px;{% else %}margin-left: 10px;{% endif %}"></i> {% if session.get('lang', 'en') == 'en' %}Add Bank Account{% else %}إضافة حساب بنكي{% endif %}</h4>
             </div>
             <form method="POST" action="{{ url_for('main.bank_accounts') }}">
-                <div class="modal-body" style="padding: 24px;">
+                <div class="modal-body" style="padding: 25px;">
                     <div class="form-group">
-                        <label for="bank_name" class="control-label" style="font-weight: 500;">Bank Name</label>
-                        <input type="text" name="bank_name" id="bank_name" class="form-control" placeholder="e.g. HSBC UK" required>
+                        <label style="font-weight: 700; color: var(--muted); margin-bottom: 8px;">{% if session.get('lang', 'en') == 'en' %}Bank Name{% else %}اسم البنك{% endif %}</label>
+                        <input type="text" name="bank_name" class="form-control" placeholder="e.g. HSBC UK" required style="background: var(--bg); border: 1px solid var(--border); color: var(--txt); border-radius: 10px;">
                     </div>
-
-                    <div class="form-group" style="margin-top: 15px;">
-                        <label for="account_name" class="control-label" style="font-weight: 500;">Beneficiary Name / Account Name</label>
-                        <input type="text" name="account_name" id="account_name" class="form-control" placeholder="e.g. ALAN SMITH" required>
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label style="font-weight: 700; color: var(--muted); margin-bottom: 8px;">{% if session.get('lang', 'en') == 'en' %}Beneficiary Name{% else %}اسم المستفيد{% endif %}</label>
+                        <input type="text" name="account_name" class="form-control" required style="background: var(--bg); border: 1px solid var(--border); color: var(--txt); border-radius: 10px;">
                     </div>
-
-                    <div class="form-group" style="margin-top: 15px;">
-                        <label for="iban" class="control-label" style="font-weight: 500;">IBAN</label>
-                        <input type="text" name="iban" id="iban" class="form-control" placeholder="e.g. GB29HSBC60011112345678" required>
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label style="font-weight: 700; color: var(--muted); margin-bottom: 8px;">{% if session.get('lang', 'en') == 'en' %}IBAN{% else %}الآيبان{% endif %}</label>
+                        <input type="text" name="iban" class="form-control" required style="background: var(--bg); border: 1px solid var(--border); color: var(--txt); border-radius: 10px;">
                     </div>
-
-                    <div class="form-group" style="margin-top: 15px;">
-                        <label for="bic_swift" class="control-label" style="font-weight: 500;">SWIFT / BIC Code</label>
-                        <input type="text" name="bic_swift" id="bic_swift" class="form-control" placeholder="e.g. MIDLGB21" required>
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label style="font-weight: 700; color: var(--muted); margin-bottom: 8px;">{% if session.get('lang', 'en') == 'en' %}SWIFT / BIC{% else %}سويفت / BIC{% endif %}</label>
+                        <input type="text" name="bic_swift" class="form-control" required style="background: var(--bg); border: 1px solid var(--border); color: var(--txt); border-radius: 10px;">
                     </div>
-
-                    <div class="form-group" style="margin-top: 15px;">
-                        <label for="currency" class="control-label" style="font-weight: 500;">Currency</label>
-                        <select name="currency" id="currency" class="form-control" required>
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label style="font-weight: 700; color: var(--muted); margin-bottom: 8px;">{% if session.get('lang', 'en') == 'en' %}Currency{% else %}العملة{% endif %}</label>
+                        <select name="currency" class="form-control" required style="background: var(--bg); border: 1px solid var(--border); color: var(--txt); border-radius: 10px;">
                             <option value="USD">USD</option>
                             <option value="EUR">EUR</option>
                             <option value="GBP">GBP</option>
                         </select>
                     </div>
                 </div>
-                <div class="modal-footer" style="border-top: 1px solid var(--border);">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary" style="background-color: var(--accent);">Save Bank Account</button>
+                <div class="modal-footer" style="border-top: 1px solid var(--border); padding: 15px 25px; background: rgba(0,0,0,0.1);">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">{% if session.get('lang', 'en') == 'en' %}Cancel{% else %}إلغاء{% endif %}</button>
+                    <button type="submit" class="btn btn-primary" style="font-weight: 700;">{% if session.get('lang', 'en') == 'en' %}Save Account{% else %}حفظ الحساب{% endif %}</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    $(document).ready(function() {
-        $('#bankAccountsTable').DataTable({
-            "pageLength": 10,
-            "order": [[ 0, "asc" ]],
-            "dom": '<"row"<"col-sm-6"l><"col-sm-6"f>>rt<"row"<"col-sm-6"i><"col-sm-6"p>>',
-            "language": {
-                "search": "_INPUT_",
-                "searchPlaceholder": "Search accounts..."
-            }
-        });
-    });
-</script>
 {% endblock %}

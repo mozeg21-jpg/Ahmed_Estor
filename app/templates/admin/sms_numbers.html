@@ -1,15 +1,18 @@
 {% extends "base.html" %}
 
-{% block title %}إدارة الأرقام | Volt SMS{% endblock %}
+{% block title %}{% if session.get('lang', 'en') == 'en' %}Manage Numbers{% else %}إدارة الأرقام{% endif %} | DREEM SMS{% endblock %}
 
 {% block content %}
-<div class="row">
+<div class="row" style="margin-bottom: 24px;">
     <div class="col-md-12">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-            <h3 style="font-weight: 800; margin: 0; color: var(--txt);"><i class="fa fa-phone" style="color: var(--accent); margin-left: 10px;"></i> إدارة أرقام الرسائل</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+            <div>
+                <h3 style="font-weight: 800; margin: 0; color: var(--txt);"><i class="fa fa-phone" style="color: var(--accent); {% if session.get('lang', 'en') == 'en' %}margin-right: 10px;{% else %}margin-left: 10px;{% endif %}"></i> {% if session.get('lang', 'en') == 'en' %}Manage Numbers{% else %}إدارة أرقام الرسائل{% endif %}</h3>
+                <p style="color: var(--muted); margin-top: 5px; font-size: 14px;">{% if session.get('lang', 'en') == 'en' %}Monitor and manage all system-wide connected numbers.{% else %}مراقبة وإدارة جميع الأرقام المتصلة بالنظام حالياً.{% endif %}</p>
+            </div>
             <div>
                 <button type="button" class="btn btn-success" onclick="showDownloadModal()">
-                    <i class="fa fa-download"></i> تحميل الأرقام
+                    <i class="fa fa-download"></i> {% if session.get('lang', 'en') == 'en' %}Download Numbers{% else %}تحميل الأرقام{% endif %}
                 </button>
             </div>
         </div>
@@ -20,25 +23,23 @@
 <div class="panel" style="margin-bottom: 24px;">
     <div class="panel-body">
         <form method="GET">
-            <div class="row">
-                <div class="col-md-4">
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <input type="text" name="search" class="form-control" placeholder="البحث برقم الهاتف..." value="{{ request.args.get('search', '') }}">
-                    </div>
+            <div class="row" style="display: flex; align-items: flex-end; flex-wrap: wrap; gap: 15px;">
+                <div class="col-md-4" style="flex: 1; min-width: 200px;">
+                    <label style="color: var(--muted); font-size: 12px; margin-bottom: 8px; display: block;">{% if session.get('lang', 'en') == 'en' %}Search Number{% else %}البحث برقم الهاتف{% endif %}</label>
+                    <input type="text" name="search" class="form-control" placeholder="{% if session.get('lang', 'en') == 'en' %}e.g. +12345678{% else %}مثال: +12345678{% endif %}" value="{{ request.args.get('search', '') }}" style="background: var(--bg); border: 1px solid var(--border); color: var(--txt);">
                 </div>
-                <div class="col-md-3">
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <select name="agent" class="form-control">
-                            <option value="">جميع الوكلاء</option>
-                            {% for agent in agents %}
-                            <option value="{{ agent.id }}" {% if request.args.get('agent')|string == agent.id|string %}selected{% endif %}>{{ agent.username }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                <div class="col-md-3" style="flex: 1; min-width: 150px;">
+                    <label style="color: var(--muted); font-size: 12px; margin-bottom: 8px; display: block;">{% if session.get('lang', 'en') == 'en' %}Filter by Agent{% else %}تصفية بالوكيل{% endif %}</label>
+                    <select name="agent" class="form-control" style="background: var(--bg); border: 1px solid var(--border); color: var(--txt);">
+                        <option value="">{% if session.get('lang', 'en') == 'en' %}All Agents{% else %}جميع الوكلاء{% endif %}</option>
+                        {% for agent in agents %}
+                        <option value="{{ agent.id }}" {% if request.args.get('agent')|string == agent.id|string %}selected{% endif %}>{{ agent.username }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
-                <div class="col-md-5" style="display: flex; gap: 10px;">
-                    <button type="submit" class="btn btn-primary" style="flex: 1;"><i class="fa fa-search"></i> تصفية</button>
-                    <a href="{{ url_for('admin.sms_numbers') }}" class="btn btn-default" style="flex: 1;"><i class="fa fa-refresh"></i> إعادة ضبط</a>
+                <div class="col-md-4" style="display: flex; gap: 10px; min-width: 250px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;"><i class="fa fa-search"></i> {% if session.get('lang', 'en') == 'en' %}Filter{% else %}تصفية{% endif %}</button>
+                    <a href="{{ url_for('admin.sms_numbers') }}" class="btn btn-default" style="flex: 1;"><i class="fa fa-refresh"></i> {% if session.get('lang', 'en') == 'en' %}Reset{% else %}إعادة ضبط{% endif %}</a>
                 </div>
             </div>
         </form>
@@ -46,50 +47,50 @@
 </div>
 
 <div class="panel">
-    <div class="panel-heading">قائمة بجميع الأرقام الموجودة في النظام وحالتها</div>
+    <div class="panel-heading">{% if session.get('lang', 'en') == 'en' %}System Numbers Directory{% else %}قائمة بجميع الأرقام الموجودة في النظام وحالتها{% endif %}</div>
     <div class="panel-body" style="padding: 0;">
         <div class="table-responsive">
             <table class="table table-hover" style="margin-bottom: 0;">
                 <thead>
                     <tr>
-                        <th style="padding-right: 20px;">المعرف</th>
-                        <th>الرقم</th>
-                        <th>المقدمة</th>
-                        <th>الرينج</th>
-                        <th>الوكيل</th>
-                        <th>العميل</th>
-                        <th>الحالة</th>
-                        <th class="text-center">الإجراءات</th>
+                        <th style="{% if session.get('lang', 'en') == 'en' %}padding-left: 20px;{% else %}padding-right: 20px;{% endif %}">{% if session.get('lang', 'en') == 'en' %}ID{% else %}المعرف{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Number{% else %}الرقم{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Prefix{% else %}المقدمة{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Range{% else %}الرينج{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Agent{% else %}الوكيل{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Client{% else %}العميل{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Status{% else %}الحالة{% endif %}</th>
+                        <th class="text-center">{% if session.get('lang', 'en') == 'en' %}Actions{% else %}الإجراءات{% endif %}</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% if numbers.items %}
                     {% for num in numbers.items %}
                     <tr>
-                        <td style="padding-right: 20px;">#{{ num.id }}</td>
+                        <td style="{% if session.get('lang', 'en') == 'en' %}padding-left: 20px;{% else %}padding-right: 20px;{% endif %}">#{{ num.id }}</td>
                         <td><strong>{{ num.number }}</strong></td>
-                        <td><span class="label label-default">{{ num.prefix }}</span></td>
-                        <td>{{ num.sms_range.country if num.sms_range else 'N/A' }}</td>
+                        <td><span class="label label-default" style="font-family: var(--font-mono); font-size: 11px;">{{ num.prefix }}</span></td>
+                        <td style="color: var(--muted);">{{ num.sms_range.country if num.sms_range else '-' }}</td>
                         <td>{{ num.agent.username if num.agent else '-' }}</td>
                         <td>{{ num.client.username if num.client else '-' }}</td>
                         <td>
                             {% if num.is_active %}
-                            <span style="color: var(--success); font-weight: 700;"><i class="fa fa-check-circle"></i> نشط</span>
+                            <span style="color: var(--success); font-weight: 700; font-size: 12px;"><i class="fa fa-check-circle"></i> {% if session.get('lang', 'en') == 'en' %}Active{% else %}نشط{% endif %}</span>
                             {% else %}
-                            <span style="color: var(--danger); font-weight: 700;"><i class="fa fa-times-circle"></i> غير نشط</span>
+                            <span style="color: var(--danger); font-weight: 700; font-size: 12px;"><i class="fa fa-times-circle"></i> {% if session.get('lang', 'en') == 'en' %}Inactive{% else %}غير نشط{% endif %}</span>
                             {% endif %}
                         </td>
                         <td>
                             <div class="btn-group action-buttons" style="justify-content: center;">
                                 {% if num.agent_id or num.client_id %}
                                 <form action="{{ url_for('admin.unassign_number', number_id=num.id) }}" method="POST" style="display:inline;">
-                                    <button type="submit" class="btn btn-default" title="فك الارتباط" onclick="return confirm('هل تريد فك ارتباط هذا الرقم عن المستخدم الحالي؟')">
+                                    <button type="submit" class="btn btn-default" title="{% if session.get('lang', 'en') == 'en' %}Unassign{% else %}فك الارتباط{% endif %}" onclick="return confirm('{% if session.get('lang', 'en') == 'en' %}Unassign this number?{% else %}هل تريد فك ارتباط هذا الرقم؟{% endif %}')">
                                         <i class="fa fa-unlink text-warning"></i>
                                     </button>
                                 </form>
                                 {% endif %}
                                 <form action="{{ url_for('admin.delete_number', number_id=num.id) }}" method="POST" style="display:inline;">
-                                    <button type="submit" class="btn btn-default" title="حذف" onclick="return confirm('حذف الرقم نهائياً من النظام؟')">
+                                    <button type="submit" class="btn btn-default" title="{% if session.get('lang', 'en') == 'en' %}Delete{% else %}حذف{% endif %}" onclick="return confirm('{% if session.get('lang', 'en') == 'en' %}Delete this number permanently?{% else %}هل تريد حذف هذا الرقم نهائياً؟{% endif %}')">
                                         <i class="fa fa-trash text-danger"></i>
                                     </button>
                                 </form>
@@ -99,7 +100,7 @@
                     {% endfor %}
                     {% else %}
                     <tr>
-                        <td colspan="8" class="text-center" style="padding: 40px; color: var(--muted);">لا توجد أرقام مسجلة حالياً.</td>
+                        <td colspan="8" class="text-center" style="padding: 40px; color: var(--muted);">{% if session.get('lang', 'en') == 'en' %}No numbers found.{% else %}لا توجد أرقام مسجلة حالياً تطابق البحث.{% endif %}</td>
                     </tr>
                     {% endif %}
                 </tbody>
@@ -112,15 +113,15 @@
 <div style="display: flex; justify-content: center; margin-top: 20px;">
     <ul class="pagination">
         {% if numbers.has_prev %}
-        <li><a href="{{ url_for('admin.sms_numbers', page=numbers.prev_num) }}">السابق</a></li>
+        <li><a href="{{ url_for('admin.sms_numbers', page=numbers.prev_num, search=request.args.get('search', ''), agent=request.args.get('agent', '')) }}">{% if session.get('lang', 'en') == 'en' %}Previous{% else %}السابق{% endif %}</a></li>
         {% endif %}
         {% for p in range(1, numbers.pages + 1) %}
         <li class="{% if p == numbers.page %}active{% endif %}">
-            <a href="{{ url_for('admin.sms_numbers', page=p) }}">{{ p }}</a>
+            <a href="{{ url_for('admin.sms_numbers', page=p, search=request.args.get('search', ''), agent=request.args.get('agent', '')) }}">{{ p }}</a>
         </li>
         {% endfor %}
         {% if numbers.has_next %}
-        <li><a href="{{ url_for('admin.sms_numbers', page=numbers.next_num) }}">التالي</a></li>
+        <li><a href="{{ url_for('admin.sms_numbers', page=numbers.next_num, search=request.args.get('search', ''), agent=request.args.get('agent', '')) }}">{% if session.get('lang', 'en') == 'en' %}Next{% else %}التالي{% endif %}</a></li>
         {% endif %}
     </ul>
 </div>
@@ -131,11 +132,11 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content" style="background: var(--card); border: 1px solid var(--border); border-radius: 24px; overflow: hidden;">
             <div class="modal-header" style="border-bottom: 1px solid var(--border); padding: 20px;">
-                <h5 class="modal-title" style="font-weight: 800; color: var(--txt);"><i class="fa fa-download"></i> خيارات تحميل الأرقام</h5>
+                <h5 class="modal-title" style="font-weight: 800; color: var(--txt);"><i class="fa fa-download"></i> {% if session.get('lang', 'en') == 'en' %}Download Options{% else %}خيارات تحميل الأرقام{% endif %}</h5>
                 <button type="button" class="close" data-dismiss="modal" style="color: var(--txt); opacity: 0.5;">&times;</button>
             </div>
             <div class="modal-body" style="padding: 30px;">
-                <p style="color: var(--muted); margin-bottom: 25px;">اختر التنسيق المطلوب لتحميل الأرقام (سيتم التصدير بدون علامة +):</p>
+                <p style="color: var(--muted); margin-bottom: 25px;">{% if session.get('lang', 'en') == 'en' %}Select the format to download the numbers (exported without + prefix):{% else %}اختر التنسيق المطلوب لتحميل الأرقام (سيتم التصدير بدون علامة +):{% endif %}</p>
                 <div class="row">
                     <div class="col-xs-4">
                         <button class="btn btn-default btn-block" style="padding: 20px 10px; border-radius: 16px;" onclick="downloadNumbers('csv')">
@@ -152,7 +153,7 @@
                     <div class="col-xs-4">
                         <button class="btn btn-default btn-block" style="padding: 20px 10px; border-radius: 16px;" onclick="copyToClipboard()">
                             <i class="fa fa-copy fa-2x text-warning"></i><br>
-                            <span style="display: block; margin-top: 10px; font-weight: 700;">نسخ</span>
+                            <span style="display: block; margin-top: 10px; font-weight: 700;">{% if session.get('lang', 'en') == 'en' %}Copy{% else %}نسخ{% endif %}</span>
                         </button>
                     </div>
                 </div>
@@ -168,14 +169,17 @@ allNumbers = [{% for num in numbers.items %}"{{ num.number }}"{% if not loop.las
 {% endif %}
 
 function showDownloadModal() {
-    if (allNumbers.length === 0) { alert('لا توجد أرقام متاحة للتحميل حالياً.'); return; }
+    if (allNumbers.length === 0) { 
+        alert('{% if session.get("lang", "en") == "en" %}No numbers available to download.{% else %}لا توجد أرقام متاحة للتحميل حالياً.{% endif %}'); 
+        return; 
+    }
     $('#downloadModal').modal('show');
 }
 
 function downloadNumbers(format) {
     var cleanNumbers = allNumbers.map(n => n.replace(/^\+/, ''));
     if (format === 'csv') {
-        var csv = "المعرف,الرقم,المقدمة,الدولة\n";
+        var csv = "{% if session.get('lang', 'en') == 'en' %}ID,Number,Prefix,Country{% else %}المعرف,الرقم,المقدمة,الدولة{% endif %}\n";
         {% for num in numbers.items %}
         csv += "{{ num.id }},{{ num.number.replace('+', '') }},{{ num.prefix }},{{ num.sms_range.country if num.sms_range else 'N/A' }}\n";
         {% endfor %}
@@ -192,7 +196,7 @@ function copyToClipboard() {
     el.value = clean;
     document.body.appendChild(el); el.select();
     document.execCommand('copy'); document.body.removeChild(el);
-    alert('تم نسخ ' + allNumbers.length + ' رقم إلى الحافظة بنجاح!');
+    alert('{% if session.get("lang", "en") == "en" %}Copied!{% else %}تم النسخ بنجاح!{% endif %}');
     $('#downloadModal').modal('hide');
 }
 

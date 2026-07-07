@@ -1,12 +1,12 @@
 """
-sms_monitor.py  —  Volt SMS Monitor (FIXED V2)
+sms_monitor.py  —  DREEM SMS Monitor (FIXED V2)
 ======================================
 Fetches messages from external sources (5 sources)
 and automatically forwards them to reserved numbers.
 
 FIX LIST:
   1. FIX: Date vs Number Confusion — Modified _detect_abyss_indexes to identify date first and exclude it from the phone number search.
-  2. FIX: Number format in Volt — Ensured retrieving the complete number from the correct index.
+  2. FIX: Number format in DREEM — Ensured retrieving the complete number from the correct index.
 """
 import os, re, json, time, requests, threading, hashlib
 
@@ -391,11 +391,11 @@ def fetch_panel4_2():
 
 
 # ════════════════════════════════════════════════════════════
-# SOURCE ABYSS (Volt SMS Panel — session/captcha + auto index detection)
+# SOURCE ABYSS (DREEM SMS Panel — session/captcha + auto index detection)
 # ════════════════════════════════════════════════════════════
 
 CFG_ABYSS = {
-    "name":       "Volt SMS",
+    "name":       "DREEM SMS",
     "base":       f"http://127.0.0.1:{local_port}",
     "ajax_path":  "/ints/agent/res/data_smscdr.php",
     "login_page": "/ints/login",
@@ -1039,7 +1039,7 @@ def index():
     total_count = SMSCDR.query.filter_by(sms_type="received").count()
 
     sources_info = [
-        {"key": "abyss",   "label": "Volt SMS", "type": "Session"},
+        {"key": "abyss",   "label": "DREEM SMS", "type": "Session"},
         {"key": "panel4",  "label": "Source A", "type": "Session"},
         {"key": "panel4_2", "label": "Source A 2", "type": "Session"},
         {"key": "timesms", "label": "Source C", "type": "API Token",

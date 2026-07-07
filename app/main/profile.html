@@ -1,12 +1,17 @@
 {% extends "base.html" %}
 
-{% block title %}الملف الشخصي | Volt SMS{% endblock %}
+{% block title %}{% if session.get('lang', 'en') == 'en' %}Profile Settings{% else %}إعدادات الملف الشخصي{% endif %} | DREEM SMS{% endblock %}
 
 {% block content %}
 <div class="row" style="margin-bottom: 24px;">
     <div class="col-md-12">
-        <h3 style="font-weight: 800; margin: 0; color: var(--txt);"><i class="fa fa-user-circle" style="color: var(--accent); margin-left: 10px;"></i> إعدادات الملف الشخصي</h3>
-        <p style="color: var(--muted); margin-top: 5px; font-size: 14px;">إدارة معلوماتك الشخصية وإعدادات الحساب والأرباح.</p>
+        <h3 style="font-weight: 800; margin: 0; color: var(--txt);">
+            <i class="fa fa-user-circle" style="color: var(--accent); {% if session.get('lang', 'en') == 'en' %}margin-right: 10px;{% else %}margin-left: 10px;{% endif %}"></i>
+            {% if session.get('lang', 'en') == 'en' %}Profile Settings{% else %}إعدادات الملف الشخصي{% endif %}
+        </h3>
+        <p style="color: var(--muted); margin-top: 5px; font-size: 14px;">
+            {% if session.get('lang', 'en') == 'en' %}Manage your personal information, account settings and earnings.{% else %}إدارة معلوماتك الشخصية وإعدادات الحساب والأرباح.{% endif %}
+        </p>
     </div>
 </div>
 
@@ -14,19 +19,19 @@
     <!-- User Information Form -->
     <div class="col-md-7">
         <div class="panel">
-            <div class="panel-heading">المعلومات الشخصية</div>
+            <div class="panel-heading">{% if session.get('lang', 'en') == 'en' %}Personal Information{% else %}المعلومات الشخصية{% endif %}</div>
             <div class="panel-body">
                 <form method="POST" action="{{ url_for('main.profile') }}">
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>اسم المستخدم</label>
+                                <label>{% if session.get('lang', 'en') == 'en' %}Username{% else %}اسم المستخدم{% endif %}</label>
                                 <input type="text" class="form-control" value="{{ current_user.username }}" readonly style="background: var(--hover); cursor: not-allowed;">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>البريد الإلكتروني</label>
+                                <label>{% if session.get('lang', 'en') == 'en' %}Email Address{% else %}البريد الإلكتروني{% endif %}</label>
                                 <input type="email" name="email" class="form-control" value="{{ current_user.email or '' }}" required>
                             </div>
                         </div>
@@ -35,13 +40,13 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>الاسم الكامل</label>
+                                <label>{% if session.get('lang', 'en') == 'en' %}Full Name{% else %}الاسم الكامل{% endif %}</label>
                                 <input type="text" name="name" class="form-control" value="{{ current_user.name or '' }}">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>الشركة / المؤسسة</label>
+                                <label>{% if session.get('lang', 'en') == 'en' %}Company / Organization{% else %}الشركة / المؤسسة{% endif %}</label>
                                 <input type="text" name="company" class="form-control" value="{{ current_user.company or '' }}">
                             </div>
                         </div>
@@ -50,31 +55,31 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>رقم التواصل</label>
+                                <label>{% if session.get('lang', 'en') == 'en' %}Contact Number{% else %}رقم التواصل{% endif %}</label>
                                 <input type="text" name="contact" class="form-control" value="{{ current_user.contact or '' }}">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>الدولة</label>
+                                <label>{% if session.get('lang', 'en') == 'en' %}Country{% else %}الدولة{% endif %}</label>
                                 <input type="text" name="country" class="form-control" value="{{ current_user.country or '' }}">
                             </div>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label>معرف سكايب (Skype)</label>
+                        <label>{% if session.get('lang', 'en') == 'en' %}Skype ID{% else %}معرف سكايب (Skype){% endif %}</label>
                         <input type="text" name="skype" class="form-control" value="{{ current_user.skype or '' }}">
                     </div>
 
                     <div class="form-group">
-                        <label>العنوان</label>
+                        <label>{% if session.get('lang', 'en') == 'en' %}Address{% else %}العنوان{% endif %}</label>
                         <textarea name="address" class="form-control" rows="2">{{ current_user.address or '' }}</textarea>
                     </div>
 
                     <div style="margin-top: 10px;">
                         <button type="submit" class="btn btn-primary">
-                            <i class="fa fa-save"></i> حفظ التغييرات
+                            <i class="fa fa-save"></i> {% if session.get('lang', 'en') == 'en' %}Save Changes{% else %}حفظ التغييرات{% endif %}
                         </button>
                     </div>
                 </form>
@@ -85,40 +90,40 @@
     <!-- Account Stats & Token -->
     <div class="col-md-5">
         <div class="panel">
-            <div class="panel-heading">حالة الحساب</div>
+            <div class="panel-heading">{% if session.get('lang', 'en') == 'en' %}Account Status{% else %}حالة الحساب{% endif %}</div>
             <div class="panel-body" style="padding: 0;">
                 <table class="table" style="margin-bottom: 0;">
                     <tr>
-                        <td style="padding: 15px 20px; border-top: none; color: var(--muted);">رتبة الحساب</td>
-                        <td style="padding: 15px 20px; border-top: none; text-align: left; font-weight: 700; color: var(--accent);">{{ current_user.role.display_name if current_user.role else 'مستخدم' }}</td>
+                        <td style="padding: 15px 20px; border-top: none; color: var(--muted);">{% if session.get('lang', 'en') == 'en' %}Account Role{% else %}رتبة الحساب{% endif %}</td>
+                        <td style="padding: 15px 20px; border-top: none; text-align: {% if session.get('lang', 'en') == 'en' %}right{% else %}left{% endif %}; font-weight: 700; color: var(--accent);">{{ current_user.role.display_name if current_user.role else ('Agent' if session.get('lang', 'en') == 'en' else 'وكيل') }}</td>
                     </tr>
                     <tr>
-                        <td style="padding: 15px 20px; color: var(--muted);">حالة الحساب</td>
-                        <td style="padding: 15px 20px; text-align: left;">
+                        <td style="padding: 15px 20px; color: var(--muted);">{% if session.get('lang', 'en') == 'en' %}Status{% else %}حالة الحساب{% endif %}</td>
+                        <td style="padding: 15px 20px; text-align: {% if session.get('lang', 'en') == 'en' %}right{% else %}left{% endif %};">
                             {% if current_user.is_active %}
-                            <span style="color: var(--success); font-weight: 700;"><i class="fa fa-check-circle"></i> نشط</span>
+                            <span style="color: var(--success); font-weight: 700;"><i class="fa fa-check-circle"></i> {% if session.get('lang', 'en') == 'en' %}Active{% else %}نشط{% endif %}</span>
                             {% else %}
-                            <span style="color: var(--danger); font-weight: 700;"><i class="fa fa-times-circle"></i> غير نشط</span>
+                            <span style="color: var(--danger); font-weight: 700;"><i class="fa fa-times-circle"></i> {% if session.get('lang', 'en') == 'en' %}Inactive{% else %}غير نشط{% endif %}</span>
                             {% endif %}
                         </td>
                     </tr>
                     <tr>
-                        <td style="padding: 15px 20px; color: var(--muted);">تاريخ الانضمام</td>
-                        <td style="padding: 15px 20px; text-align: left; font-family: var(--font-mono);">{{ current_user.created_at.strftime('%Y-%m-%d') if current_user.created_at else 'N/A' }}</td>
+                        <td style="padding: 15px 20px; color: var(--muted);">{% if session.get('lang', 'en') == 'en' %}Joined At{% else %}تاريخ الانضمام{% endif %}</td>
+                        <td style="padding: 15px 20px; text-align: {% if session.get('lang', 'en') == 'en' %}right{% else %}left{% endif %}; font-family: var(--font-mono);">{{ current_user.created_at.strftime('%Y-%m-%d') if current_user.created_at else 'N/A' }}</td>
                     </tr>
                 </table>
             </div>
         </div>
 
         <div class="panel" style="margin-top: 24px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), transparent);">
-            <div class="panel-heading" style="border-bottom-color: rgba(16, 185, 129, 0.2);">الأرباح والرصيد</div>
+            <div class="panel-heading" style="border-bottom-color: rgba(16, 185, 129, 0.2);">{% if session.get('lang', 'en') == 'en' %}Earnings & Balance{% else %}الأرباح والرصيد{% endif %}</div>
             <div class="panel-body">
                 <div style="text-align: center; padding: 20px 0;">
-                    <p style="color: var(--muted); margin-bottom: 5px; font-size: 14px;">الرصيد الحالي</p>
+                    <p style="color: var(--muted); margin-bottom: 5px; font-size: 14px;">{% if session.get('lang', 'en') == 'en' %}Current Balance{% else %}الرصيد الحالي{% endif %}</p>
                     <h2 style="color: var(--success); font-weight: 900; margin: 0; font-family: var(--font-mono);">${{ "%.4f"|format(current_user.balance or 0) }}</h2>
                 </div>
                 <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 15px;">
-                    <span style="color: var(--muted); font-size: 13px;">إجمالي الأرباح:</span>
+                    <span style="color: var(--muted); font-size: 13px;">{% if session.get('lang', 'en') == 'en' %}Total Earned:{% else %}إجمالي الأرباح:{% endif %}</span>
                     <strong style="color: var(--txt); font-family: var(--font-mono);">${{ "%.4f"|format(current_user.total_earned or 0) }}</strong>
                 </div>
             </div>
@@ -126,12 +131,12 @@
 
         {% if current_user.api_token %}
         <div class="panel" style="margin-top: 24px;">
-            <div class="panel-heading">مفتاح API</div>
+            <div class="panel-heading">{% if session.get('lang', 'en') == 'en' %}API Key{% else %}مفتاح API{% endif %}</div>
             <div class="panel-body">
                 <div style="background: var(--hover); padding: 12px; border-radius: 10px; border: 1px dashed var(--border); margin-bottom: 10px;">
                     <code style="word-break: break-all; font-size: 12px; color: var(--accent); font-family: var(--font-mono);">{{ current_user.api_token }}</code>
                 </div>
-                <p style="color: var(--muted); font-size: 12px; margin: 0;"><i class="fa fa-info-circle"></i> استخدم هذا المفتاح للوصول إلى خدماتنا برمجياً.</p>
+                <p style="color: var(--muted); font-size: 12px; margin: 0;"><i class="fa fa-info-circle"></i> {% if session.get('lang', 'en') == 'en' %}Use this key to access our services programmatically.{% else %}استخدم هذا المفتاح للوصول إلى خدماتنا برمجياً.{% endif %}</p>
             </div>
         </div>
         {% endif %}

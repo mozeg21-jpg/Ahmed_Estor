@@ -1,37 +1,40 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-</head>
 {% extends "base.html" %}
 
-{% block title %}My SMS Numbers - Volt SMS{% endblock %}
+{% block title %}{% if session.get('lang', 'en') == 'en' %}My SMS Numbers{% else %}أرقامي النشطة{% endif %} | DREEM SMS{% endblock %}
 
 {% block content %}
 <div class="row" style="margin-bottom: 24px;">
     <div class="col-md-12">
-        <h4 style="font-weight: 700; margin: 0; color: var(--txt);"><i class="fa fa-phone" style="color: var(--accent); margin-right: 8px;"></i> My SMS Numbers</h4>
-        <p style="color: var(--muted); margin-top: 4px; font-size: 13px;">Manage your allocated SMS numbers.</p>
+        <h4 style="font-weight: 700; margin: 0; color: var(--txt);">
+            <i class="fa fa-phone" style="color: var(--accent); {% if session.get('lang', 'en') == 'en' %}margin-right: 8px;{% else %}margin-left: 8px;{% endif %}"></i> 
+            {% if session.get('lang', 'en') == 'en' %}My SMS Numbers{% else %}أرقامي النشطة{% endif %}
+        </h4>
+        <p style="color: var(--muted); margin-top: 4px; font-size: 13px;">
+            {% if session.get('lang', 'en') == 'en' %}Manage your allocated SMS numbers across all ranges.{% else %}إدارة الأرقام المفعلة والمخصصة لك في جميع النطاقات.{% endif %}
+        </p>
     </div>
 </div>
 
 <div class="panel">
     <div class="panel-heading" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
-        <div><i class="fa fa-list" style="color: var(--primary); margin-right: 6px;"></i> Allocated SMS Numbers</div>
+        <div>
+            <i class="fa fa-list" style="color: var(--primary); {% if session.get('lang', 'en') == 'en' %}margin-right: 6px;{% else %}margin-left: 6px;{% endif %}"></i> 
+            {% if session.get('lang', 'en') == 'en' %}Allocated SMS Numbers{% else %}قائمة الأرقام المفعلة{% endif %}
+        </div>
         <form method="GET" action="{{ url_for('main.my_sms_numbers') }}" class="form-inline" style="display: flex; gap: 10px;">
-            <select name="frange" class="form-control" style="background: var(--bg); border: 1px solid var(--border); color: var(--txt);">
-                <option value="">All Ranges</option>
+            <select name="frange" class="form-control" style="background: var(--bg); border: 1px solid var(--border); color: var(--txt); font-size: 13px;">
+                <option value="">{% if session.get('lang', 'en') == 'en' %}All Ranges{% else %}كل النطاقات{% endif %}</option>
                 {% for range in ranges %}
                 <option value="{{ range.id }}" {% if request.args.get('frange') == range.id|string %}selected{% endif %}>{{ range.name }} - {{ range.country }}</option>
                 {% endfor %}
             </select>
-            <select name="fclient" class="form-control" style="background: var(--bg); border: 1px solid var(--border); color: var(--txt);">
-                <option value="">All Clients</option>
+            <select name="fclient" class="form-control" style="background: var(--bg); border: 1px solid var(--border); color: var(--txt); font-size: 13px;">
+                <option value="">{% if session.get('lang', 'en') == 'en' %}All Clients{% else %}كل العملاء{% endif %}</option>
                 {% for client in clients %}
                 <option value="{{ client.id }}" {% if request.args.get('fclient') == client.id|string %}selected{% endif %}>{{ client.username }}</option>
                 {% endfor %}
             </select>
-            <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-filter"></i> Filter</button>
+            <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-filter"></i> {% if session.get('lang', 'en') == 'en' %}Filter{% else %}تصفية{% endif %}</button>
         </form>
     </div>
     <div class="panel-body" style="padding: 0;">
@@ -39,48 +42,50 @@
             <table class="table table-hover" style="margin-bottom: 0;">
                 <thead>
                     <tr>
-                        <th style="padding-left: 20px;">Number</th>
-                        <th>Range</th>
-                        <th>Client</th>
-                        <th>Status</th>
-                        <th>Created</th>
+                        <th style="{% if session.get('lang', 'en') == 'en' %}padding-left: 20px;{% else %}padding-right: 20px;{% endif %}">{% if session.get('lang', 'en') == 'en' %}Number{% else %}الرقم{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Range{% else %}النطاق{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Client{% else %}العميل{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Status{% else %}الحالة{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Created{% else %}تاريخ البدء{% endif %}</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% if numbers.items %}
                     {% for num in numbers.items %}
                     <tr>
-                        <td style="padding-left: 20px;"><strong>{{ num.number }}</strong></td>
-                        <td style="color: var(--muted);">
+                        <td style="{% if session.get('lang', 'en') == 'en' %}padding-left: 20px;{% else %}padding-right: 20px;{% endif %}">
+                            <strong style="color: var(--txt);">{{ num.number }}</strong>
+                        </td>
+                        <td style="color: var(--muted); font-size: 13px;">
                             {% if num.sms_range %}
                             {{ num.sms_range.name if num.sms_range.name else num.sms_range.country }}
                             {% else %}
-                            N/A
+                            -
                             {% endif %}
                         </td>
                         <td style="color: var(--muted);">
                             {% if num.client_info %}
-                            {{ num.client_info.username }}
+                            <span class="btn btn-xs btn-default" style="font-size: 11px;">{{ num.client_info.username }}</span>
                             {% else %}
-                            Unassigned
+                            <span style="font-size: 12px; color: var(--warn);">{% if session.get('lang', 'en') == 'en' %}Unassigned{% else %}غير مخصص{% endif %}</span>
                             {% endif %}
                         </td>
                         <td>
                             {% if num.is_active %}
-                            <span class="label" style="background: rgba(16, 185, 129, 0.1); color: var(--success); padding: 4px 8px; border-radius: 4px;">Active</span>
+                            <span style="color: var(--success); font-weight: 700; font-size: 12px;"><i class="fa fa-circle"></i> {% if session.get('lang', 'en') == 'en' %}Active{% else %}نشط{% endif %}</span>
                             {% else %}
-                            <span class="label" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); padding: 4px 8px; border-radius: 4px;">Inactive</span>
+                            <span style="color: var(--danger); font-weight: 700; font-size: 12px;"><i class="fa fa-circle"></i> {% if session.get('lang', 'en') == 'en' %}Inactive{% else %}معطل{% endif %}</span>
                             {% endif %}
                         </td>
-                        <td style="color: var(--muted);">{{ num.created_at.strftime('%Y-%m-%d') if num.created_at else 'N/A' }}</td>
+                        <td style="color: var(--muted); font-size: 13px;">{{ num.created_at.strftime('%Y-%m-%d') if num.created_at else '-' }}</td>
                     </tr>
                     {% endfor %}
                     {% else %}
                     <tr>
                         <td colspan="5">
-                            <div style="padding: 40px; text-align: center; color: var(--muted);">
-                                <i class="fa fa-phone-slash" style="font-size: 32px; margin-bottom: 12px; opacity: 0.5;"></i>
-                                <p>No SMS numbers found.</p>
+                            <div style="padding: 60px; text-align: center; color: var(--muted);">
+                                <i class="fa fa-phone-slash" style="font-size: 40px; margin-bottom: 15px; opacity: 0.3;"></i>
+                                <p style="font-size: 16px; font-weight: 600;">{% if session.get('lang', 'en') == 'en' %}No active numbers found.{% else %}لا توجد أرقام نشطة حالياً.{% endif %}</p>
                             </div>
                         </td>
                     </tr>
@@ -92,22 +97,22 @@
         {% if numbers.pages > 1 %}
         <div style="padding: 20px; text-align: center; border-top: 1px solid var(--border);">
             <nav aria-label="Page navigation">
-                <ul class="pagination" style="margin: 0; display: inline-flex; border-radius: 6px; overflow: hidden;">
+                <ul class="pagination" style="margin: 0; display: inline-flex;">
                     {% if numbers.has_prev %}
-                    <li class="page-item">
-                        <a class="page-link" href="{{ url_for('main.my_sms_numbers', page=numbers.prev_num, frange=request.args.get('frange', ''), fclient=request.args.get('fclient', '')) }}" style="background: var(--bg); border-color: var(--border); color: var(--txt);">Previous</a>
+                    <li>
+                        <a href="{{ url_for('main.my_sms_numbers', page=numbers.prev_num, frange=request.args.get('frange', ''), fclient=request.args.get('fclient', '')) }}">{% if session.get('lang', 'en') == 'en' %}Previous{% else %}السابق{% endif %}</a>
                     </li>
                     {% endif %}
 
                     {% for p in range(1, numbers.pages + 1) %}
-                    <li class="page-item {% if p == numbers.page %}active{% endif %}">
-                        <a class="page-link" href="{{ url_for('main.my_sms_numbers', page=p, frange=request.args.get('frange', ''), fclient=request.args.get('fclient', '')) }}" style="{% if p == numbers.page %}background: var(--accent); border-color: var(--accent); color: white;{% else %}background: var(--bg); border-color: var(--border); color: var(--txt);{% endif %}">{{ p }}</a>
+                    <li class="{% if p == numbers.page %}active{% endif %}">
+                        <a href="{{ url_for('main.my_sms_numbers', page=p, frange=request.args.get('frange', ''), fclient=request.args.get('fclient', '')) }}">{{ p }}</a>
                     </li>
                     {% endfor %}
 
                     {% if numbers.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="{{ url_for('main.my_sms_numbers', page=numbers.next_num, frange=request.args.get('frange', ''), fclient=request.args.get('fclient', '')) }}" style="background: var(--bg); border-color: var(--border); color: var(--txt);">Next</a>
+                    <li>
+                        <a href="{{ url_for('main.my_sms_numbers', page=numbers.next_num, frange=request.args.get('frange', ''), fclient=request.args.get('fclient', '')) }}">{% if session.get('lang', 'en') == 'en' %}Next{% else %}التالي{% endif %}</a>
                     </li>
                     {% endif %}
                 </ul>

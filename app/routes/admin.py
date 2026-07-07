@@ -517,7 +517,7 @@ def create_sms_range():
         db.session.add(sms_range)
         db.session.commit()
 
-        # Store range file content in local database to bypass Firebase Storage costs
+        # Store range file content in local database.
         if raw:
             try:
                 sms_range.file_content = raw.decode('utf-8', errors='ignore')
@@ -767,7 +767,7 @@ def delete_sms_range(range_id):
 @admin_bp.route('/ranges/<int:range_id>/download-file')
 @login_required
 def download_range_file(range_id):
-    """Serve the raw file content directly from the database to avoid Firebase Storage costs."""
+    """Serve the raw file content directly from the database."""
     from flask import Response
     range_obj = SMDRange.query.get_or_404(range_id)
     if not range_obj.file_content:
@@ -2256,7 +2256,7 @@ def telegram_test():
         return jsonify({'success': False, 'error': 'Bot token not configured'})
 
     chat_id = request.form.get('chat_id', '').strip()
-    message = request.form.get('message', 'Test message from Volt SMS').strip()
+    message = request.form.get('message', 'Test message from DREEM SMS').strip()
 
     try:
         url = f'https://api.telegram.org/bot{bot_token}/sendMessage'
@@ -2305,7 +2305,7 @@ def telegram_send_otp():
         url = f'https://api.telegram.org/bot{bot_token}/sendMessage'
         response = requests.post(url, json={
             'chat_id': admin_chat_id,
-            'text': f'Your Volt SMS OTP Code: {code}'
+            'text': f'Your DREEM SMS OTP Code: {code}'
         }, timeout=10)
 
         if response.status_code == 200:
@@ -2857,24 +2857,6 @@ def test123_send_test_message():
             return jsonify({'success': False, 'error': 'Failed to send message'})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
-
-
-# ============ FIREBASE SETTINGS & FREE STORAGE ============
-
-
-@admin_bp.route('/supabase/test-connection', methods=['POST'])
-@primary_admin_required
-def supabase_test_connection():
-    """Test Supabase Database Connection"""
-    from sqlalchemy import text
-    from app import db
-    try:
-        # Run a simple query to verify connection to the database (which is Supabase)
-        db.session.execute(text("SELECT 1"))
-        return jsonify({'success': True, 'message': 'تم الاتصال بقاعدة بيانات Supabase بنجاح واستجابة الاستعلام لحظية وعالية السرعة!'})
-    except Exception as e:
-        return jsonify({'success': False, 'message': f'فشل الاتصال بـ Supabase: {str(e)}'})
-
 
 
 # ============ DATABASE & SUPABASE SETTINGS ============

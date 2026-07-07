@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Volt SMS | System Management{% endblock %}</title>
+    <title>{% block title %}DREEM SMS | System Management{% endblock %}</title>
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
     <link href="/static/css/font-awesome.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -438,7 +438,7 @@
             <i class="fa fa-bars"></i>
         </button>
         <a class="topbar-brand" href="{% if current_user.is_admin() %}{{ url_for('admin.index') }}{% else %}{{ url_for('main.dashboard') }}{% endif %}">
-            𝗩𝗼𝗹𝘁 𝗦𝗠𝗦
+            𝗗𝗥𝗘𝗘𝗠 𝗦𝗠𝗦
         </a>
     </div>
 
@@ -660,7 +660,7 @@
     <!-- ══ FOOTER ════════════════════════════════════════════════════════════ -->
     <footer style="margin-top: auto; padding: 24px 0; border-top: 1px solid var(--border); font-size: 13px; color: var(--muted); text-align: center;">
         <div class="container-fluid">
-            <p style="margin: 0;">&copy; {{ datetime.now().year }} <strong>𝗩𝗼𝗹𝘁 𝗦𝗠𝗦</strong>. All rights reserved.</p>
+            <p style="margin: 0;">&copy; {{ datetime.now().year }} <strong>𝗗𝗥𝗘𝗘𝗠 𝗦𝗠𝗦</strong>. All rights reserved.</p>
         </div>
     </footer>
 </div>
@@ -788,13 +788,13 @@ setTimeout(function() {
             {% set display_name = current_user.name or current_user.username %}
             {% set cleaned_name = display_name | replace('_', ' ') | replace('-', ' ') %}
             {% if current_user.is_admin() %}
-            var text = "أهلاً بك يا مدير {{ cleaned_name }} في لوحة فولت إس إم إس.";
+            var text = "أهلاً بك يا مدير {{ cleaned_name }} في لوحة دريم إس إم إس.";
             var lang = 'ar-SA';
             {% elif current_user.is_agent() %}
-            var text = "Welcome, Agent {{ cleaned_name }}, to Volt SMS panel.";
+            var text = "Welcome, Agent {{ cleaned_name }}, to DREEM SMS panel.";
             var lang = 'en-US';
             {% else %}
-            var text = "Welcome, {{ cleaned_name }}, to Volt SMS panel.";
+            var text = "Welcome, {{ cleaned_name }}, to DREEM SMS panel.";
             var lang = 'en-US';
             {% endif %}
 

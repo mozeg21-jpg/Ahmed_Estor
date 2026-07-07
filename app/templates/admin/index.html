@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{% if session.get('lang', 'en') == 'en' %}Admin Panel{% else %}لوحة الإدارة{% endif %} | Volt SMS{% endblock %}
+{% block title %}{% if session.get('lang', 'en') == 'en' %}Admin Panel{% else %}لوحة الإدارة{% endif %} | DREEM SMS{% endblock %}
 
 {% block content %}
 <style>
@@ -168,7 +168,7 @@
         <div class="admin-title-badge">
             <i class="fa fa-shield"></i> {% if session.get('lang', 'en') == 'en' %}Secured Admin Panel{% else %}لوحة الإدارة المؤمنة{% endif %}
         </div>
-        <h2 style="font-weight: 900; margin: 0; color: var(--txt);">{% if session.get('lang', 'en') == 'en' %}Volt SMS Admin Dashboard{% else %}لوحة تحكم مدير Volt SMS{% endif %}</h2>
+        <h2 style="font-weight: 900; margin: 0; color: var(--txt);">{% if session.get('lang', 'en') == 'en' %}DREEM SMS Admin Dashboard{% else %}لوحة تحكم مدير DREEM SMS{% endif %}</h2>
         <p style="color: var(--muted); margin-top: 8px; margin-bottom: 0; font-size: 15px;">
             {% if session.get('lang', 'en') == 'en' %}Real-time monitoring, route management, and system configuration.{% else %}مراقبة فورية، إدارة المسارات، وتكوين إعدادات النظام.{% endif %}
         </p>

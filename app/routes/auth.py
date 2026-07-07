@@ -94,32 +94,25 @@ def login():
         # IP-level rate limit
         if not _check_rate_limit(ip):
             flash('Too many login attempts from your IP. Please wait 5 minutes.', 'danger')
-            return render_template('auth/login.html', num1=num1, num2=num2, captcha_token=captcha_token)
+            return render_template('auth/login.html')
 
         username = request.form.get('username', '').strip()
         password = request.form.get('password', '')
-        captcha  = request.form.get('capt', '')
-        form_token = request.form.get('captcha_token', '')
 
         if not username or not password:
             flash('Please enter username and password.', 'danger')
-            return render_template('auth/login.html', num1=num1, num2=num2, captcha_token=captcha_token)
-
-        # Verify captcha using our signed token
-        if not _verify_captcha_token(form_token, captcha):
-            flash('Incorrect captcha answer.', 'danger')
-            return render_template('auth/login.html', num1=num1, num2=num2, captcha_token=captcha_token)
+            return render_template('auth/login.html')
 
         user = User.query.filter_by(username=username).first()
         if user and user.check_password(password):
             if not user.is_active:
                 flash('Your account has been deactivated.', 'warning')
-                return render_template('auth/login.html', num1=num1, num2=num2, captcha_token=captcha_token)
+                return render_template('auth/login.html')
 
             if user.locked_until and user.locked_until > datetime.utcnow():
                 remaining = int((user.locked_until - datetime.utcnow()).total_seconds() // 60)
                 flash(f'Account locked for {remaining} more minute(s).', 'danger')
-                return render_template('auth/login.html', num1=num1, num2=num2, captcha_token=captcha_token)
+                return render_template('auth/login.html')
 
             if not user.api_token:
                 user.generate_api_token()
@@ -167,7 +160,7 @@ def login():
                 # Constant-time: same message whether user exists or not (no user enumeration)
                 flash('Invalid username or password.', 'danger')
 
-    return render_template('auth/login.html', num1=num1, num2=num2, captcha_token=captcha_token)
+    return render_template('auth/login.html')
 
 
 @auth_bp.route('/logout')
@@ -182,88 +175,9 @@ def logout():
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
-    """
-    Registration page - only allows Agent or Client roles.
-    Admin cannot be created through registration.
-    """
-    if not current_app.config.get('REGISTRATION_ENABLED', False):
-        flash('Public registration is disabled. Contact an administrator.', 'warning')
-        return redirect(url_for('auth.login'))
-
-    if current_user.is_authenticated:
-        return redirect(url_for('main.dashboard'))
-
-    if request.method == 'POST':
-        username         = request.form.get('username', '').strip()
-        email            = request.form.get('email', '').strip()
-        password         = request.form.get('password', '')
-        password_confirm = request.form.get('password_confirm', '')
-        account_type     = request.form.get('account_type', 'client')  # 'agent' or 'client'
-
-        errors = []
-
-        if len(username) < 4:
-            errors.append('Username must be at least 4 characters.')
-        if len(username) > 80:
-            errors.append('Username must be less than 80 characters.')
-        if not re.match(r'^[A-Za-z0-9_]+$', username):
-            errors.append('Username can only contain letters, numbers, and underscores.')
-
-        if not re.match(r'^[\w\.\-]+@[\w\.\-]+\.\w+$', email):
-            errors.append('Please enter a valid email address.')
-
-        if len(password) < 6:
-            errors.append('Password must be at least 6 characters.')
-
-        if password != password_confirm:
-            errors.append('Passwords do not match.')
-
-        # Only allow agent or client roles
-        if account_type not in ['agent', 'client']:
-            errors.append('Invalid account type. Please select Agent or Client.')
-
-        from sqlalchemy import func
-        existing_user = User.query.filter(func.lower(User.username) == func.lower(username)).first()
-        if existing_user:
-            errors.append('Username already exists.')
-        if User.query.filter_by(email=email).first():
-            errors.append('Email already registered.')
-
-        # Block test123 registration
-        if username.lower() == 'test123':
-            errors.append('This username is reserved.')
-
-        if errors:
-            for error in errors:
-                flash(error, 'danger')
-            return render_template('auth/register.html')
-
-        from app.models.user import Role
-        role = Role.query.filter_by(name=account_type).first()
-        if not role:
-            role = Role(name=account_type, display_name=account_type.capitalize(), permissions='[]')
-            db.session.add(role)
-            db.session.commit()
-
-        user = User(
-            username=username,
-            email=email,
-            role=role,
-            is_active=True
-        )
-        user.set_password(password)
-        user.generate_api_token()
-
-        db.session.add(user)
-        db.session.commit()
-
-        ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
-        ActivityLog.log(user.id, 'register', f'New {account_type} account registered', ip_address=ip)
-
-        flash('Registration successful! Please log in.', 'success')
-        return redirect(url_for('auth.login'))
-
-    return render_template('auth/register.html')
+    """Registration is disabled."""
+    flash('Public registration is disabled. Contact an administrator.', 'warning')
+    return redirect(url_for('auth.login'))
 
 
 # ── Error handlers ────────────────────────────────────────────────────────────
@@ -282,7 +196,7 @@ def unauthorized(e):
         num1 = random.randint(1, 9)
         num2 = random.randint(1, 9)
         captcha_token = _generate_captcha_token(num1, num2)
-        return render_template('auth/login.html', num1=num1, num2=num2, captcha_token=captcha_token), 401
+        return render_template('auth/login.html'), 401
 
     flash('Please log in to access this page.', 'warning')
     return redirect(url_for('auth.login', next=request.path))

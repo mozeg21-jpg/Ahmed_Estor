@@ -1,17 +1,17 @@
 {% extends "base.html" %}
 
-{% block title %}رينجات الرسائل المتاحة | Volt SMS{% endblock %}
+{% block title %}{% if session.get('lang', 'en') == 'en' %}SMS Ranges{% else %}رينجات الرسائل{% endif %} | DREEM SMS{% endblock %}
 
 {% block content %}
 <div class="row" style="margin-bottom: 24px;">
     <div class="col-md-12">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
             <div>
-                <h3 style="font-weight: 800; margin: 0; color: var(--txt);"><i class="fa fa-flag" style="color: var(--accent); margin-left: 10px;"></i> رينجات الرسائل</h3>
-                <p style="color: var(--muted); margin-top: 5px; font-size: 14px;">استعرض وابحث عن النطاقات المتاحة وأسعار الرسائل لكل دولة.</p>
+                <h3 style="font-weight: 800; margin: 0; color: var(--txt);"><i class="fa fa-flag" style="color: var(--accent); {% if session.get('lang', 'en') == 'en' %}margin-right: 10px;{% else %}margin-left: 10px;{% endif %}"></i> {% if session.get('lang', 'en') == 'en' %}SMS Ranges{% else %}رينجات الرسائل{% endif %}</h3>
+                <p style="color: var(--muted); margin-top: 5px; font-size: 14px;">{% if session.get('lang', 'en') == 'en' %}Browse available ranges and message rates for each country.{% else %}استعرض وابحث عن النطاقات المتاحة وأسعار الرسائل لكل دولة.{% endif %}</p>
             </div>
             <form method="GET" action="{{ url_for('main.sms_ranges') }}" style="display: flex; gap: 10px;">
-                <input type="text" name="search" class="form-control" placeholder="بحث بالدولة أو المقدمة..." value="{{ request.args.get('search', '') }}" style="width: 250px;">
+                <input type="text" name="search" class="form-control" placeholder="{% if session.get('lang', 'en') == 'en' %}Search country or prefix...{% else %}بحث بالدولة أو المقدمة...{% endif %}" value="{{ request.args.get('search', '') }}" style="width: 250px; background: var(--bg); border: 1px solid var(--border); color: var(--txt);">
                 <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i></button>
             </form>
         </div>
@@ -19,40 +19,38 @@
 </div>
 
 <div class="panel">
-    <div class="panel-heading">قائمة النطاقات النشطة وتفاصيل التسعير</div>
+    <div class="panel-heading">{% if session.get('lang', 'en') == 'en' %}Active Ranges & Pricing{% else %}قائمة النطاقات النشطة وتفاصيل التسعير{% endif %}</div>
     <div class="panel-body" style="padding: 0;">
         <div class="table-responsive">
             <table class="table table-hover" style="margin-bottom: 0;">
                 <thead>
                     <tr>
-                        <th style="padding-right: 20px;">اسم النطاق</th>
-                        <th>الدولة</th>
-                        <th>المشغل</th>
-                        <th>نوع الشبكة</th>
-                        <th>فحص HLR</th>
-                        <th>MCC</th>
-                        <th>MNC</th>
-                        <th class="text-left">التكلفة</th>
+                        <th style="{% if session.get('lang', 'en') == 'en' %}padding-left: 20px;{% else %}padding-right: 20px;{% endif %}">{% if session.get('lang', 'en') == 'en' %}Range Name{% else %}اسم النطاق{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Country{% else %}الدولة{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Operator{% else %}المشغل{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Network{% else %}الشبكة{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}HLR Lookup{% else %}فحص HLR{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}MCC/MNC{% else %}MCC/MNC{% endif %}</th>
+                        <th class="{% if session.get('lang', 'en') == 'en' %}text-right{% else %}text-left{% endif %}" style="{% if session.get('lang', 'en') == 'en' %}padding-right: 20px;{% else %}padding-left: 20px;{% endif %}">{% if session.get('lang', 'en') == 'en' %}Cost{% else %}التكلفة{% endif %}</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% if ranges.items %}
                     {% for range in ranges.items %}
                     <tr>
-                        <td style="padding-right: 20px;"><strong>{{ range.name }}</strong></td>
+                        <td style="{% if session.get('lang', 'en') == 'en' %}padding-left: 20px;{% else %}padding-right: 20px;{% endif %}"><strong>{{ range.name }}</strong></td>
                         <td style="color: var(--txt);">{{ range.country }}</td>
-                        <td style="color: var(--muted); font-size: 13px;">{{ range.operator or 'N/A' }}</td>
-                        <td><span class="btn btn-xs btn-default" style="font-size: 11px;">{{ range.network_type or 'N/A' }}</span></td>
+                        <td style="color: var(--muted); font-size: 13px;">{{ range.operator or '-' }}</td>
+                        <td><span class="btn btn-xs btn-default" style="font-size: 11px;">{{ range.network_type or '-' }}</span></td>
                         <td>
                             {% if range.hlr_lookup %}
-                            <span style="color: var(--success); font-weight: 700; font-size: 12px;"><i class="fa fa-check-circle"></i> متاح</span>
+                            <span style="color: var(--success); font-weight: 700; font-size: 12px;"><i class="fa fa-check-circle"></i> {% if session.get('lang', 'en') == 'en' %}Available{% else %}متاح{% endif %}</span>
                             {% else %}
-                            <span style="color: var(--muted); font-size: 12px;"><i class="fa fa-minus-circle"></i> غير متوفر</span>
+                            <span style="color: var(--muted); font-size: 12px;"><i class="fa fa-minus-circle"></i> {% if session.get('lang', 'en') == 'en' %}N/A{% else %}غير متوفر{% endif %}</span>
                             {% endif %}
                         </td>
-                        <td style="font-family: var(--font-mono); color: var(--muted);">{{ range.mcc or 'N/A' }}</td>
-                        <td style="font-family: var(--font-mono); color: var(--muted);">{{ range.mnc or 'N/A' }}</td>
-                        <td class="text-left">
+                        <td style="font-family: var(--font-mono); color: var(--muted); font-size: 12px;">{{ range.mcc or '-' }} / {{ range.mnc or '-' }}</td>
+                        <td class="{% if session.get('lang', 'en') == 'en' %}text-right{% else %}text-left{% endif %}" style="{% if session.get('lang', 'en') == 'en' %}padding-right: 20px;{% else %}padding-left: 20px;{% endif %}">
                             <strong style="color: var(--accent); font-family: var(--font-mono);">{{ range.cost_per_sms if range.cost_per_sms else '0.00' }}</strong>
                             <small style="color: var(--muted);">{{ current_user.currency if current_user.currency else 'USD' }}</small>
                         </td>
@@ -60,10 +58,10 @@
                     {% endfor %}
                     {% else %}
                     <tr>
-                        <td colspan="8" class="text-center" style="padding: 60px;">
+                        <td colspan="7" class="text-center" style="padding: 60px;">
                             <div style="color: var(--muted);">
-                                <i class="fa fa-search fa-3x" style="margin-bottom: 15px; opacity: 0.3;"></i>
-                                <p style="font-size: 16px; font-weight: 600;">لم يتم العثور على أي نطاقات تطابق بحثك</p>
+                                <i class="fa fa-search fa-3x" style="margin-bottom: 15px; opacity: 0.2;"></i>
+                                <p style="font-size: 16px; font-weight: 600;">{% if session.get('lang', 'en') == 'en' %}No ranges found matching your search.{% else %}لم يتم العثور على أي نطاقات تطابق بحثك{% endif %}</p>
                             </div>
                         </td>
                     </tr>
@@ -78,7 +76,7 @@
 <div style="display: flex; justify-content: center; margin-top: 20px;">
     <ul class="pagination">
         {% if ranges.has_prev %}
-        <li><a href="{{ url_for('main.sms_ranges', page=ranges.prev_num, search=request.args.get('search', '')) }}">السابق</a></li>
+        <li><a href="{{ url_for('main.sms_ranges', page=ranges.prev_num, search=request.args.get('search', '')) }}">{% if session.get('lang', 'en') == 'en' %}Previous{% else %}السابق{% endif %}</a></li>
         {% endif %}
         {% for p in range(1, ranges.pages + 1) %}
         <li class="{% if p == ranges.page %}active{% endif %}">
@@ -86,7 +84,7 @@
         </li>
         {% endfor %}
         {% if ranges.has_next %}
-        <li><a href="{{ url_for('main.sms_ranges', page=ranges.next_num, search=request.args.get('search', '')) }}">التالي</a></li>
+        <li><a href="{{ url_for('main.sms_ranges', page=ranges.next_num, search=request.args.get('search', '')) }}">{% if session.get('lang', 'en') == 'en' %}Next{% else %}التالي{% endif %}</a></li>
         {% endif %}
     </ul>
 </div>

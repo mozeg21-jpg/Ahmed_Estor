@@ -1,235 +1,155 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Volt SMS | Login</title>
+    <title>DREEM SMS | تسجيل الدخول</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #3b82f6;
-            --primary-dark: #2563eb;
             --bg: #0b0f19;
-            --card-bg: rgba(17, 24, 39, 0.75);
-            --border: rgba(255, 255, 255, 0.1);
-            --text: #f3f4f6;
+            --card: #111827;
+            --border: #1f2937;
+            --txt: #f3f4f6;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: 'Inter', sans-serif;
-            background: radial-gradient(circle at top right, #1e3a8a, #0b0f19);
             background-color: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
+            background-image: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            color: var(--txt);
+            font-family: 'Cairo', sans-serif;
+            margin: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(11, 15, 25, 0.85);
+            z-index: 1;
         }
 
         .login-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            position: relative;
+            z-index: 2;
+            background: rgba(17, 24, 39, 0.8);
+            backdrop-filter: blur(12px);
             border: 1px solid var(--border);
-            border-radius: 24px;
+            border-radius: 16px;
             width: 100%;
-            max-width: 480px;
-            padding: 48px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            max-width: 400px;
+            padding: 40px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
             text-align: center;
-            animation: fadeIn 0.6s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .logo {
-            margin-bottom: 32px;
-        }
-        .logo img {
-            width: 100px;
-            height: 100px;
-            border-radius: 20px;
-            object-fit: cover;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
-            border: 2px solid var(--primary);
         }
 
         h1 {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: 900;
-            margin-bottom: 8px;
-            background: linear-gradient(to right, #fff, #9ca3af);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        p.subtitle {
-            color: #9ca3af;
-            margin-bottom: 32px;
-            font-size: 15px;
-        }
-
-        .input-group {
-            position: relative;
-            margin-bottom: 24px;
-            text-align: left;
-        }
-        .input-group i {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #6b7280;
-            transition: color 0.3s;
-        }
-        .input-group input {
-            width: 100%;
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 14px 16px 14px 48px;
-            color: white;
-            font-size: 15px;
-            font-family: 'Inter', sans-serif;
-            transition: all 0.3s;
-        }
-        .input-group input:focus {
-            outline: none;
-            border-color: var(--primary);
-            background: rgba(0, 0, 0, 0.3);
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
-        }
-        .input-group input:focus + i {
+            margin-bottom: 30px;
             color: var(--primary);
         }
 
-        .captcha-box {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px dashed var(--border);
-            border-radius: 14px;
-            padding: 16px;
-            margin-bottom: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+        .form-group {
+            margin-bottom: 20px;
+            text-align: right;
         }
-        .captcha-text {
-            font-weight: 700;
-            color: #d1d5db;
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #9ca3af;
         }
-        .captcha-input {
-            width: 100px;
-            background: white;
-            border: none;
+
+        .form-group input {
+            width: 100%;
+            background: #000;
+            border: 1px solid var(--border);
             border-radius: 8px;
-            padding: 8px;
-            text-align: center;
-            font-weight: 900;
-            color: var(--bg);
+            padding: 12px;
+            color: #fff;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary);
         }
 
         .login-btn {
             width: 100%;
             background: var(--primary);
-            color: white;
+            color: #fff;
             border: none;
-            border-radius: 14px;
-            padding: 16px;
+            border-radius: 8px;
+            padding: 12px;
             font-size: 16px;
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        .login-btn:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.4);
-        }
-        .login-btn:active {
-            transform: translateY(0);
+            margin-top: 10px;
         }
 
         .alert {
             background: rgba(239, 68, 68, 0.1);
             border: 1px solid rgba(239, 68, 68, 0.2);
             color: #f87171;
-            padding: 12px;
-            border-radius: 12px;
-            margin-bottom: 24px;
-            font-size: 14px;
-            text-align: left;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 13px;
         }
 
-        .footer-links {
-            margin-top: 32px;
-            font-size: 14px;
-            color: #9ca3af;
+        .footer {
+            margin-top: 30px;
+            font-size: 13px;
+            color: #6b7280;
         }
-        .footer-links a {
+        .footer a {
             color: var(--primary);
             text-decoration: none;
-            font-weight: 600;
-        }
-        .footer-links a:hover {
-            text-decoration: underline;
         }
     </style>
 </head>
 <body>
 
     <div class="login-card">
-        <div class="logo">
-            <img src="https://i.ibb.co/zVcT0C1F/IMG-20260706-211650-758.jpg" alt="Logo">
-        </div>
+        <h1>DREEM SMS</h1>
         
-        <h1>Login</h1>
-        <p class="subtitle">Welcome back to Volt SMS platform</p>
-
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div class="alert">
-                        <i class="fa fa-exclamation-circle"></i> {{ message }}
-                    </div>
+                    <div class="alert">{{ message }}</div>
                 {% endfor %}
             {% endif %}
         {% endwith %}
 
         <form action="{{ url_for('auth.login') }}" method="post">
-            <input type="hidden" name="captcha_token" value="{{ captcha_token }}">
-            
-            <div class="input-group">
-                <input type="text" name="username" placeholder="Username" required autocomplete="username">
-                <i class="fa fa-user"></i>
+            <div class="form-group">
+                <label>اسم المستخدم</label>
+                <input type="text" name="username" required>
             </div>
 
-            <div class="input-group">
-                <input type="password" name="password" placeholder="Password" required autocomplete="current-password">
-                <i class="fa fa-lock"></i>
+            <div class="form-group">
+                <label>كلمة المرور</label>
+                <input type="password" name="password" required>
             </div>
 
-            <div class="captcha-box">
-                <span class="captcha-text">Result of: {{ num1 }} + {{ num2 }} ?</span>
-                <input type="number" name="capt" class="captcha-input" placeholder="Result" required>
-            </div>
-
-            <button type="submit" class="login-btn">
-                <span>Enter Platform</span>
-                <i class="fa fa-arrow-right"></i>
-            </button>
+            <button type="submit" class="login-btn">دخول</button>
         </form>
 
-        <div class="footer-links">
-            Don't have an account? <a href="{{ url_for('auth.register') }}">Contact Admin</a>
+        <div class="footer">
+            يرجى التواصل مع الإدارة للحصول على صلاحية الدخول.
         </div>
     </div>
 

@@ -1,79 +1,78 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-</head>
 {% extends "base.html" %}
 
-{% block title %}My Clients - Volt SMS{% endblock %}
+{% block title %}{% if session.get('lang', 'en') == 'en' %}My Clients{% else %}عملائي{% endif %} | DREEM SMS{% endblock %}
 
 {% block content %}
-<div class="row">
+<div class="row" style="margin-bottom: 24px;">
     <div class="col-md-12">
-        <div class="breadcrumb">
-            <h4><i class="fa fa-users"></i> My Clients</h4>
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+            <div>
+                <h3 style="font-weight: 800; margin: 0; color: var(--txt);"><i class="fa fa-users" style="color: var(--accent); {% if session.get('lang', 'en') == 'en' %}margin-right: 10px;{% else %}margin-left: 10px;{% endif %}"></i> {% if session.get('lang', 'en') == 'en' %}My Clients{% else %}إدارة العملاء{% endif %}</h3>
+                <p style="color: var(--muted); margin-top: 5px; font-size: 14px;">{% if session.get('lang', 'en') == 'en' %}Manage and monitor your assigned clients.{% else %}إدارة ومتابعة العملاء المسجلين تحت حسابك.{% endif %}</p>
+            </div>
+            <a href="{{ url_for('admin.agent_create_client') }}" class="btn btn-primary"><i class="fa fa-plus"></i> {% if session.get('lang', 'en') == 'en' %}Add New Client{% else %}إضافة عميل جديد{% endif %}</a>
         </div>
     </div>
 </div>
 
-<div class="widget-block">
-    <div class="widget-head">
-        <h5><i class="fa fa-list"></i> Client List</h5>
-        <a href="{{ url_for('admin.agent_create_client') }}" class="btn btn-primary btn-sm"><i class="fa fa-plus"></i> Add Client</a>
-    </div>
-    <div class="widget-content">
+<div class="panel">
+    <div class="panel-heading">{% if session.get('lang', 'en') == 'en' %}List of Registered Clients{% else %}قائمة بجميع عملائك المسجلين{% endif %}</div>
+    <div class="panel-body" style="padding: 0;">
         <div class="table-responsive">
-            <table class="table table-striped table-hover">
+            <table class="table table-hover" style="margin-bottom: 0;">
                 <thead>
                     <tr>
-                        <th>Username</th>
-                        <th>Email</th>
-                        <th>Name</th>
-                        <th>Company</th>
-                        <th>Country</th>
-                        <th>API Token</th>
-                        <th>Status</th>
-                        <th>Created</th>
-                        <th>Actions</th>
+                        <th style="{% if session.get('lang', 'en') == 'en' %}padding-left: 20px;{% else %}padding-right: 20px;{% endif %}">{% if session.get('lang', 'en') == 'en' %}Username{% else %}اسم المستخدم{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Email{% else %}البريد الإلكتروني{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Name{% else %}الاسم{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Company{% else %}الشركة{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}API Token{% else %}رمز الـ API{% endif %}</th>
+                        <th>{% if session.get('lang', 'en') == 'en' %}Status{% else %}الحالة{% endif %}</th>
+                        <th class="text-center">{% if session.get('lang', 'en') == 'en' %}Actions{% else %}الإجراءات{% endif %}</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% if clients.items %}
                     {% for client in clients.items %}
                     <tr>
-                        <td><strong>{{ client.username }}</strong></td>
-                        <td>{{ client.email }}</td>
-                        <td>{{ client.name or 'N/A' }}</td>
-                        <td>{{ client.company or 'N/A' }}</td>
-                        <td>{{ client.country or 'N/A' }}</td>
-                        <td><code>{{ (client.api_token[:16] + '...') if client.api_token else 'N/A' }}</code></td>
+                        <td style="{% if session.get('lang', 'en') == 'en' %}padding-left: 20px;{% else %}padding-right: 20px;{% endif %}">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 32px; height: 32px; border-radius: 8px; background: var(--hover); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--accent);">
+                                    {{ client.username[0].upper() }}
+                                </div>
+                                <strong>{{ client.username }}</strong>
+                            </div>
+                        </td>
+                        <td style="color: var(--muted);">{{ client.email }}</td>
+                        <td>{{ client.name or '-' }}</td>
+                        <td style="color: var(--muted);">{{ client.company or '-' }}</td>
+                        <td><code style="font-size: 11px;">{{ (client.api_token[:12] + '...') if client.api_token else '-' }}</code></td>
                         <td>
                             {% if client.is_active %}
-                            <span class="label label-success">Active</span>
+                            <span style="color: var(--success); font-weight: 700; font-size: 12px;"><i class="fa fa-circle"></i> {% if session.get('lang', 'en') == 'en' %}Active{% else %}نشط{% endif %}</span>
                             {% else %}
-                            <span class="label label-danger">Inactive</span>
+                            <span style="color: var(--danger); font-weight: 700; font-size: 12px;"><i class="fa fa-circle"></i> {% if session.get('lang', 'en') == 'en' %}Inactive{% else %}معطل{% endif %}</span>
                             {% endif %}
                         </td>
-                        <td>{{ client.created_at.strftime('%Y-%m-%d') if client.created_at else 'N/A' }}</td>
                         <td>
-                            <div class="btn-group action-buttons" style="display: flex; gap: 4px;">
-                                <a href="{{ url_for('admin.agent_manage_client_numbers', user_id=client.id) }}" class="btn btn-xs btn-success" title="Manage Numbers" style="padding: 6px 10px;">
-                                    <i class="fa fa-phone"></i>
+                            <div class="btn-group action-buttons" style="justify-content: center;">
+                                <a href="{{ url_for('admin.agent_manage_client_numbers', user_id=client.id) }}" class="btn btn-default" title="{% if session.get('lang', 'en') == 'en' %}Numbers{% else %}الأرقام{% endif %}">
+                                    <i class="fa fa-phone text-success"></i>
                                 </a>
-                                <a href="{{ url_for('admin.agent_edit_client', user_id=client.id) }}" class="btn btn-xs btn-info" title="Edit Client" style="padding: 6px 10px;">
-                                    <i class="fa fa-edit"></i>
+                                <a href="{{ url_for('admin.agent_edit_client', user_id=client.id) }}" class="btn btn-default" title="{% if session.get('lang', 'en') == 'en' %}Edit{% else %}تعديل{% endif %}">
+                                    <i class="fa fa-edit text-info"></i>
                                 </a>
-                                <form method="POST" action="{{ url_for('admin.agent_toggle_client_status', user_id=client.id) }}" style="display:inline-block;">
-                                    <button type="submit" class="btn btn-xs {% if client.is_active %}btn-warning{% else %}btn-success{% endif %}" title="{% if client.is_active %}Deactivate{% else %}Activate{% endif %}" style="padding: 6px 10px;">
-                                        <i class="fa fa-{% if client.is_active %}lock{% else %}unlock{% endif %}"></i>
+                                <form method="POST" action="{{ url_for('admin.agent_toggle_client_status', user_id=client.id) }}" style="display:inline;">
+                                    <button type="submit" class="btn btn-default" title="{% if client.is_active %}{% if session.get('lang', 'en') == 'en' %}Lock{% else %}تعطيل{% endif %}{% else %}{% if session.get('lang', 'en') == 'en' %}Unlock{% else %}تفعيل{% endif %}{% endif %}">
+                                        <i class="fa fa-{% if client.is_active %}lock text-warning{% else %}unlock text-success{% endif %}"></i>
                                     </button>
                                 </form>
-                                <a href="{{ url_for('main.client_settings', client_id=client.id) }}" class="btn btn-xs btn-primary" title="Client Settings" style="padding: 6px 10px;">
-                                    <i class="fa fa-cog"></i>
+                                <a href="{{ url_for('main.client_settings', client_id=client.id) }}" class="btn btn-default" title="{% if session.get('lang', 'en') == 'en' %}Settings{% else %}الإعدادات{% endif %}">
+                                    <i class="fa fa-cog text-primary"></i>
                                 </a>
-                                <form method="POST" action="{{ url_for('admin.agent_delete_client', user_id=client.id) }}" style="display:inline-block;" onsubmit="return confirm('Are you sure you want to delete this client?');">
-                                    <button type="submit" class="btn btn-xs btn-danger" title="Delete Client" style="padding: 6px 10px;">
-                                        <i class="fa fa-trash"></i>
+                                <form method="POST" action="{{ url_for('admin.agent_delete_client', user_id=client.id) }}" style="display:inline;" onsubmit="return confirm('{% if session.get('lang', 'en') == 'en' %}Are you sure you want to delete this client?{% else %}هل أنت متأكد من حذف هذا العميل؟{% endif %}');">
+                                    <button type="submit" class="btn btn-default" title="{% if session.get('lang', 'en') == 'en' %}Delete{% else %}حذف{% endif %}">
+                                        <i class="fa fa-trash text-danger"></i>
                                     </button>
                                 </form>
                             </div>
@@ -82,36 +81,32 @@
                     {% endfor %}
                     {% else %}
                     <tr>
-                        <td colspan="9" class="text-center text-muted">No clients found.</td>
+                        <td colspan="7" class="text-center" style="padding: 40px; color: var(--muted);">{% if session.get('lang', 'en') == 'en' %}No clients registered yet.{% else %}لا يوجد عملاء مسجلين حالياً.{% endif %}</td>
                     </tr>
                     {% endif %}
                 </tbody>
             </table>
         </div>
-
-        {% if clients.pages > 1 %}
-        <nav aria-label="Page navigation">
-            <ul class="pagination justify-content-center">
-                {% if clients.has_prev %}
-                <li class="page-item">
-                    <a class="page-link" href="{{ url_for('main.clients', page=clients.prev_num) }}">Previous</a>
-                </li>
-                {% endif %}
-
-                {% for p in range(1, clients.pages + 1) %}
-                <li class="page-item {% if p == clients.page %}active{% endif %}">
-                    <a class="page-link" href="{{ url_for('main.clients', page=p) }}">{{ p }}</a>
-                </li>
-                {% endfor %}
-
-                {% if clients.has_next %}
-                <li class="page-item">
-                    <a class="page-link" href="{{ url_for('main.clients', page=clients.next_num) }}">Next</a>
-                </li>
-                {% endif %}
-            </ul>
-        </nav>
-        {% endif %}
     </div>
 </div>
+
+{% if clients.pages > 1 %}
+<div style="display: flex; justify-content: center; margin-top: 20px;">
+    <ul class="pagination">
+        {% if clients.has_prev %}
+        <li><a href="{{ url_for('main.clients', page=clients.prev_num) }}">{% if session.get('lang', 'en') == 'en' %}Previous{% else %}السابق{% endif %}</a></li>
+        {% endif %}
+
+        {% for p in range(1, clients.pages + 1) %}
+        <li class="{% if p == clients.page %}active{% endif %}">
+            <a href="{{ url_for('main.clients', page=p) }}">{{ p }}</a>
+        </li>
+        {% endfor %}
+
+        {% if clients.has_next %}
+        <li><a href="{{ url_for('main.clients', page=clients.next_num) }}">{% if session.get('lang', 'en') == 'en' %}Next{% else %}التالي{% endif %}</a></li>
+        {% endif %}
+    </ul>
+</div>
+{% endif %}
 {% endblock %}
