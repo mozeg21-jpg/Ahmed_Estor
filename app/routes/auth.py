@@ -111,6 +111,12 @@ def login():
             return render_template('auth/login.html', num1=num1, num2=num2, captcha_token=captcha_token)
 
         user = User.query.filter_by(username=username).first()
+        if not user:
+            try:
+                from app.firebase_helper import restore_single_client_from_firebase
+                user = restore_single_client_from_firebase(username)
+            except Exception as e:
+                print(f"[ON-DEMAND RESTORE ERROR] {e}")
 
         if user and user.check_password(password):
             if not user.is_active:
@@ -223,7 +229,8 @@ def register():
         if account_type not in ['agent', 'client']:
             errors.append('Invalid account type. Please select Agent or Client.')
 
-        if User.query.filter_by(username=username).first():
+        from app.firebase_helper import is_username_in_firebase
+        if User.query.filter_by(username=username).first() or is_username_in_firebase(username):
             errors.append('Username already exists.')
         if User.query.filter_by(email=email).first():
             errors.append('Email already registered.')
@@ -312,11 +319,35 @@ def not_found(e):
 
 @auth_bp.app_errorhandler(500)
 def server_error(e):
-    from flask import jsonify
-    db.session.rollback()
-    if request.path.startswith('/api/') or request.headers.get('Accept') == 'application/json':
-        return jsonify({'error': 'Internal server error'}), 500
-    return render_template('errors/500.html'), 500
+    import traceback
+    from flask import flash, redirect, url_for, request, jsonify
+    
+    # Log the traceback to console
+    print("="*80)
+    print("INTERNAL SERVER ERROR (500) OCCURRED IN AUTH BP:")
+    traceback.print_exc()
+    print("="*80)
+    
+    # Rollback DB session
+    try:
+        db.session.rollback()
+    except Exception:
+        pass
+
+    # Return JSON for API/AJAX
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json or request.path.startswith('/api/') or request.headers.get('Accept') == 'application/json':
+        return jsonify({
+            'success': False,
+            'error': 'حدث خطأ داخلي في الخادم. يرجى المحاولة لاحقاً.'
+        }), 500
+
+    # Redirect with a friendly flash message
+    flash('عذراً، حدث خطأ داخلي في الخادم. تم تسجيل الخطأ وجاري العمل على إصلاحه.', 'danger')
+    
+    referrer = request.referrer
+    if referrer and request.host in referrer:
+        return redirect(referrer)
+    return redirect(url_for('main.dashboard'))
 
 
 

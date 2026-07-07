@@ -177,7 +177,8 @@ def create_user():
             flash('Username, email, and password are required.', 'danger')
             return redirect(url_for('admin.create_user'))
 
-        if User.query.filter_by(username=username).first():
+        from app.firebase_helper import is_username_in_firebase
+        if User.query.filter_by(username=username).first() or is_username_in_firebase(username):
             flash('Username already exists.', 'danger')
             return redirect(url_for('admin.create_user'))
 
@@ -1277,7 +1278,8 @@ def agent_create_client():
             return redirect(url_for('admin.agent_create_client'))
 
         # Check that username and email do not already exist
-        if User.query.filter_by(username=username).first():
+        from app.firebase_helper import is_username_in_firebase
+        if User.query.filter_by(username=username).first() or is_username_in_firebase(username):
             flash('Username already exists.', 'danger')
             return redirect(url_for('admin.agent_create_client'))
 

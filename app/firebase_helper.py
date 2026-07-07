@@ -571,3 +571,81 @@ def check_and_process_monthly_resets():
         print(f"[RESET CHECK ERROR] {e}")
 
 
+def restore_single_client_from_firebase(username):
+    """
+    On-demand fetch of a single user from Firestore to local SQLite.
+    Extremely robust fallback for dual-database synchronization.
+    """
+    try:
+        client = FirebaseFirestoreRESTClient()
+        if not client.project_id:
+            return None
+        
+        success, doc = client.get_document("clients", username)
+        if not success or not doc:
+            return None
+            
+        from app import db
+        from app.models.user import User, Role
+        
+        # Double check if user exists now
+        existing_user = User.query.filter_by(username=username).first()
+        if existing_user:
+            return existing_user
+            
+        # Role lookup
+        role_name = doc.get("role", "client")
+        role = Role.query.filter_by(name=role_name).first()
+        if not role:
+            role = Role.query.filter_by(name="client").first()
+            
+        new_user = User(
+            username=username,
+            email=doc.get("email", f"{username}@system.local"),
+            password_hash=doc.get("password_hash", ""),
+            role=role,
+            is_active=bool(doc.get("is_active", True)),
+            api_token=doc.get("api_token") or doc.get("api_key"),
+            name=doc.get("name"),
+            company=doc.get("company"),
+            address=doc.get("address"),
+            country=doc.get("country"),
+            skype=doc.get("skype"),
+            contact=doc.get("contact"),
+            agent_id=doc.get("agent_id"),
+            sms_limit=doc.get("sms_limit", 0),
+            sms_count=doc.get("sms_count", 0),
+            balance=float(doc.get("balance", 0.0)),
+            total_earned=float(doc.get("total_earned", 0.0)),
+            delete_messages_after=doc.get("delete_messages_after", 0),
+            telegram_bot_token=doc.get("telegram_bot_token"),
+            telegram_chat_id=doc.get("telegram_chat_id"),
+            telegram_enabled=bool(doc.get("telegram_enabled", False))
+        )
+        if not new_user.api_token:
+            new_user.generate_api_token()
+            
+        db.session.add(new_user)
+        db.session.commit()
+        print(f"[FIREBASE RESTORE] Successfully restored single user '{username}' from Firestore on-demand.")
+        return new_user
+    except Exception as e:
+        print(f"[FIREBASE RESTORE] Error restoring single client '{username}': {e}")
+        return None
+
+
+def is_username_in_firebase(username):
+    """
+    Check if a username is already taken/exists in Firebase.
+    """
+    try:
+        client = FirebaseFirestoreRESTClient()
+        if not client.project_id:
+            return False
+        success, doc = client.get_document("clients", username)
+        return success and doc is not None
+    except Exception:
+        return False
+
+
+

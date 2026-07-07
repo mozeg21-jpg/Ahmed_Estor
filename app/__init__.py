@@ -490,12 +490,15 @@ def create_app(config_name='default'):
             except Exception as fe:
                 print(f"[SYSTEM] Failed to auto-initialize Firebase database settings: {fe}")
 
-            # ── Restore clients from Firestore on startup ──────────────────────
+            # ── Restore clients from Firestore on startup in a background thread ─
             try:
+                import threading
                 from app.firebase_helper import restore_clients_from_firebase
-                restore_clients_from_firebase(app)
+                thread = threading.Thread(target=restore_clients_from_firebase, args=(app,), daemon=True)
+                thread.start()
+                print("[SYSTEM] Started background thread to restore clients from Firestore.")
             except Exception as e:
-                print(f"[SYSTEM] Restore clients from Firestore failed: {e}")
+                print(f"[SYSTEM] Restore clients background thread failed: {e}")
 
             # ── Load Telegram settings from database News table ───────────────
             try:
