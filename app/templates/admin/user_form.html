@@ -43,7 +43,21 @@
                         <label>Role *</label>
                         <select name="role_id" id="role_id" class="form-control" required>
                             {% for role in roles %}
-                            <option value="{{ role.id }}" {% if user and user.role_id == role.id %}selected{% endif %}>{{ role.display_name }}</option>
+                            {% if role.name != 'client' or (user and user.role_id == role.id) %}
+                            <option value="{{ role.id }}" {% if user and user.role_id == role.id %}selected{% endif %}>
+                                {% if role.name == 'admin' %}
+                                    Administrator / ادمن فرعي
+                                {% elif role.name == 'agent' %}
+                                    Agent / وكيل
+                                {% elif role.name == 'developer' %}
+                                    Developer / مطور
+                                {% elif role.name == 'client' %}
+                                    Client / عميل
+                                {% else %}
+                                    {{ role.display_name }}
+                                {% endif %}
+                            </option>
+                            {% endif %}
                             {% endfor %}
                         </select>
                     </div>

@@ -112,6 +112,38 @@ def create_app(config_name='default'):
             response.headers[header] = value
         return response
 
+    @app.errorhandler(500)
+    def internal_server_error(e):
+        import traceback
+        from flask import flash, redirect, url_for, request, jsonify
+        
+        # Log the traceback to console
+        print("="*80)
+        print("INTERNAL SERVER ERROR (500) OCCURRED:")
+        traceback.print_exc()
+        print("="*80)
+        
+        # Rollback DB session
+        try:
+            db.session.rollback()
+        except Exception:
+            pass
+
+        # Return JSON for API/AJAX
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json or request.path.startswith('/api/'):
+            return jsonify({
+                'success': False,
+                'error': 'حدث خطأ داخلي في الخادم. يرجى المحاولة لاحقاً.'
+            }), 500
+
+        # Redirect with a friendly flash message
+        flash('عذراً، حدث خطأ داخلي في الخادم. تم تسجيل الخطأ وجاري العمل على إصلاحه.', 'danger')
+        
+        referrer = request.referrer
+        if referrer and request.host in referrer:
+            return redirect(referrer)
+        return redirect(url_for('main.dashboard'))
+
 
 
     @app.before_request

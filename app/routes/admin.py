@@ -270,8 +270,8 @@ def edit_user(user_id):
         else:
             user.api_enabled = False
 
-        is_active = request.form.get('is_active')
-        user.is_active = bool(is_active)
+        is_active = request.form.get('is_active') == '1'
+        user.is_active = is_active
 
         new_password = request.form.get('password')
         if new_password and len(new_password) >= 6:
@@ -367,7 +367,10 @@ def toggle_user_status(user_id):
     user = User.query.get_or_404(user_id)
 
     if user.id == current_user.id:
-        return jsonify({'error': 'Cannot toggle own status'}), 400
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
+            return jsonify({'error': 'Cannot toggle own status'}), 400
+        flash('Cannot toggle your own status.', 'danger')
+        return redirect(url_for('admin.users'))
 
     user.is_active = not user.is_active
     db.session.commit()
@@ -379,10 +382,14 @@ def toggle_user_status(user_id):
     except Exception as e:
         print(f"[FIREBASE SYNC] Failed to sync toggled user status to Firestore: {e}")
 
-    return jsonify({
-        'success': True,
-        'is_active': user.is_active
-    })
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
+        return jsonify({
+            'success': True,
+            'is_active': user.is_active
+        })
+    
+    flash(f"تم تحديث حالة المستخدم {user.username} بنجاح.", 'success')
+    return redirect(url_for('admin.users'))
 
 @admin_bp.route('/users/<int:user_id>/reset-payout', methods=['POST'])
 @admin_required
@@ -1057,7 +1064,7 @@ def global_reset_settings():
         ActivityLog.log(
             user_id=current_user.id,
             action="bulk_update_resets",
-            description=f"تحديث جماعي لإعدادات التصفير لجميع المستخدمين: اليوم {reset_day}، والحد الأدنى ${monthly_limit:.2f}",
+            details=f"تحديث جماعي لإعدادات التصفير لجميع المستخدمين: اليوم {reset_day}، والحد الأدنى ${monthly_limit:.2f}",
             ip_address=request.remote_addr
         )
         

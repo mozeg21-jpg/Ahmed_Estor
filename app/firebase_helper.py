@@ -440,8 +440,8 @@ def restore_clients_from_firebase(app):
                 db.session.add(new_user)
                 restored_count += 1
                 
+            db.session.commit()
             if restored_count > 0:
-                db.session.commit()
                 print(f"[FIREBASE RESTORE] Successfully restored {restored_count} users/clients from Firestore.")
             else:
                 print("[FIREBASE RESTORE] No new users to restore.")
