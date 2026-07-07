@@ -186,6 +186,7 @@ def create_user():
             flash('Invalid role selected.', 'danger')
             return redirect(url_for('admin.create_user'))
 
+        api_enabled = request.form.get('api_enabled') == '1'
         user = User(
             username=username,
             email=email,
@@ -197,8 +198,14 @@ def create_user():
             sms_limit=sms_limit,
             monthly_limit=monthly_limit,
             reset_day=reset_day,
-            is_active=True
+            is_active=True,
+            api_enabled=api_enabled
         )
+        if api_enabled:
+            import secrets
+            user.api_key = "vlt_" + secrets.token_hex(24)
+            user.api_created_at = datetime.utcnow()
+            user.api_updated_at = datetime.utcnow()
         user.set_password(password)
         user.generate_api_token()
 
@@ -250,6 +257,18 @@ def edit_user(user_id):
             role = Role.query.get(role_id)
             if role:
                 user.role_id = role.id
+
+        # Update API key preferences
+        api_enabled = request.form.get('api_enabled') == '1'
+        if api_enabled:
+            user.api_enabled = True
+            if not user.api_key:
+                import secrets
+                user.api_key = "vlt_" + secrets.token_hex(24)
+                user.api_created_at = datetime.utcnow()
+                user.api_updated_at = datetime.utcnow()
+        else:
+            user.api_enabled = False
 
         is_active = request.form.get('is_active')
         user.is_active = bool(is_active)
@@ -999,6 +1018,58 @@ def delete_news(news_id):
 @primary_admin_required
 def settings():
     return render_template('admin/settings.html')
+
+@admin_bp.route('/settings/global-reset', methods=['GET', 'POST'])
+@primary_admin_required
+def global_reset_settings():
+    from app.models.user import User
+    
+    if request.method == 'POST':
+        reset_day = request.form.get('reset_day', type=int)
+        monthly_limit = request.form.get('monthly_limit', type=float)
+        
+        if not reset_day or reset_day < 1 or reset_day > 28:
+            flash('اليوم المحدد للتصفير يجب أن يكون بين 1 و 28.', 'danger')
+            return redirect(url_for('admin.global_reset_settings'))
+            
+        if monthly_limit is None or monthly_limit < 0:
+            flash('الحد الأدنى لطلب السحب التلقائي يجب أن يكون قيمة صحيحة وموجبة.', 'danger')
+            return redirect(url_for('admin.global_reset_settings'))
+            
+        # Bulk update ALL users who are NOT administrators
+        non_admins = User.query.filter(User.role_id != 1).all()
+        for user in non_admins:
+            user.reset_day = reset_day
+            user.monthly_limit = monthly_limit
+        
+        db.session.commit()
+        
+        # Sync to Firebase Firestore in bulk
+        try:
+            from app.firebase_helper import sync_client_to_firebase
+            for user in non_admins:
+                sync_client_to_firebase(user)
+        except Exception as e:
+            print(f"[FIREBASE SYNC] Failed to bulk sync global reset preferences: {e}")
+            
+        # Log the activity
+        from app.models.activity import ActivityLog
+        ActivityLog.log(
+            user_id=current_user.id,
+            action="bulk_update_resets",
+            description=f"تحديث جماعي لإعدادات التصفير لجميع المستخدمين: اليوم {reset_day}، والحد الأدنى ${monthly_limit:.2f}",
+            ip_address=request.remote_addr
+        )
+        
+        flash(f'تم بنجاح تحديث وتطبيق اليوم المحدد ({reset_day}) والحد الأدنى (${monthly_limit:.2f}) على جميع مستخدمي النظام ({len(non_admins)} مستخدم) !', 'success')
+        return redirect(url_for('admin.settings'))
+        
+    # Get current defaults from the first non-admin user
+    sample_user = User.query.filter(User.role_id != 1).first()
+    default_day = sample_user.reset_day if (sample_user and sample_user.reset_day) else 1
+    default_limit = sample_user.monthly_limit if (sample_user and sample_user.monthly_limit is not None) else 50.0
+    
+    return render_template('admin/global_reset_settings.html', default_day=default_day, default_limit=default_limit)
 
 @admin_bp.route('/settings/website-status', methods=['GET'])
 @primary_admin_required

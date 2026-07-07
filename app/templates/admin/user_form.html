@@ -41,13 +41,20 @@
                     </div>
                     <div class="form-group">
                         <label>Role *</label>
-                        <select name="role_id" class="form-control" required>
+                        <select name="role_id" id="role_id" class="form-control" required>
                             {% for role in roles %}
                             <option value="{{ role.id }}" {% if user and user.role_id == role.id %}selected{% endif %}>{{ role.display_name }}</option>
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="form-group">
+
+                    <!-- Dynamic Role Information Display Box -->
+                    <div class="form-group" id="role_info_box" style="display: none; padding: 12px; border-radius: 8px; margin-bottom: 15px; background-color: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2);">
+                        <i class="fa fa-info-circle" style="color: #3b82f6; margin-right: 6px;"></i>
+                        <span id="role_info_text" style="font-size: 13px; font-weight: 500; color: var(--txt);"></span>
+                    </div>
+
+                    <div class="form-group" id="agent_group">
                         <label>Agent (for clients)</label>
                         <select name="agent_id" class="form-control">
                             <option value="">None</option>
@@ -68,20 +75,28 @@
                         <label>Country</label>
                         <input type="text" name="country" class="form-control" value="{{ user.country if user else '' }}">
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" id="sms_limit_group">
                         <label>SMS Limit</label>
                         <input type="number" name="sms_limit" class="form-control" value="{{ user.sms_limit if user else '0' }}">
                         <small class="text-muted">Maximum numbers this user can have (0 = unlimited)</small>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" id="monthly_limit_group">
                         <label>Monthly Limit ($)</label>
                         <input type="number" step="0.01" name="monthly_limit" class="form-control" value="{{ user.monthly_limit if user else '50.00' }}">
                         <small class="text-muted">Monthly withdrawal limit for this user (e.g. 50.00)</small>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" id="reset_day_group">
                         <label>Monthly Reset Day</label>
                         <input type="number" min="1" max="28" name="reset_day" class="form-control" value="{{ user.reset_day if user else '1' }}">
                         <small class="text-muted">Day of the month on which account resets and auto-withdrawal is triggered (1 to 28)</small>
+                    </div>
+                    <div class="form-group" id="api_enabled_group">
+                        <label>Enable API Access - تفعيل الـ API للعميل</label>
+                        <select name="api_enabled" class="form-control">
+                            <option value="1" {% if user and user.api_enabled %}selected{% endif %}>Yes - نعم (سيتم توليد مفتاح تلقائياً)</option>
+                            <option value="0" {% if user and not user.api_enabled %}selected{% endif %}>No - لا</option>
+                        </select>
+                        <small class="text-muted">إذا تم التفعيل، سيقوم النظام تلقائياً بإنشاء مفتاح API للمستخدم في حال عدم وجوده.</small>
                     </div>
                     <div class="form-group">
                         <label>Active</label>
@@ -92,6 +107,60 @@
                     </div>
                     <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
                     <a href="{{ url_for('admin.users') }}" class="btn btn-default"><i class="fa fa-arrow-left"></i> Back</a>
+
+                    <!-- Dynamic form JS -->
+                    <script>
+                        document.addEventListener("DOMContentLoaded", function() {
+                            var roleSelect = document.getElementById("role_id");
+                            
+                            var agentGroup = document.getElementById("agent_group");
+                            var smsLimitGroup = document.getElementById("sms_limit_group");
+                            var monthlyLimitGroup = document.getElementById("monthly_limit_group");
+                            var resetDayGroup = document.getElementById("reset_day_group");
+                            
+                            var roleInfoBox = document.getElementById("role_info_box");
+                            var roleInfoText = document.getElementById("role_info_text");
+                            
+                            var roleDescriptions = {
+                                "1": "مدير فرعي (Administrator): يمتلك صلاحيات الإدارة والتحكم في النظام بالكامل تحت المالك الأساسي. لا يحتاج لحدود ميزانية أو أرقام.",
+                                "2": "وكيل (Agent): شريك أعمال يمكنه إدارة أرقام تابعة وإضافة عملاء فرعيين تحته.",
+                                "3": "عميل (Client): مستخدم نهائي يستقبل الرسائل ويستهلك الحساب التابع للوكيل المختار.",
+                                "4": "مطور (Developer): يمتلك صلاحيات فنية للوصول والربط دون صلاحيات مالية أو مبيعات."
+                            };
+
+                            function updateFormFields() {
+                                var val = roleSelect.value;
+                                
+                                // Reset display
+                                agentGroup.style.display = "block";
+                                smsLimitGroup.style.display = "block";
+                                monthlyLimitGroup.style.display = "block";
+                                resetDayGroup.style.display = "block";
+                                
+                                // Show info
+                                if (roleDescriptions[val]) {
+                                    roleInfoText.innerText = roleDescriptions[val];
+                                    roleInfoBox.style.display = "block";
+                                } else {
+                                    roleInfoBox.style.display = "none";
+                                }
+
+                                if (val === "1" || val === "4") {
+                                    // Admin / Developer
+                                    agentGroup.style.display = "none";
+                                    smsLimitGroup.style.display = "none";
+                                    monthlyLimitGroup.style.display = "none";
+                                    resetDayGroup.style.display = "none";
+                                } else if (val === "2") {
+                                    // Agent
+                                    agentGroup.style.display = "none";
+                                }
+                            }
+
+                            roleSelect.addEventListener("change", updateFormFields);
+                            updateFormFields(); // Run on load
+                        });
+                    </script>
                 </form>
             </div>
         </div>

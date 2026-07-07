@@ -491,6 +491,31 @@
         </li>
         {% endif %}
 
+        {% elif current_user.is_test_account() %}
+        <!-- ══ TEST USER SIDEBAR ════════════════════════════════════════════ -->
+        <!-- TEST PANEL -->
+        <div class="sb-label" style="font-size: 11px; font-weight: 700; color: var(--accent); margin-bottom: 8px; text-transform: uppercase;">Test Panel</div>
+        <li>
+            <a href="{{ url_for('main.dashboard') }}" class="sb-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); text-decoration: none;">
+                <i class="fa fa-home"></i> Dashboard
+            </a>
+        </li>
+        <li>
+            <a href="{{ url_for('main.inbox') }}" class="sb-link {% if request.endpoint == 'main.inbox' %}active{% endif %}" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); text-decoration: none;">
+                <i class="fa fa-inbox"></i> Inbox - الرسائل الواردة
+            </a>
+        </li>
+        <li>
+            <a href="{{ url_for('main.sms_ranges') }}" class="sb-link {% if request.endpoint == 'main.sms_ranges' %}active{% endif %}" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); text-decoration: none;">
+                <i class="fa fa-flag"></i> SMS Ranges - رينجات الأرقام
+            </a>
+        </li>
+        <li>
+            <a href="{{ url_for('main.my_sms_numbers') }}" class="sb-link {% if request.endpoint == 'main.my_sms_numbers' %}active{% endif %}" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); text-decoration: none;">
+                <i class="fa fa-list-ol"></i> My Numbers - أرقام الفحص
+            </a>
+        </li>
+
         {% else %}
         <!-- ══ STANDARD USER SIDEBAR ════════════════════════════════════════════ -->
         <!-- DASHBOARDS -->
@@ -538,11 +563,11 @@
         <div class="sb-label" style="font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 8px; text-transform: uppercase;">CDRS & Stats</div>
         <li>
             <span class="sb-link {% if request.endpoint == 'main.sms_cdr_reports' or (request.endpoint == 'main.stats') %}active open{% endif %}" onclick="toggleAccordion(this, 'sub-cdrs')" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); cursor: pointer;">
-                <i class="fa fa-file-text-o"></i> CDR & Stats
+                <i class="fa fa-file-text"></i> CDR & Stats
                 <i class="fa fa-chevron-right sb-arrow" style="margin-left: auto; font-size: 10px;"></i>
             </span>
             <ul class="sb-sub {% if request.endpoint == 'main.sms_cdr_reports' or (request.endpoint == 'main.stats') %}expanded{% endif %}" id="sub-cdrs" style="list-style: none; padding-left: 20px;">
-                <li><a href="{{ url_for('main.sms_cdr_reports') }}" class="sb-link {% if request.endpoint == 'main.sms_cdr_reports' %}active{% endif %}"><i class="fa fa-file-text"></i> SMS Reports</a></li>
+                <li><a href="{{ url_for('main.sms_cdr_reports') }}" class="sb-link {% if request.endpoint == 'main.sms_cdr_reports' %}active{% endif %}"><i class="fa fa-file-text"></i> CDR Reports</a></li>
                 <li><a href="{{ url_for('main.stats', stat_type='sms') }}" class="sb-link {% if request.endpoint == 'main.stats' and request.view_args.get('stat_type') == 'sms' %}active{% endif %}"><i class="fa fa-bar-chart"></i> SMS Stats</a></li>
                 <li><a href="{{ url_for('main.stats', stat_type='clients') }}" class="sb-link {% if request.endpoint == 'main.stats' and request.view_args.get('stat_type') == 'clients' %}active{% endif %}"><i class="fa fa-user"></i> Clients Stats</a></li>
                 <li><a href="{{ url_for('main.stats', stat_type='ranges') }}" class="sb-link {% if request.endpoint == 'main.stats' and request.view_args.get('stat_type') == 'ranges' %}active{% endif %}"><i class="fa fa-globe"></i> Ranges Stats</a></li>

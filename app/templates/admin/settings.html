@@ -182,5 +182,19 @@
             إعدادات قاعدة البيانات <i class="fa fa-arrow-left"></i>
         </a>
     </div>
+
+    <!-- Global Auto Payout & Reset Settings -->
+    <div class="settings-card-compact">
+        <div>
+            <div class="settings-icon-box-compact" style="background: linear-gradient(135deg, #a855f7, #6b21a8);">
+                <i class="fa fa-refresh"></i>
+            </div>
+            <div class="settings-title-compact">التصفير التلقائي والسحوبات للجميع</div>
+            <div class="settings-desc-compact">تحديث جماعي لليوم المحدد لتصفير الحساب شهرياً، وتعيين الحد الأدنى المالي لطلب السحب التلقائي لكل المستخدمين.</div>
+        </div>
+        <a href="{{ url_for('admin.global_reset_settings') }}" class="btn btn-primary settings-action-btn-compact" style="background: linear-gradient(135deg, #a855f7, #6b21a8); border-color: #6b21a8; color: white;">
+            إعدادات التصفير التلقائي <i class="fa fa-arrow-left"></i>
+        </a>
+    </div>
 </div>
 {% endblock %}

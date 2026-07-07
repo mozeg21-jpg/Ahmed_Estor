@@ -156,6 +156,30 @@
 </div>
 {% endif %}
 
+{% if current_user.is_test_account() %}
+<div class="dashboard-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+    <a href="{{ url_for('main.inbox') }}" class="dashboard-card">
+        <div class="icon-wrapper">
+            <i class="fa fa-inbox"></i>
+        </div>
+        <div class="title">Inbox - الرسائل الواردة</div>
+    </a>
+    
+    <a href="{{ url_for('main.sms_ranges') }}" class="dashboard-card">
+        <div class="icon-wrapper">
+            <i class="fa fa-flag"></i>
+        </div>
+        <div class="title">SMS Ranges - رينجات الأرقام</div>
+    </a>
+    
+    <a href="{{ url_for('main.my_sms_numbers') }}" class="dashboard-card">
+        <div class="icon-wrapper">
+            <i class="fa fa-list-ol"></i>
+        </div>
+        <div class="title">My Numbers - أرقام الفحص</div>
+    </a>
+</div>
+{% else %}
 <div class="dashboard-grid">
     <a href="{{ url_for('main.dashboard') }}" class="dashboard-card">
         <div class="icon-wrapper">
@@ -180,7 +204,7 @@
     
     <a href="{{ url_for('main.sms_cdr_reports') }}" class="dashboard-card">
         <div class="icon-wrapper">
-            <i class="fa fa-file-text-o"></i>
+            <i class="fa fa-file-text"></i>
         </div>
         <div class="title">CDR Reports</div>
     </a>
@@ -234,6 +258,7 @@
         <div class="stats-right"><i class="fa fa-level-up"></i></div>
     </div>
 </div>
+{% endif %}
 
 {% endblock %}
 

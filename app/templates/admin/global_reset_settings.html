@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}إعدادات التصفير التلقائي والحد الأدنى للجميع - Volt SMS{% endblock %}
+
+{% block content %}
+<style>
+    .settings-header {
+        background: linear-gradient(135deg, rgba(17, 24, 39, 0.8), rgba(31, 41, 55, 0.8));
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 24px;
+        backdrop-filter: blur(10px);
+    }
+
+    .control-panel-section {
+        background-color: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+
+    .section-title {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--txt);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 12px;
+    }
+
+    .section-title i {
+        color: var(--accent);
+    }
+
+    .form-group-custom {
+        margin-bottom: 16px;
+    }
+
+    .form-group-custom label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--txt);
+        margin-bottom: 6px;
+    }
+
+    .form-control-custom {
+        width: 100%;
+        background-color: rgba(17, 24, 39, 0.6);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px 14px;
+        color: var(--txt);
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+
+    .form-control-custom:focus {
+        border-color: var(--accent);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+</style>
+
+<!-- Header -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="settings-header" style="direction: rtl;">
+            <span class="admin-title-badge" style="background: rgba(59, 130, 246, 0.1); color: var(--accent); padding: 6px 12px; border-radius: 99px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+                <i class="fa fa-refresh"></i> تصفير الحسابات والسحوبات التلقائية
+            </span>
+            <h2 style="color: var(--txt); font-weight: 800; margin: 0; font-size: 24px;">تحديث جماعي لإعدادات التصفير التلقائي للجميع</h2>
+            <p style="color: var(--muted); margin: 6px 0 0 0; font-size: 14px;">تحديث فوري لليوم المحدد للتصفير الشهري، والحد الأدنى من الأرباح اللازمة لطلب السحب التلقائي وتطبيقها على جميع المستخدمين دفعة واحدة.</p>
+        </div>
+    </div>
+</div>
+
+<div class="row" style="direction: rtl;">
+    <div class="col-md-6 mx-auto">
+        <!-- Global Auto Payout & Reset Settings -->
+        <div class="control-panel-section">
+            <div class="section-title">
+                <i class="fa fa-cogs"></i>
+                <span>التحديث الجماعي لجميع المستخدمين</span>
+            </div>
+            <p style="font-size: 13px; color: var(--muted); margin-bottom: 16px; line-height: 1.6;">
+                عند النقر على زر التحديث، سيتم تطبيق اليوم المحدد والحد الأدنى المالي على جميع حسابات العملاء والوكلاء في النظام في عملية واحدة سريعة.
+            </p>
+
+            <form action="{{ url_for('admin.global_reset_settings') }}" method="POST">
+                <div class="form-group-custom">
+                    <label for="reset_day">اليوم المحدد للتصفير شهرياً (من 1 إلى 28):</label>
+                    <input type="number" min="1" max="28" class="form-control-custom" name="reset_day" id="reset_day" value="{{ default_day }}" required>
+                    <small style="color: var(--muted); display: block; margin-top: 4px;">اليوم من الشهر الذي يتم فيه تصفير رصيد المستخدم تلقائياً ورفع طلب السحب للإدارة.</small>
+                </div>
+                <div class="form-group-custom" style="margin-top: 20px;">
+                    <label for="monthly_limit">الحد الأدنى للرصيد لرفع طلب سحب تلقائي ($):</label>
+                    <input type="number" step="0.01" min="0" class="form-control-custom" name="monthly_limit" id="monthly_limit" value="{{ default_limit }}" required>
+                    <small style="color: var(--muted); display: block; margin-top: 4px;">إذا وصل رصيد المستخدم في يوم التصفير إلى هذا الحد أو تجاوزه، فسيتم تصفير الحساب تلقائياً وإنشاء طلب سحب.</small>
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-top: 30px;">
+                    <a href="{{ url_for('admin.settings') }}" class="btn btn-default" style="font-weight: bold; padding: 10px 20px;">
+                        إلغاء والعودة
+                    </a>
+                    <button type="submit" class="btn btn-success" style="font-weight: bold; padding: 10px 30px; flex-grow: 1; background-color: var(--accent); border-color: var(--accent); color: white;" onsubmit="return confirm('هل أنت متأكد من تطبيق هذه الإعدادات على جميع المستخدمين؟');">
+                        <i class="fa fa-save"></i> تحديث وتطبيق على الجميع
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

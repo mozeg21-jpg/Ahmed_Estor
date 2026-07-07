@@ -912,16 +912,20 @@ def forward_to_reserved(messages):
         if user_id_val:
             user = User.query.get(user_id_val)
             if user:
-                user.balance = (user.balance or 0.0) + agent_payout_val
-                user.total_earned = (user.total_earned or 0.0) + agent_payout_val
-                total_earned += agent_payout_val
+                # Admin and test accounts should not accumulate balance/earnings
+                effective_agent_payout = 0.0 if (user.is_admin() or user.is_test_account()) else agent_payout_val
+                user.balance = (user.balance or 0.0) + effective_agent_payout
+                user.total_earned = (user.total_earned or 0.0) + effective_agent_payout
+                total_earned += effective_agent_payout
 
         # Credit the Client account using this number
         if client_id_val:
             client_user = User.query.get(client_id_val)
             if client_user:
-                client_user.balance = (client_user.balance or 0.0) + client_payout_val
-                client_user.total_earned = (client_user.total_earned or 0.0) + client_payout_val
+                # Admin and test accounts should not accumulate balance/earnings
+                effective_client_payout = 0.0 if (client_user.is_admin() or client_user.is_test_account()) else client_payout_val
+                client_user.balance = (client_user.balance or 0.0) + effective_client_payout
+                client_user.total_earned = (client_user.total_earned or 0.0) + effective_client_payout
 
         # Platform/Agent Profit per message
         profit_val = max(0.0, agent_payout_val - client_payout_val) if client_id_val else agent_payout_val

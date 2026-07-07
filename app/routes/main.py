@@ -657,6 +657,9 @@ def sms_test_panel():
 @main_bp.route('/agent/CreditNotes')
 @login_required
 def credit_notes():
+    if current_user.is_admin() or current_user.is_test_account():
+        flash('Access denied. Financial modules are disabled for Administrator and Test accounts.', 'danger')
+        return redirect(url_for('main.dashboard'))
     from app.models.finance import CreditNote
     user_notes = CreditNote.query.filter_by(user_id=current_user.id).all()
     if not user_notes:
@@ -686,6 +689,9 @@ def credit_notes():
 @main_bp.route('/agent/PaymentRequests', methods=['GET', 'POST'])
 @login_required
 def payment_requests():
+    if current_user.is_admin() or current_user.is_test_account():
+        flash('Access denied. Financial modules are disabled for Administrator and Test accounts.', 'danger')
+        return redirect(url_for('main.dashboard'))
     from app.models.finance import PaymentRequest, BankAccount, CreditNote
     
     if request.method == 'POST':
@@ -740,6 +746,9 @@ def payment_requests():
 @main_bp.route('/agent/BankAccounts', methods=['GET', 'POST'])
 @login_required
 def bank_accounts():
+    if current_user.is_admin() or current_user.is_test_account():
+        flash('Access denied. Financial modules are disabled for Administrator and Test accounts.', 'danger')
+        return redirect(url_for('main.dashboard'))
     from app.models.finance import BankAccount
     
     if request.method == 'POST':
@@ -817,6 +826,9 @@ def delete_bank_account(account_id):
 @main_bp.route('/agent/Statements/<currency>')
 @login_required
 def statements(currency):
+    if current_user.is_admin() or current_user.is_test_account():
+        flash('Access denied. Financial modules are disabled for Administrator and Test accounts.', 'danger')
+        return redirect(url_for('main.dashboard'))
     from app.models.finance import CreditNote, PaymentRequest
     
     currency = currency.upper()
