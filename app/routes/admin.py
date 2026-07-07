@@ -84,6 +84,44 @@ def view_user(user_id):
     user = User.query.get_or_404(user_id)
     return render_template('admin/user_view.html', user=user)
 
+@admin_bp.route('/users/toggle_api/<int:user_id>', methods=['POST'])
+@admin_required
+def toggle_user_api(user_id):
+    from datetime import datetime
+    user = User.query.get_or_404(user_id)
+    user.api_enabled = not user.api_enabled
+    user.api_updated_at = datetime.utcnow()
+    db.session.commit()
+    status_str = "Enabled" if user.api_enabled else "Disabled"
+    flash(f"User API status has been updated to {status_str} for {user.username}.", "success")
+    return redirect(url_for('admin.view_user', user_id=user.id))
+
+@admin_bp.route('/users/regenerate_api/<int:user_id>', methods=['POST'])
+@admin_required
+def regenerate_user_api(user_id):
+    from datetime import datetime
+    import secrets
+    user = User.query.get_or_404(user_id)
+    new_key = "vlt_" + secrets.token_hex(24)
+    user.api_key = new_key
+    user.api_created_at = datetime.utcnow()
+    user.api_updated_at = datetime.utcnow()
+    db.session.commit()
+    flash(f"A new API key has been generated for {user.username}.", "success")
+    return redirect(url_for('admin.view_user', user_id=user.id))
+
+@admin_bp.route('/users/delete_api/<int:user_id>', methods=['POST'])
+@admin_required
+def delete_user_api(user_id):
+    from datetime import datetime
+    user = User.query.get_or_404(user_id)
+    user.api_key = None
+    user.api_enabled = False
+    user.api_updated_at = datetime.utcnow()
+    db.session.commit()
+    flash(f"API key for {user.username} has been deleted and API was disabled.", "success")
+    return redirect(url_for('admin.view_user', user_id=user.id))
+
 @admin_bp.route('/users')
 @admin_required
 def users():

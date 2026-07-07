@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام الربط الذكي - Volt SMS</title>
+</head>
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="breadcrumb" style="background: var(--bg-widget); border: 1px solid var(--border); padding: 15px 20px; border-radius: 8px; margin-bottom: 25px;">
+            <h4 style="margin: 0; color: var(--accent); font-weight: 600;">
+                <i class="fa fa-code"></i> نظام الربط وتلقي الرسائل التلقائي (API)
+            </h4>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        {% if current_user.api_enabled and current_user.api_key %}
+        <!-- Enabled API View -->
+        <div class="widget-block" style="border: 1px solid var(--success); border-top: 4px solid var(--success); border-radius: 8px; margin-bottom: 25px; background: var(--bg-widget);">
+            <div class="widget-head" style="padding: 15px 20px; border-bottom: 1px solid var(--border); background: rgba(46, 204, 113, 0.05);">
+                <h5 style="margin: 0; color: var(--success); font-weight: 600; font-size: 16px;">
+                    <i class="fa fa-check-circle"></i> تم تفعيل نظام الربط بنجاح وهو الآن نشط للعمل المباشر
+                </h5>
+            </div>
+            <div class="widget-content" style="padding: 20px;">
+                <p style="font-size: 14px; line-height: 1.6; color: var(--txt); margin-bottom: 20px;">
+                    مرحباً بك! يمكنك الآن استخدام البيانات التالية لربط نظامك الخاص واستلام جميع الرسائل الواردة إلى حسابك بشكل فوري وتلقائي ومباشر فور وصولها.
+                </p>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <!-- API Key Card -->
+                        <div style="background: var(--hover); border: 1px solid var(--border); border-radius: 6px; padding: 15px; margin-bottom: 15px;">
+                            <label style="font-weight: 600; color: var(--accent); display: block; margin-bottom: 10px;">
+                                <i class="fa fa-key"></i> مفتاح الربط الخاص بك (API Key)
+                            </label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="userApiKey" value="{{ current_user.api_key }}" readonly style="font-family: monospace; font-weight: bold; background: var(--bg-widget); color: var(--txt); border-color: var(--border); font-size: 14px; letter-spacing: 2px;">
+                                <span class="input-group-btn">
+                                    <button class="btn btn-default" type="button" id="toggleKeyBtn" onclick="toggleKeyVisibility()" style="border-color: var(--border); background: var(--bg-widget); color: var(--txt);">
+                                        <i class="fa fa-eye" id="toggleKeyIcon"></i> عرض
+                                    </button>
+                                    <button class="btn btn-primary" type="button" onclick="copyUserApiKey()" style="font-weight: 500;">
+                                        <i class="fa fa-copy"></i> نسخ المفتاح
+                                    </button>
+                                </span>
+                            </div>
+                            <small class="text-muted" style="display: block; margin-top: 8px;">
+                                <i class="fa fa-exclamation-triangle text-warning"></i> تنبيه هام: لا تشارك هذا المفتاح السري مع أي شخص لحماية بياناتك.
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <!-- API Endpoint Card -->
+                        <div style="background: var(--hover); border: 1px solid var(--border); border-radius: 6px; padding: 15px; margin-bottom: 15px;">
+                            <label style="font-weight: 600; color: var(--accent); display: block; margin-bottom: 10px;">
+                                <i class="fa fa-link"></i> رابط سحب الرسائل التلقائي (Endpoint URL)
+                            </label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="userApiUrl" value="{{ request.host_url }}api/v1/user/messages" readonly style="font-family: monospace; background: var(--bg-widget); color: var(--txt); border-color: var(--border); font-size: 13px;">
+                                <span class="input-group-btn">
+                                    <button class="btn btn-primary" type="button" onclick="copyUserApiUrl()" style="font-weight: 500;">
+                                        <i class="fa fa-copy"></i> نسخ الرابط
+                                    </button>
+                                </span>
+                            </div>
+                            <small class="text-muted" style="display: block; margin-top: 8px;">
+                                <i class="fa fa-info-circle"></i> يقوم برنامجك بإرسال طلب (GET) لهذا الرابط لقراءة كل الرسائل المتزامنة فورياً.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Real-Time Message Tracking Board (NO CODE EXPOSED) -->
+        <div class="widget-block" style="border: 1px solid var(--border); border-radius: 8px; background: var(--bg-widget);">
+            <div class="widget-head" style="padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <h5 style="margin: 0; font-weight: 600; color: var(--txt);">
+                    <i class="fa fa-refresh fa-spin text-accent"></i> لوحة المراقبة والتحديث الفوري للرسائل (تحديث تلقائي مستمر)
+                </h5>
+                <div>
+                    <span class="label label-success" style="padding: 4px 8px; font-size: 11px;">
+                        <i class="fa fa-circle text-blink"></i> متصل ومباشر
+                    </span>
+                    <button class="btn btn-xs btn-default" onclick="fetchLiveMessages()" style="margin-left: 5px;">
+                        <i class="fa fa-refresh"></i> تحديث يدوي الآن
+                    </button>
+                </div>
+            </div>
+            <div class="widget-content" style="padding: 0;">
+                <div class="table-responsive">
+                    <table class="table table-striped" style="margin-bottom: 0;">
+                        <thead>
+                            <tr style="background: var(--hover); color: var(--txt); font-weight: 600;">
+                                <th style="padding: 12px 15px; border-bottom: 1px solid var(--border);">معرف الرسالة</th>
+                                <th style="padding: 12px 15px; border-bottom: 1px solid var(--border);">المرسل (Sender)</th>
+                                <th style="padding: 12px 15px; border-bottom: 1px solid var(--border);">المستلم (Recipient)</th>
+                                <th style="padding: 12px 15px; border-bottom: 1px solid var(--border);">محتوى الرسالة بالكامل (Message Content)</th>
+                                <th style="padding: 12px 15px; border-bottom: 1px solid var(--border);">وقت الوصول</th>
+                                <th style="padding: 12px 15px; border-bottom: 1px solid var(--border);">الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody id="liveMessagesBody">
+                            <tr>
+                                <td colspan="6" class="text-center" style="padding: 40px; color: var(--muted);">
+                                    <i class="fa fa-spinner fa-spin fa-2x" style="margin-bottom: 10px; display: block;"></i>
+                                    جاري جلب الرسائل الحية والمتزامنة الآن...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        {% else %}
+        <!-- Disabled / Pending API View -->
+        <div class="widget-block" style="border: 1px solid var(--danger); border-top: 4px solid var(--danger); border-radius: 8px; background: var(--bg-widget); padding: 40px 20px; text-align: center;">
+            <div style="width: 80px; height: 80px; line-height: 80px; border-radius: 50%; background: rgba(231, 76, 60, 0.1); color: var(--danger); font-size: 35px; display: inline-block; margin-bottom: 20px;">
+                <i class="fa fa-clock-o"></i>
+            </div>
+            <h3 style="margin: 0 0 15px 0; font-weight: bold; color: var(--txt); font-size: 22px;">
+                الـ API غير مفعل لحسابك حالياً
+            </h3>
+            <p style="font-size: 16px; color: var(--muted); max-width: 600px; margin: 0 auto 25px auto; line-height: 1.6;">
+                يرجى الانتظار حتى يتم تفعيل مفتاح الـ API الخاص بك من قبل الإدارة. بمجرد تفعيل الخدمة، ستتمكن من رؤية مفتاح التزامن والروابط المباشرة وتفعيل جلب الرسائل بشكل آلي وفوري.
+            </p>
+            <div style="background: var(--hover); display: inline-block; padding: 10px 20px; border-radius: 6px; border: 1px solid var(--border); font-size: 13px; color: var(--txt);">
+                <i class="fa fa-info-circle text-info"></i> حالة الطلب: <strong class="text-warning">قيد الانتظار / Pending Activation</strong>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleKeyVisibility() {
+    const keyInput = document.getElementById('userApiKey');
+    const toggleIcon = document.getElementById('toggleKeyIcon');
+    const toggleBtn = document.getElementById('toggleKeyBtn');
+    
+    if (keyInput.type === 'password') {
+        keyInput.type = 'text';
+        toggleIcon.className = 'fa fa-eye-slash';
+        toggleBtn.innerHTML = '<i class="fa fa-eye-slash"></i> إخفاء';
+    } else {
+        keyInput.type = 'password';
+        toggleIcon.className = 'fa fa-eye';
+        toggleBtn.innerHTML = '<i class="fa fa-eye"></i> عرض';
+    }
+}
+
+function copyUserApiKey() {
+    const keyInput = document.getElementById('userApiKey');
+    if (keyInput) {
+        navigator.clipboard.writeText(keyInput.value).then(function() {
+            alert('تم نسخ مفتاح الـ API بنجاح!');
+        }, function(err) {
+            console.error('Failed to copy API key: ', err);
+        });
+    }
+}
+
+function copyUserApiUrl() {
+    const urlInput = document.getElementById('userApiUrl');
+    if (urlInput) {
+        navigator.clipboard.writeText(urlInput.value).then(function() {
+            alert('تم نسخ رابط الـ API بنجاح!');
+        }, function(err) {
+            console.error('Failed to copy API URL: ', err);
+        });
+    }
+}
+
+// Live real-time messages fetching using client-side async request to API
+function fetchLiveMessages() {
+    const apiKey = "{{ current_user.api_key }}";
+    const liveBody = document.getElementById('liveMessagesBody');
+    if (!apiKey || !liveBody) return;
+
+    fetch(`/api/v1/user/messages?api_key=${apiKey}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const messages = data.messages;
+                if (messages.length === 0) {
+                    liveBody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="text-center" style="padding: 30px; color: var(--muted);">
+                                <i class="fa fa-info-circle"></i> لا توجد رسائل متزامنة حالياً في حسابك.
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                let htmlContent = '';
+                messages.forEach(msg => {
+                    const statusClass = msg.status === 'completed' ? 'label-success' : 'label-warning';
+                    const formattedDate = new Date(msg.created_at).toLocaleString('ar-EG', { hour12: true });
+                    
+                    htmlContent += `
+                        <tr>
+                            <td style="padding: 12px 15px; font-weight: bold; font-family: monospace;">#${msg.id}</td>
+                            <td style="padding: 12px 15px;">${msg.sender || '<span class="text-muted">غير محدد</span>'}</td>
+                            <td style="padding: 12px 15px; font-weight: bold; font-family: monospace;">${msg.recipient || ''}</td>
+                            <td style="padding: 12px 15px; white-space: pre-line; word-break: break-all; font-weight: 500;">${msg.message || ''}</td>
+                            <td style="padding: 12px 15px; font-size: 12px; color: var(--muted);">${formattedDate}</td>
+                            <td style="padding: 12px 15px;">
+                                <span class="label ${statusClass}" style="padding: 3px 6px; font-size: 11px;">
+                                    ${msg.status || 'مكتمل'}
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                });
+                liveBody.innerHTML = htmlContent;
+            } else {
+                liveBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-danger" style="padding: 30px;">
+                            <i class="fa fa-exclamation-triangle"></i> حدث خطأ أثناء الاتصال بالنظام: ${data.message}
+                        </td>
+                    </tr>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching live API messages:', error);
+            liveBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center text-danger" style="padding: 30px;">
+                        <i class="fa fa-exclamation-triangle"></i> فشل جلب التحديثات المباشرة. يرجى التحقق من اتصالك بالإنترنت.
+                    </td>
+                </tr>
+            `;
+        });
+}
+
+// Automatically fetch live messages on page load and periodically every 5 seconds for real-time instant sync demonstration
+document.addEventListener('DOMContentLoaded', function() {
+    {% if current_user.api_enabled and current_user.api_key %}
+    fetchLiveMessages();
+    setInterval(fetchLiveMessages, 5000); // Poll every 5 seconds for absolute real-time experience
+    {% endif %}
+});
+</script>
+{% endblock %}

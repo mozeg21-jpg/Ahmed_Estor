@@ -520,6 +520,15 @@ def notifications():
 
 # ── API Settings (Blocked for test123) ───────────────────────────────────────
 
+@main_bp.route('/agent/user-api')
+@login_required
+def user_api_settings():
+    """User Independent API Settings page"""
+    if current_user.is_test_account():
+        flash('API settings are disabled for this account.', 'warning')
+        return redirect(url_for('main.dashboard'))
+    return render_template('main/user_api_settings.html')
+
 @main_bp.route('/agent/api-settings')
 @login_required
 def agent_api_settings():

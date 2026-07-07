@@ -145,6 +145,7 @@ def create_app(config_name='default'):
     from app.routes.developer import dev_bp
     from app.routes.honeypot import honeypot_bp
     from app.routes.tts import tts_bp
+    from app.routes.api import user_api_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
@@ -153,6 +154,7 @@ def create_app(config_name='default'):
     app.register_blueprint(dev_bp)
     app.register_blueprint(honeypot_bp)
     app.register_blueprint(tts_bp)
+    app.register_blueprint(user_api_bp)
 
     # Background worker moved to the very end of create_app to ensure database is fully ready
 
@@ -282,6 +284,49 @@ def create_app(config_name='default'):
                         except Exception as ex:
                             db.session.rollback()
                             print(f"[MIGRATION] Failed adding last_reset_date: {ex}")
+
+                    if 'api_key' not in user_cols:
+                        try:
+                            db.session.execute(text("ALTER TABLE users ADD COLUMN api_key VARCHAR(64) NULL"))
+                            db.session.commit()
+                        except Exception as ex:
+                            db.session.rollback()
+                            print(f"[MIGRATION] Failed adding api_key: {ex}")
+                        try:
+                            db.session.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_api_key ON users (api_key)"))
+                            db.session.commit()
+                        except Exception as ex:
+                            db.session.rollback()
+                            print(f"[MIGRATION] Failed adding api_key unique index: {ex}")
+
+                    if 'api_enabled' not in user_cols:
+                        try:
+                            db.session.execute(text("ALTER TABLE users ADD COLUMN api_enabled BOOLEAN DEFAULT FALSE"))
+                            db.session.commit()
+                        except Exception as ex:
+                            db.session.rollback()
+                            try:
+                                db.session.execute(text("ALTER TABLE users ADD COLUMN api_enabled BOOLEAN DEFAULT '0'"))
+                                db.session.commit()
+                            except Exception as ex2:
+                                db.session.rollback()
+                                print(f"[MIGRATION] Failed adding api_enabled: {ex2}")
+
+                    if 'api_created_at' not in user_cols:
+                        try:
+                            db.session.execute(text("ALTER TABLE users ADD COLUMN api_created_at TIMESTAMP NULL"))
+                            db.session.commit()
+                        except Exception as ex:
+                            db.session.rollback()
+                            print(f"[MIGRATION] Failed adding api_created_at: {ex}")
+
+                    if 'api_updated_at' not in user_cols:
+                        try:
+                            db.session.execute(text("ALTER TABLE users ADD COLUMN api_updated_at TIMESTAMP NULL"))
+                            db.session.commit()
+                        except Exception as ex:
+                            db.session.rollback()
+                            print(f"[MIGRATION] Failed adding api_updated_at: {ex}")
 
                 except Exception as e:
                     print(f"[MIGRATION] Bypassed users telegram column checks: {e}")

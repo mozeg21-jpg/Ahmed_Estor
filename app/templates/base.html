@@ -500,6 +500,11 @@
                 <i class="fa fa-home"></i> Dashboard
             </a>
         </li>
+        <li>
+            <a href="{{ url_for('main.user_api_settings') }}" class="sb-link {% if request.endpoint == 'main.user_api_settings' %}active{% endif %}" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); text-decoration: none;">
+                <i class="fa fa-code" style="color: var(--accent);"></i> API System - نظام الـ API
+            </a>
+        </li>
 
         <div class="sb-divider" style="height: 1px; background: var(--border); margin: 15px 0;"></div>
 

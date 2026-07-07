@@ -91,6 +91,71 @@
                 </table>
             </div>
         </div>
+
+        <!-- Independent User API System -->
+        <div class="widget-block" style="margin-top: 20px;">
+            <div class="widget-head">
+                <h5><i class="fa fa-code"></i> User API System (Independent)</h5>
+            </div>
+            <div class="widget-content">
+                <table class="table">
+                    <tr>
+                        <th>API Status:</th>
+                        <td>
+                            {% if user.api_enabled %}
+                            <span class="label label-success"><i class="fa fa-check"></i> Enabled</span>
+                            {% else %}
+                            <span class="label label-danger"><i class="fa fa-ban"></i> Disabled</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>API Key:</th>
+                        <td>
+                            {% if user.api_key %}
+                            <code>{{ user.api_key }}</code>
+                            {% else %}
+                            <span class="text-muted">No API Key generated</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% if user.api_created_at %}
+                    <tr>
+                        <th>API Created:</th>
+                        <td>{{ user.api_created_at.strftime('%Y-%m-%d %H:%M:%S UTC') }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if user.api_updated_at %}
+                    <tr>
+                        <th>API Updated:</th>
+                        <td>{{ user.api_updated_at.strftime('%Y-%m-%d %H:%M:%S UTC') }}</td>
+                    </tr>
+                    {% endif %}
+                </table>
+                <div style="margin-top: 15px; display: flex; gap: 8px; flex-wrap: wrap;">
+                    <form method="POST" action="{{ url_for('admin.toggle_user_api', user_id=user.id) }}" style="display: inline;">
+                        <button type="submit" class="btn btn-sm {% if user.api_enabled %}btn-warning{% else %}btn-success{% endif %}">
+                            <i class="fa fa-{% if user.api_enabled %}power-off{% else %}play{% endif %}"></i>
+                            {% if user.api_enabled %}Disable API{% else %}Enable API{% endif %}
+                        </button>
+                    </form>
+
+                    <form method="POST" action="{{ url_for('admin.regenerate_user_api', user_id=user.id) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to generate a new API Key? The old one will immediately stop working.');">
+                        <button type="submit" class="btn btn-sm btn-primary">
+                            <i class="fa fa-refresh"></i> Regenerate Key
+                        </button>
+                    </form>
+
+                    {% if user.api_key %}
+                    <form method="POST" action="{{ url_for('admin.delete_user_api', user_id=user.id) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete the API Key? This will also disable the API.');">
+                        <button type="submit" class="btn btn-sm btn-danger">
+                            <i class="fa fa-trash"></i> Delete Key
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 

@@ -75,6 +75,12 @@ class User(UserMixin, db.Model):
     telegram_chat_id = db.Column(db.String(100))
     telegram_enabled = db.Column(db.Boolean, default=False)
 
+    # User API settings
+    api_key = db.Column(db.String(64), unique=True, nullable=True)
+    api_enabled = db.Column(db.Boolean, default=False)
+    api_created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    api_updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
     def __repr__(self):
         return f'<User {self.username}>'
 
