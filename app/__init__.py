@@ -357,27 +357,8 @@ def create_app(config_name='default'):
                 print("[SYSTEM] Test account created: test123 / test123")
 
             # ── Create default SMS ranges with price 0.007 ──────────────────────
-            if SMDRange.query.count() == 0:
-                sample_ranges = [
-                    SMDRange(name='United States', country='United States', operator='AT&T',
-                             network_type='GSM', mcc='310', mnc='410',
-                             currency='USD', rate=0.007, cost_per_sms=0.007,
-                             memo='United States SMS', test_number='12025551234', is_active=True,
-                             billing_cycle='monthly', manual_price=5.0),
-                    SMDRange(name='United Kingdom', country='United Kingdom', operator='Vodafone',
-                             network_type='GSM', mcc='234', mnc='15',
-                             currency='GBP', rate=0.007, cost_per_sms=0.007,
-                             memo='UK SMS', test_number='447911123456', is_active=True,
-                             billing_cycle='monthly', manual_price=4.0),
-                    SMDRange(name='Germany', country='Germany', operator='Deutsche Telekom',
-                             network_type='GSM', mcc='262', mnc='1',
-                             currency='EUR', rate=0.007, cost_per_sms=0.007,
-                             memo='Germany SMS', test_number='4915112345678', is_active=True,
-                             billing_cycle='monthly', manual_price=4.0),
-                ]
-                for r in sample_ranges:
-                    db.session.add(r)
-                db.session.commit()
+            # Automatically seeding ranges is disabled to prevent experimental/test ranges
+            pass
 
             # ── Create default SMS suppliers ────────────────────────────────────
             from app.models.sms import SMSSupplier
