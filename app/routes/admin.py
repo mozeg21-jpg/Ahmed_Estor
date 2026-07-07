@@ -321,15 +321,15 @@ def delete_user(user_id):
         from app.models.activity import ActivityLog
         ActivityLog.query.filter_by(user_id=user.id).delete()
 
-        # Delete BankAccounts, Statements, and PaymentRequests
-        from app.models.finance import BankAccount, Statement, PaymentRequest
+        # Delete BankAccounts, CreditNotes, and PaymentRequests
+        from app.models.finance import BankAccount, CreditNote, PaymentRequest
         BankAccount.query.filter_by(user_id=user.id).delete()
-        Statement.query.filter_by(user_id=user.id).delete()
+        CreditNote.query.filter_by(user_id=user.id).delete()
         PaymentRequest.query.filter_by(user_id=user.id).delete()
 
         # Delete Developer static assets
-        from app.models.developer import Developer
-        Developer.query.filter_by(uploader_id=user.id).delete()
+        from app.models.developer import StaticAsset
+        StaticAsset.query.filter_by(uploader_id=user.id).delete()
 
         # Delete SMSNumbers and SMSCDRs linked to user to prevent FK violations
         from app.models.sms import SMSNumber, SMSCDR
@@ -1962,6 +1962,40 @@ def search_user():
         'email': user.email,
         'role': user.role.name if user.role else 'unknown',
         'is_active': user.is_active
+    })
+
+# ============ SEARCH RANGE API ============
+
+@admin_bp.route('/admin/search-range')
+@admin_required
+def search_range():
+    """Search for range by name"""
+    name = request.args.get('name', '').strip()
+
+    if not name:
+        return jsonify({'found': False, 'message': 'Range name is required'})
+
+    # Try searching for exact or partial match
+    smd_range = SMDRange.query.filter(SMDRange.name.ilike(f'%{name}%')).first()
+
+    if not smd_range:
+        return jsonify({'found': False})
+
+    # Count of unallocated active numbers
+    available_count = SMSNumber.query.filter_by(
+        range_id=smd_range.id,
+        agent_id=None,
+        client_id=None,
+        is_active=True
+    ).count()
+
+    return jsonify({
+        'found': True,
+        'id': smd_range.id,
+        'name': smd_range.name,
+        'country': smd_range.country,
+        'cost_per_sms': float(smd_range.cost_per_sms) if smd_range.cost_per_sms else 0.0,
+        'available_count': available_count
     })
 
 # ============ CLIENT MANAGEMENT (ADMIN) ============

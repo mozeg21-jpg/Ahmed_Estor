@@ -28,6 +28,12 @@
 
                 <form method="POST" id="allocateNumbersForm">
                     <div class="form-group">
+                        <label for="range_search" style="font-weight: bold;">ابحث عن الرينج / Search for Range</label>
+                        <input type="text" id="range_search" class="form-control" placeholder="اكتب اسم الرينج هنا للبحث والتحقق..." style="height: 45px; font-size: 15px; margin-bottom: 10px;" autocomplete="off">
+                        <div id="rangeSearchResult" style="margin-top: 5px; margin-bottom: 10px;"></div>
+                    </div>
+
+                    <div class="form-group">
                         <label for="range_id" style="font-weight: bold;">اختر الرينج المستهدف / Select Range</label>
                         <select name="range_id" id="range_id" class="form-control" required style="height: 45px; font-size: 15px;">
                             <option value="">-- اختر الرينج / Select Range --</option>
@@ -38,7 +44,7 @@
                             </option>
                             {% endfor %}
                         </select>
-                        <span class="help-block">اختر رينجاً مضافاً مسبقاً وسيتم سحب الأرقام غير المحجوزة منه تلقائياً.</span>
+                        <span class="help-block">سيتم اختيار الرينج تلقائياً عند البحث عنه أعلاه، أو يمكنك تحديده يدوياً.</span>
                     </div>
 
                     <div class="form-group">
@@ -78,6 +84,44 @@
 document.addEventListener('DOMContentLoaded', function() {
     const usernameInput = document.getElementById('target_username');
     const resultDiv = document.getElementById('userSearchResult');
+    const rangeSearchInput = document.getElementById('range_search');
+    const rangeResultDiv = document.getElementById('rangeSearchResult');
+    const rangeSelect = document.getElementById('range_id');
+
+    // Range Search Handler
+    function checkRange() {
+        const query = rangeSearchInput.value.trim();
+        if (query.length < 2) {
+            rangeResultDiv.innerHTML = '';
+            return;
+        }
+
+        fetch(`/admin/search-range?name=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.found) {
+                    rangeResultDiv.innerHTML = `
+                        <div class="alert alert-success" style="margin-top: 10px; border-left: 5px solid #2ecc71; margin-bottom: 10px;">
+                            <i class="fa fa-check-circle"></i> تم العثور على الرينج بنجاح:
+                            <strong>${data.name}</strong> (${data.country}) - 
+                            <span class="label label-info">المتاح: ${data.available_count} رقم</span>
+                        </div>`;
+                    
+                    // Automatically select this range in the select box
+                    rangeSelect.value = data.id;
+                } else {
+                    rangeResultDiv.innerHTML = `
+                        <div class="alert alert-danger" style="margin-top: 10px; border-left: 5px solid #e74c3c; margin-bottom: 10px;">
+                            <i class="fa fa-times-circle"></i> عذراً، هذا الرينج غير موجود في النظام.
+                        </div>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error searching range:', error);
+            });
+    }
+
+    rangeSearchInput.addEventListener('input', checkRange);
 
     function checkUser() {
         const username = usernameInput.value.trim();
