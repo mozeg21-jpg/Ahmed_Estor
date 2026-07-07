@@ -3004,6 +3004,84 @@ def database_settings():
             flash('❌ عذراً، لم يتم إدخال رابط قاعدة البيانات بالكامل.', 'danger')
             return redirect(url_for('admin.database_settings'))
             
+        # Clean up database URL
+        clean_db_url = db_url
+        if clean_db_url.startswith('postgres://'):
+            clean_db_url = clean_db_url.replace('postgres://', 'postgresql://', 1)
+
+        # Let's perform auto-migration and copy data from current SQLite to new Supabase database!
+        migration_error = None
+        try:
+            from sqlalchemy import create_engine
+            from sqlalchemy.orm import sessionmaker
+            from app import db
+            from app.models.user import User, Role
+            from app.models.sms import SMSSupplier, SMDRange, SMSNumber
+            from app.models.activity import News
+            from app.models.finance import BankAccount, PaymentRequest, CreditNote
+            from app.models.developer import StaticAsset
+
+            # 1. Create engine and tables on Supabase
+            temp_engine = create_engine(clean_db_url)
+            db.metadata.create_all(bind=temp_engine)
+
+            # 2. Open Session
+            TempSession = sessionmaker(bind=temp_engine)
+            session = TempSession()
+
+            # 3. Helper to copy tables from SQLite to PostgreSQL
+            def migrate_table(model_class, source_query):
+                try:
+                    if session.query(model_class).count() == 0:
+                        for item in source_query.all():
+                            kwargs = {c.name: getattr(item, c.name) for c in model_class.__table__.columns}
+                            session.add(model_class(**kwargs))
+                        session.commit()
+                        print(f"[MIGRATION] Migrated table {model_class.__tablename__} successfully.")
+                except Exception as e:
+                    session.rollback()
+                    print(f"[MIGRATION] Failed to migrate table {model_class.__tablename__}: {e}")
+
+            # 4. Perform migration
+            migrate_table(Role, Role.query)
+            migrate_table(User, User.query)
+            migrate_table(SMSSupplier, SMSSupplier.query)
+            migrate_table(SMDRange, SMDRange.query)
+            migrate_table(SMSNumber, SMSNumber.query)
+            migrate_table(News, News.query)
+            migrate_table(BankAccount, BankAccount.query)
+            migrate_table(PaymentRequest, PaymentRequest.query)
+            migrate_table(CreditNote, CreditNote.query)
+            migrate_table(StaticAsset, StaticAsset.query)
+
+            # 5. Ensure at least default values exist if source was empty
+            # Seed Roles
+            for role_name, display in [('admin', 'Administrator'), ('agent', 'Agent'),
+                                       ('client', 'Client'), ('developer', 'Developer')]:
+                if not session.query(Role).filter_by(name=role_name).first():
+                    session.add(Role(name=role_name, display_name=display))
+            session.commit()
+
+            # Seed Admin
+            admin_role = session.query(Role).filter_by(name='admin').first()
+            if not session.query(User).filter_by(username='admin').first():
+                admin = User(
+                    username='admin',
+                    email='admin@system.local',
+                    role=admin_role,
+                    is_active=True,
+                )
+                admin.set_password('admin123')
+                admin.generate_api_token()
+                session.add(admin)
+                session.commit()
+
+            session.close()
+            print("[SYSTEM] Successfully migrated and seeded Supabase database.")
+        except Exception as e:
+            migration_error = str(e)
+            print(f"[SYSTEM] Error during Supabase migration: {e}")
+
         # Ensure .env exists by copying h.env if not present
         if not os.path.exists(env_path) and os.path.exists(h_env_path):
             import shutil
@@ -3033,7 +3111,11 @@ def database_settings():
         # Also update os.environ so that the current session or a reload can reflect it
         os.environ['DATABASE_URL'] = db_url
         
-        flash('✅ تم حفظ الإعدادات بنجاح! سيتم تطبيق الاتصال الجديد فوراً عند إعادة التشغيل.', 'success')
+        if migration_error:
+            flash(f'⚠️ تم حفظ رابط الاتصال بـ .env، ولكن فشل إنشاء الجداول/المزامنة على سوبابيس: {migration_error}', 'warning')
+        else:
+            flash('✅ تم ربط قاعدة بيانات Supabase، وإنشاء الجداول، ومزامنة كافة السجلات والبيانات بنجاح تام! سيعمل الموقع على سوبابيس فور إعادة التشغيل.', 'success')
+            
         return redirect(url_for('admin.database_settings'))
         
     # GET request

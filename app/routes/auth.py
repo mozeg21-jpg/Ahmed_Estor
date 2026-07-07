@@ -311,10 +311,15 @@ def forbidden(e):
 
 @auth_bp.app_errorhandler(404)
 def not_found(e):
-    from flask import jsonify
+    from flask import jsonify, request, flash, redirect, url_for
     if request.path.startswith('/api/') or request.headers.get('Accept') == 'application/json':
-        return jsonify({'error': 'Not found'}), 404
-    return render_template('errors/404.html'), 404
+        return jsonify({'success': False, 'error': 'المورد المطلوب غير موجود (404)'}), 404
+    
+    flash('⚠️ عذراً، الصفحة أو السجل الذي تحاول الوصول إليه غير موجود أو تم حذفه من قاعدة البيانات.', 'warning')
+    referrer = request.referrer
+    if referrer and request.host in referrer:
+        return redirect(referrer)
+    return redirect(url_for('main.dashboard'))
 
 
 @auth_bp.app_errorhandler(500)
@@ -324,7 +329,7 @@ def server_error(e):
     
     # Log the traceback to console
     print("="*80)
-    print("INTERNAL SERVER ERROR (500) OCCURRED IN AUTH BP:")
+    print("INTERNAL SERVER ERROR (500) OCCURRED:")
     traceback.print_exc()
     print("="*80)
     
@@ -338,12 +343,62 @@ def server_error(e):
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json or request.path.startswith('/api/') or request.headers.get('Accept') == 'application/json':
         return jsonify({
             'success': False,
-            'error': 'حدث خطأ داخلي في الخادم. يرجى المحاولة لاحقاً.'
+            'error': f'حدث خطأ داخلي في الخادم: {str(e)}'
         }), 500
 
     # Redirect with a friendly flash message
-    flash('عذراً، حدث خطأ داخلي في الخادم. تم تسجيل الخطأ وجاري العمل على إصلاحه.', 'danger')
+    flash(f'⚠️ حدث خطأ داخلي في الخادم: {str(e)}', 'danger')
     
+    referrer = request.referrer
+    if referrer and request.host in referrer:
+        return redirect(referrer)
+    return redirect(url_for('main.dashboard'))
+
+
+@auth_bp.app_errorhandler(Exception)
+def handle_global_exception(e):
+    import traceback
+    from flask import flash, redirect, url_for, request, jsonify
+    from sqlalchemy.exc import SQLAlchemyError
+    
+    # If the exception is already handled by a specific status code errorhandler (like 404 or 403),
+    # let Flask's default processing pass it through or avoid double handling.
+    from werkzeug.exceptions import HTTPException
+    if isinstance(e, HTTPException):
+        if e.code in [401, 403, 404]:
+            if e.code == 404:
+                return not_found(e)
+            return e
+            
+    # Log the exception
+    print("="*80)
+    print(f"GLOBAL EXCEPTION CAUGHT: {type(e).__name__}: {str(e)}")
+    traceback.print_exc()
+    print("="*80)
+    
+    # Determine error type
+    is_db_error = isinstance(e, SQLAlchemyError)
+    
+    # Rollback DB session in case of database error
+    try:
+        db.session.rollback()
+    except Exception:
+        pass
+        
+    # JSON Response for APIs
+    if request.path.startswith('/api/') or request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json or request.headers.get('Accept') == 'application/json':
+        err_msg = 'حدث خطأ في قاعدة البيانات.' if is_db_error else 'حدث خطأ داخلي في الخادم.'
+        return jsonify({
+            'success': False,
+            'error': f"{err_msg} التفاصيل: {str(e)}"
+        }), 500
+        
+    # Redirect with custom flash message
+    if is_db_error:
+        flash(f'⚠️ خطأ في الاتصال بقاعدة البيانات: {str(e)}. يرجى التحقق من إعدادات Supabase والاتصال.', 'danger')
+    else:
+        flash(f'⚠️ حدث خطأ غير متوقع: {str(e)}', 'danger')
+        
     referrer = request.referrer
     if referrer and request.host in referrer:
         return redirect(referrer)
