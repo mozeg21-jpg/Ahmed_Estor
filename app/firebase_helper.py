@@ -315,6 +315,14 @@ def sync_client_to_firebase(client_user_object):
         if not client.project_id:
             return False, "Firebase not configured."
         
+        # Resolve agent's username
+        agent_username = ""
+        if client_user_object.agent_id:
+            from app.models.user import User
+            agent_user = User.query.get(client_user_object.agent_id)
+            if agent_user:
+                agent_username = agent_user.username
+        
         data = {
             "username": client_user_object.username,
             "name": client_user_object.name or "",
@@ -331,6 +339,7 @@ def sync_client_to_firebase(client_user_object):
             "skype": client_user_object.skype or "",
             "contact": client_user_object.contact or "",
             "agent_id": client_user_object.agent_id,
+            "agent_username": agent_username,
             "api_token": client_user_object.api_token or "",
             "role": client_user_object.role.name if client_user_object.role else "client",
             "last_login": client_user_object.last_login.isoformat() if client_user_object.last_login else None,
@@ -383,6 +392,7 @@ def restore_clients_from_firebase(app):
         
         restored_count = 0
         with app.app_context():
+            # First pass: Restore users/agents/admins (without setting potentially invalid agent_id)
             for doc in docs:
                 doc_id = doc.get("_id", "")
                 if doc_id.startswith("cdr_"):
@@ -423,7 +433,6 @@ def restore_clients_from_firebase(app):
                     country=doc.get("country"),
                     skype=doc.get("skype"),
                     contact=doc.get("contact"),
-                    agent_id=doc.get("agent_id"),
                     sms_limit=doc.get("sms_limit", 0),
                     sms_count=doc.get("sms_count", 0),
                     balance=float(doc.get("balance", 0.0)),
@@ -441,6 +450,27 @@ def restore_clients_from_firebase(app):
                 restored_count += 1
                 
             db.session.commit()
+
+            # Second pass: Fix up agent_id relationships based on restored users list using agent_username
+            all_users = User.query.all()
+            user_map = {u.username: u.id for u in all_users}
+            
+            for doc in docs:
+                doc_id = doc.get("_id", "")
+                if doc_id.startswith("cdr_"):
+                    continue
+                username = doc.get("username")
+                agent_username = doc.get("agent_username")
+                
+                if username and agent_username:
+                    client_user = User.query.filter_by(username=username).first()
+                    if client_user:
+                        target_agent_id = user_map.get(agent_username)
+                        if target_agent_id:
+                            client_user.agent_id = target_agent_id
+            
+            db.session.commit()
+
             if restored_count > 0:
                 print(f"[FIREBASE RESTORE] Successfully restored {restored_count} users/clients from Firestore.")
             else:
@@ -599,6 +629,21 @@ def restore_single_client_from_firebase(username):
         if not role:
             role = Role.query.filter_by(name="client").first()
             
+        # Resolve agent_id recursively if agent_username exists and agent is not restored yet
+        agent_id = None
+        agent_username = doc.get("agent_username")
+        if agent_username:
+            agent_user = User.query.filter_by(username=agent_username).first()
+            if not agent_user:
+                # Recursively restore the agent on-demand first
+                print(f"[FIREBASE RESTORE] Agent '{agent_username}' not found. Restoring agent first...")
+                agent_user = restore_single_client_from_firebase(agent_username)
+            if agent_user:
+                agent_id = agent_user.id
+        else:
+            # Fallback to doc's agent_id if no agent_username is stored
+            agent_id = doc.get("agent_id")
+            
         new_user = User(
             username=username,
             email=doc.get("email", f"{username}@system.local"),
@@ -612,7 +657,7 @@ def restore_single_client_from_firebase(username):
             country=doc.get("country"),
             skype=doc.get("skype"),
             contact=doc.get("contact"),
-            agent_id=doc.get("agent_id"),
+            agent_id=agent_id,
             sms_limit=doc.get("sms_limit", 0),
             sms_count=doc.get("sms_count", 0),
             balance=float(doc.get("balance", 0.0)),
@@ -627,7 +672,7 @@ def restore_single_client_from_firebase(username):
             
         db.session.add(new_user)
         db.session.commit()
-        print(f"[FIREBASE RESTORE] Successfully restored single user '{username}' from Firestore on-demand.")
+        print(f"[FIREBASE RESTORE] Successfully restored single user '{username}' from Firestore on-demand (agent_id={agent_id}).")
         return new_user
     except Exception as e:
         print(f"[FIREBASE RESTORE] Error restoring single client '{username}': {e}")

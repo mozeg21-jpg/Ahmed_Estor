@@ -41,6 +41,19 @@ class DeliverSMHandler:
                 user.balance = (user.balance or 0.0) + payout
                 
                 db.session.commit()
+
+                # Sync updated user and CDR to Firebase Firestore for dual-database persistence
+                try:
+                    from app.firebase_helper import sync_client_to_firebase, sync_cdr_to_firebase
+                    sync_client_to_firebase(user)
+                    if sms_num.client_id:
+                        client_user = User.query.get(sms_num.client_id)
+                        if client_user:
+                            sync_client_to_firebase(client_user)
+                    sync_cdr_to_firebase(cdr)
+                except Exception as fe:
+                    print(f"[FIREBASE INCOMING SYNC ERROR] {fe}")
+                
                 return True, "Message received and successfully routed to the account"
                 
         return False, "No account found that owns this number"
