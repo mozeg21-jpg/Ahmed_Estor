@@ -533,64 +533,73 @@ def check_and_process_monthly_resets():
         users = User.query.filter(User.balance > 0).all()
 
         for u in users:
-            # Check if today is equal to or past their reset_day of this month
+            should_reset = False
+            reset_reason = ""
+            
+            # Rule 1: Specified Reset Day of the month reached
             if now.day >= (u.reset_day or 1):
-                # Also ensure they haven't been reset yet in this calendar month
-                if u.last_reset_date:
-                    if u.last_reset_date.year == now.year and u.last_reset_date.month == now.month:
-                        # Already reset this month
-                        continue
+                # Ensure they haven't been reset yet in this calendar month for Rule 1
+                if not (u.last_reset_date and u.last_reset_date.year == now.year and u.last_reset_date.month == now.month):
+                    limit_threshold = u.monthly_limit if u.monthly_limit is not None else 50.0
+                    if u.balance >= limit_threshold:
+                        should_reset = True
+                        reset_reason = f"بسبب الوصول لليوم المحدد للمزامنة والتصفير ({u.reset_day})"
 
-                balance_amount = u.balance
-                limit_threshold = u.monthly_limit if u.monthly_limit is not None else 50.0
-                if balance_amount < limit_threshold:
-                    # Balance has not reached the allowed limit yet, do not auto-withdraw/reset
-                    continue
-                if balance_amount <= 0.0:
-                    continue
+            # Rule 2: 45 Days account age and balance >= $50 (User's special request)
+            account_age = now - u.created_at
+            if not should_reset and account_age.days >= 45 and u.balance >= 50.0:
+                should_reset = True
+                reset_reason = "بسبب تجاوز مدة 45 يوماً مع رصيد يتخطى $50"
 
-                # Find or create a bank account for the PaymentRequest
-                bank_acc = BankAccount.query.filter_by(user_id=u.id, status='active').first()
-                if not bank_acc:
-                    bank_acc = BankAccount.query.filter_by(user_id=u.id).first()
-                if not bank_acc:
-                    # Create a seeded default bank account for this user so constraints are met
-                    bank_acc = BankAccount(
-                        user_id=u.id,
-                        bank_name="Auto Payout System",
-                        account_name=f"{u.username.upper()} AUTO",
-                        iban=f"AUTO-IBAN-{u.id}-{now.strftime('%Y%m%d')}",
-                        bic_swift="AUTOPAY",
-                        currency="USD",
-                        status="active"
-                    )
-                    db.session.add(bank_acc)
-                    db.session.commit()
+            if not should_reset:
+                continue
 
-                # Create the payment request (payout)
-                p_req = PaymentRequest(
+            balance_amount = u.balance
+            if balance_amount <= 0.0:
+                continue
+
+            # Find or create a bank account for the PaymentRequest
+            bank_acc = BankAccount.query.filter_by(user_id=u.id, status='active').first()
+            if not bank_acc:
+                bank_acc = BankAccount.query.filter_by(user_id=u.id).first()
+            if not bank_acc:
+                # Create a seeded default bank account for this user so constraints are met
+                bank_acc = BankAccount(
                     user_id=u.id,
-                    amount=balance_amount,
+                    bank_name="Auto Payout System",
+                    account_name=f"{u.username.upper()} AUTO",
+                    iban=f"AUTO-IBAN-{u.id}-{now.strftime('%Y%m%d')}",
+                    bic_swift="AUTOPAY",
                     currency="USD",
-                    bank_account_id=bank_acc.id,
-                    status="pending",
-                    requested_at=now
+                    status="active"
                 )
-                db.session.add(p_req)
-
-                # Log the reset
-                log_desc = f"طلب سحب تلقائي وتصفير حساب بقيمة ${balance_amount:.2f} بسبب الوصول لليوم المحدد للمزامنة والتصفير ({u.reset_day})"
-                ActivityLog.log(
-                    user_id=u.id,
-                    action="auto_reset_payout",
-                    description=log_desc,
-                    ip_address="127.0.0.1"
-                )
-
-                # Reset user balance
-                u.balance = 0.0
-                u.last_reset_date = now
+                db.session.add(bank_acc)
                 db.session.commit()
+
+            # Create the payment request (payout)
+            p_req = PaymentRequest(
+                user_id=u.id,
+                amount=balance_amount,
+                currency="USD",
+                bank_account_id=bank_acc.id,
+                status="pending",
+                requested_at=now
+            )
+            db.session.add(p_req)
+
+            # Log the reset
+            log_desc = f"طلب سحب تلقائي وتصفير حساب بقيمة ${balance_amount:.2f} {reset_reason}"
+            ActivityLog.log(
+                user_id=u.id,
+                action="auto_reset_payout",
+                description=log_desc,
+                ip_address="127.0.0.1"
+            )
+
+            # Reset user balance
+            u.balance = 0.0
+            u.last_reset_date = now
+            db.session.commit()
 
                 # Sync to Firebase
                 try:

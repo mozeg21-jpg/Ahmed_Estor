@@ -230,7 +230,9 @@ def register():
             errors.append('Invalid account type. Please select Agent or Client.')
 
         from app.firebase_helper import is_username_in_firebase
-        if User.query.filter_by(username=username).first() or is_username_in_firebase(username):
+        from sqlalchemy import func
+        existing_user = User.query.filter(func.lower(User.username) == func.lower(username)).first()
+        if existing_user or is_username_in_firebase(username):
             errors.append('Username already exists.')
         if User.query.filter_by(email=email).first():
             errors.append('Email already registered.')

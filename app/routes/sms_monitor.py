@@ -912,8 +912,14 @@ def forward_to_reserved(messages):
         if user_id_val:
             user = User.query.get(user_id_val)
             if user:
+                # If number is assigned to a client, agent gets the profit (difference)
+                # If number is NOT assigned to a client, agent gets the full payout
+                payout_to_agent = agent_payout_val
+                if client_id_val:
+                    payout_to_agent = max(0.0, agent_payout_val - client_payout_val)
+                
                 # Admin and test accounts should not accumulate balance/earnings
-                effective_agent_payout = 0.0 if (user.is_admin() or user.is_test_account()) else agent_payout_val
+                effective_agent_payout = 0.0 if (user.is_admin() or user.is_test_account()) else payout_to_agent
                 user.balance = (user.balance or 0.0) + effective_agent_payout
                 user.total_earned = (user.total_earned or 0.0) + effective_agent_payout
                 total_earned += effective_agent_payout
