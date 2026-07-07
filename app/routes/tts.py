@@ -117,18 +117,18 @@ def welcome_greeting():
         name_lang = detect_lang(display_name)
         
         if current_user.is_admin():
-            text = f"أهلاً بك يا مدير {display_name} في لوحة دي ريم إس إم إس."
+            text = f"أهلاً بك يا مدير {display_name} في لوحة فولت إس إم إس."
             lang = 'ar'
         elif current_user.is_agent():
             if name_lang == 'ar':
-                text = f"أهلاً بك يا وكيل {display_name} في لوحة دي ريم إس إم إس."
+                text = f"أهلاً بك يا وكيل {display_name} في لوحة فولت إس إم إس."
                 lang = 'ar'
             else:
                 text = f"Welcome, Agent {display_name}, to Volt SMS panel."
                 lang = 'en'
         else:
             if name_lang == 'ar':
-                text = f"أهلاً بك يا {display_name} في لوحة دي ريم إس إم إس."
+                text = f"أهلاً بك يا {display_name} في لوحة فولت إس إم إس."
                 lang = 'ar'
             else:
                 text = f"Welcome, {display_name}, to Volt SMS panel."

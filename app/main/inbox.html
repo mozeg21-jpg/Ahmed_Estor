@@ -212,7 +212,7 @@ function speakMessage(btn) {
 
     if (match) {
         var code = match[0];
-        url = "/api/tts/otp?code=" + encodeURIComponent(code) + "&bot_name=" + encodeURIComponent("Volt SMS");
+        url = "/api/tts/otp?code=" + encodeURIComponent(code) + "&bot_name=" + encodeURIComponent("Volt%20SMS");
     } else {
         url = "/api/tts?text=" + encodeURIComponent(msg);
     }
