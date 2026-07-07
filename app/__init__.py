@@ -47,6 +47,15 @@ SECURITY_HEADERS = {
 
 def create_app(config_name='default'):
     app = Flask(__name__)
+    
+    # Configure Jinja to search both templates/ and the app root directory so that
+    # templates inside app/main/ can be resolved as main/*.html
+    from jinja2 import ChoiceLoader, FileSystemLoader
+    app.jinja_loader = ChoiceLoader([
+        FileSystemLoader(os.path.join(app.root_path, 'templates')),
+        FileSystemLoader(app.root_path)
+    ])
+    
     app.config.from_object(config[config_name])
     
     from werkzeug.middleware.proxy_fix import ProxyFix

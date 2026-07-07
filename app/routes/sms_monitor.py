@@ -985,7 +985,6 @@ def forward_to_reserved(messages):
                         for cdr_obj in newly_created_cdrs:
                             # Only forward if the message belongs to test123_user (as agent) or their client accounts
                             if cdr_obj.user_id == test123_user.id or cdr_obj.client_id == test123_user.id:
-                                from app.models.sms import SMSNumber
                                 sms_num = SMSNumber.query.get(cdr_obj.number_id)
                                 range_name = sms_num.sms_range.name if (sms_num and sms_num.sms_range) else "رينج_غير_معروف"
                                 
