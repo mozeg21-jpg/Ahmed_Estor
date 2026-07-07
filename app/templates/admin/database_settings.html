@@ -144,8 +144,12 @@
                 </p>
 
                 <div class="nav-tabs-custom">
-                    <button class="nav-tab-btn active" id="btn-uri-mode" onclick="switchMode('uri')">رابط الاتصال المباشر (URI)</button>
-                    <button class="nav-tab-btn" id="btn-fields-mode" onclick="switchMode('fields')">بيانات الاتصال منفصلة</button>
+                    <button class="nav-tab-btn active" id="btn-uri-mode" onclick="switchMode('uri')">
+                        <i class="fa fa-link" style="margin-left: 6px;"></i> رابط الاتصال المباشر (URI)
+                    </button>
+                    <button class="nav-tab-btn" id="btn-fields-mode" onclick="switchMode('fields')">
+                        <i class="fa fa-sliders" style="margin-left: 6px;"></i> بيانات الاتصال منفصلة
+                    </button>
                 </div>
 
                 <form id="db-settings-form" method="POST" action="{{ url_for('admin.database_settings') }}">

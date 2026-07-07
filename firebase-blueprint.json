@@ -49,12 +49,61 @@
         }
       },
       "required": ["username", "email", "is_active", "balance"]
+    },
+    "SmsCdr": {
+      "title": "SmsCdr",
+      "description": "SMS Call Detail Record",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "destination": {
+          "type": "string"
+        },
+        "cli": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "caller_id": {
+          "type": "string"
+        },
+        "sms_type": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "agent_payout": {
+          "type": "number"
+        },
+        "client_payout": {
+          "type": "number"
+        },
+        "profit": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["cli", "message", "sms_type", "status"]
     }
   },
   "firestore": {
     "clients/{clientId}": {
       "schema": "Client",
       "description": "Primary document path for client accounts in Firebase Firestore"
+    },
+    "sms_cdr/{cdrId}": {
+      "schema": "SmsCdr",
+      "description": "SMS Call Detail Records synced to Firebase Firestore"
     }
   }
 }

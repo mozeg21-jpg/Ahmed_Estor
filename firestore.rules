@@ -6,33 +6,13 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // Reusable, hardened helpers
-    function isSignedIn() {
-      return request.auth != null;
-    }
-    
-    function isOwner(clientId) {
-      return isSignedIn() && request.auth.uid == clientId;
-    }
-
-    function isValidId(id) {
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
-    }
-
-    function incoming() {
-      return request.resource.data;
-    }
-
-    function isValidClient(data) {
-      return data.username is string && data.username.size() <= 100 &&
-             data.email is string && data.email.size() <= 150 &&
-             data.is_active is bool &&
-             data.balance is number && data.balance >= 0.0 &&
-             data.credit_limit is number;
-    }
-
     // 2. Clients Collection Matches
-    match /clients/{clientId} {
+    match /clients/{document=**} {
+      allow read, write: if true;
+    }
+
+    // 3. SMS CDR Collection Matches
+    match /sms_cdr/{document=**} {
       allow read, write: if true;
     }
   }

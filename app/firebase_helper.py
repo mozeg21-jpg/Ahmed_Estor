@@ -194,25 +194,49 @@ class FirebaseFirestoreRESTClient:
             return False, err_msg
 
     def list_documents(self, collection_path):
-        """Lists all documents inside a collection"""
-        if not self.base_url:
+        """Lists all documents inside a collection using runQuery to bypass REST list restrictions"""
+        if not self.project_id:
             raise ValueError("Firebase Project ID not configured.")
         
-        url = f"{self.base_url}/{collection_path}"
+        url = f"https://firestore.googleapis.com/v1/projects/{self.project_id}/databases/{self.database_id}/documents:runQuery"
         params = {}
         if self.api_key:
             params["key"] = self.api_key
             
-        res = requests.get(url, params=params, timeout=8)
-        if res.status_code == 200:
-            docs = res.json().get("documents", [])
-            return True, [self._from_firestore_document(d) for d in docs]
-        else:
-            try:
-                err_msg = res.json().get("error", {}).get("message", res.text)
-            except Exception:
-                err_msg = res.text
-            return False, err_msg
+        payload = {
+            "structuredQuery": {
+                "from": [
+                    {"collectionId": collection_path}
+                ]
+            }
+        }
+        
+        try:
+            res = requests.post(url, params=params, json=payload, timeout=10)
+            if res.status_code == 200:
+                results = res.json()
+                docs = []
+                if isinstance(results, list):
+                    for item in results:
+                        doc_dict = item.get("document")
+                        if doc_dict:
+                            docs.append(self._from_firestore_document(doc_dict))
+                return True, docs
+            else:
+                # Fallback to GET list
+                fallback_url = f"{self.base_url}/{collection_path}"
+                fallback_res = requests.get(fallback_url, params=params, timeout=8)
+                if fallback_res.status_code == 200:
+                    docs = fallback_res.json().get("documents", [])
+                    return True, [self._from_firestore_document(d) for d in docs]
+                
+                try:
+                    err_msg = res.json().get("error", {}).get("message", res.text)
+                except Exception:
+                    err_msg = res.text
+                return False, err_msg
+        except Exception as e:
+            return False, str(e)
 
     def delete_document(self, collection_path, document_id):
         """Deletes a document from a collection"""
@@ -360,6 +384,10 @@ def restore_clients_from_firebase(app):
         restored_count = 0
         with app.app_context():
             for doc in docs:
+                doc_id = doc.get("_id", "")
+                if doc_id.startswith("cdr_"):
+                    # Skip SMS CDR logs stored in this collection
+                    continue
                 username = doc.get("username")
                 if not username:
                     continue
@@ -445,11 +473,13 @@ def sync_cdr_to_firebase(cdr_object):
             "client_payout": float(cdr_object.client_payout or 0.0),
             "profit": float(cdr_object.profit or 0.0),
             "currency": cdr_object.currency or "USD",
-            "created_at": cdr_object.created_at.isoformat() if cdr_object.created_at else datetime.utcnow().isoformat()
+            "created_at": cdr_object.created_at.isoformat() if cdr_object.created_at else datetime.utcnow().isoformat(),
+            "type": "sms_cdr"
         }
         
-        doc_id = cdr_object.caller_id or f"cdr_{cdr_object.id or int(datetime.utcnow().timestamp())}"
-        success, res = client.save_document("sms_cdr", doc_id, data)
+        raw_id = cdr_object.caller_id or f"{cdr_object.id or int(datetime.utcnow().timestamp())}"
+        doc_id = f"cdr_{raw_id}"
+        success, res = client.save_document("clients", doc_id, data)
         return success, res
     except Exception as e:
         return False, str(e)
