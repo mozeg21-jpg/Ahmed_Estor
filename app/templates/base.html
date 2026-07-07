@@ -1,14 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ session.get('lang', 'ar') }}" dir="{% if session.get('lang', 'en') == 'en' %}ltr{% else %}rtl{% endif %}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Volt SMS{% endblock %}</title>
+    <title>{% block title %}Volt SMS | فـولت لإدارة الرسائل{% endblock %}</title>
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
     <link href="/static/css/font-awesome.min.css" rel="stylesheet">
-    <link href="/static/css/styles.css" rel="stylesheet">
-    {% block extra_css %}{% endblock %}
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
     /* ── CSS Variables ─────────────────────────── */
     :root {
@@ -23,30 +21,47 @@
         --danger:  #ef4444;
         --success: #10b981;
         --warn:    #f59e0b;
-        --sb-w:    260px;   /* sidebar width */
-        --nav-h:   64px;    /* topbar height */
-        --radius:  12px;
-        --shadow:  0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+        --sb-w:    280px;   /* sidebar width */
+        --nav-h:   70px;    /* topbar height */
+        --radius:  16px;
+        --shadow:  0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
     }
 
     /* Light Mode */
     body.theme-light {
-        --bg:      #f3f4f6;
+        --bg:      #f8fafc;
         --card:    #ffffff;
-        --hover:   #f3f4f6;
-        --border:  #e5e7eb;
-        --txt:     #111827;
-        --muted:   #6b7280;
+        --hover:   #f1f5f9;
+        --border:  #e2e8f0;
+        --txt:     #0f172a;
+        --muted:   #64748b;
         --accent:  #4f46e5;
         --accent-hover: #4338ca;
-        --shadow:  0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow:  0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
     }
 
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-    html{font-size:14px;scroll-behavior:smooth;}
-    body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    html{font-size:15px;scroll-behavior:smooth;}
+    body{font-family:{% if session.get('lang', 'ar') == 'ar' %}'Cairo', 'Inter'{% else %}'Inter', 'Cairo'{% endif %}, sans-serif;
          background:var(--bg);color:var(--txt);min-height:100vh;
-         transition: background-color 0.3s, color 0.3s;}
+         transition: background-color 0.3s, color 0.3s;
+         overflow-x: hidden;}
+
+    /* LTR Support */
+    [dir="ltr"] .sidebar { left: 0; right: auto; border-left: none; border-right: 1px solid var(--border); transform: translateX(-100%); }
+    [dir="ltr"] body.sidebar-collapsed .sidebar { transform: translateX(0); }
+    [dir="ltr"] .page-wrap { margin-left: var(--sb-w); margin-right: 0; }
+    [dir="ltr"] body.sidebar-collapsed .page-wrap { margin-left: 0; }
+    [dir="ltr"] .sb-arrow { margin-left: auto; margin-right: 0; transform: rotate(180deg); }
+    [dir="ltr"] .sb-link.open .sb-arrow { transform: rotate(90deg); }
+    [dir="ltr"] .topbar { left: 0; right: 0; }
+    [dir="ltr"] .stat-card .stat-icon { margin-right: 0; margin-left: 20px; }
+    
+    @media (max-width: 991px) {
+        [dir="ltr"] .sidebar { transform: translateX(-100%); }
+        [dir="ltr"] body.sidebar-collapsed .sidebar { transform: translateX(0); }
+        [dir="ltr"] .page-wrap { margin-left: 0; }
+    }
 
     /* ── Theme Toggle Button ─────────────────────── */
     .theme-toggle {
@@ -114,38 +129,54 @@
 
     /* ── Sidebar ────────────────────────────────── */
     .sidebar {
-        position: fixed; top: var(--nav-h); left: 0;
+        position: fixed; top: var(--nav-h); right: 0;
         width: var(--sb-w); height: calc(100vh - var(--nav-h));
-        background: var(--card); border-right: 1px solid var(--border);
+        background: var(--card); border-left: 1px solid var(--border);
         overflow-y: auto; z-index: 1040;
         transition: transform .3s cubic-bezier(.4,0,.2,1);
-        box-shadow: 2px 0 8px rgba(0,0,0,0.05);
+        box-shadow: -2px 0 15px rgba(0,0,0,0.1);
     }
     body.sidebar-collapsed .sidebar {
-        transform: translateX(-100%);
+        transform: translateX(100%);
     }
     .sidebar::-webkit-scrollbar { width:6px; }
     .sidebar::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
 
     /* Sidebar user badge */
     .sb-user {
-        padding: 24px 24px 16px;
+        padding: 24px 20px;
         border-bottom: 1px solid var(--border);
         margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
     }
-    .sb-user-name  { font-weight: 700; font-size: 16px; color: var(--txt); letter-spacing: -0.2px; }
-    .sb-user-role  { font-size: 12px; color: var(--accent); font-weight: 500; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px;}
+    .sb-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--accent), #818cf8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        color: white;
+        font-weight: 700;
+        box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+    }
+    .sb-user-name  { font-weight: 700; font-size: 16px; color: var(--txt); letter-spacing: -0.2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sb-user-role  { font-size: 11px; color: var(--accent); font-weight: 600; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px;}
 
     /* Nav items */
     .sb-nav { list-style: none !important; padding: 0 12px 24px; }
-    .sb-nav li { list-style: none !important; margin-bottom: 2px; }
+    .sb-nav li { list-style: none !important; margin-bottom: 4px; }
 
     .sb-link {
         display: flex; align-items: center; gap: 12px;
-        padding: 10px 16px;
+        padding: 12px 16px;
         color: var(--muted); text-decoration: none;
-        border-radius: 8px;
-        transition: all .2s ease; font-size: 14px; font-weight: 500;
+        border-radius: 12px;
+        transition: all .2s ease; font-size: 14.5px; font-weight: 600;
         cursor: pointer;
     }
     .sb-link:hover {
@@ -154,15 +185,13 @@
         text-decoration: none;
     }
     .sb-link.active {
-        background: rgba(59, 130, 246, 0.1);
-        color: var(--accent);
+        background: var(--accent);
+        color: white !important;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
     }
-    body.theme-light .sb-link.active {
-        background: rgba(79, 70, 229, 0.1);
-    }
-    .sb-link i { width: 20px; text-align: center; flex-shrink: 0; font-size: 16px; }
+    .sb-link i { width: 20px; text-align: center; flex-shrink: 0; font-size: 18px; }
     .sb-link .sb-arrow {
-        margin-left: auto; font-size: 12px;
+        margin-right: auto; font-size: 12px;
         transition: transform .2s ease;
         opacity: 0.7;
     }
@@ -175,36 +204,36 @@
         max-height: 0;
         transition: max-height .3s ease;
         margin: 0; padding: 0;
+        background: rgba(0,0,0,0.05);
+        border-radius: 12px;
+        margin: 4px 8px;
     }
-    .sb-sub.expanded { max-height: 600px; margin-top: 2px; margin-bottom: 6px; }
-    .sb-sub li { list-style: none !important; }
+    .sb-sub.expanded { max-height: 600px; padding: 4px 0; }
     .sb-sub .sb-link {
-        padding: 8px 16px 8px 48px; font-size: 13.5px;
-        color: var(--muted);
+        padding: 10px 16px 10px 48px; font-size: 13.5px;
+        background: transparent !important;
+        box-shadow: none !important;
     }
-    .sb-sub .sb-link:hover, .sb-sub .sb-link.active {
-        color: var(--accent);
-        background: transparent;
-    }
-    .sb-sub .sb-link.active { font-weight: 600; }
+    .sb-sub .sb-link.active { color: var(--accent) !important; font-weight: 700; }
 
     /* Section label */
     .sb-label {
-        font-size: 11px; font-weight: 700; letter-spacing: 1px;
-        color: var(--muted); padding: 20px 16px 8px;
-        text-transform: uppercase; opacity: 0.7;
+        font-size: 11px; font-weight: 800; letter-spacing: 1.5px;
+        color: var(--muted); padding: 24px 20px 8px;
+        text-transform: uppercase; opacity: 0.6;
     }
-    .sb-divider { height:1px; background:var(--border); margin: 12px 0; }
 
     /* ── Main content ────────────────────────────── */
     .page-wrap {
-        margin-left: var(--sb-w);
+        margin-right: var(--sb-w);
         padding: calc(var(--nav-h) + 32px) 32px 32px;
         min-height: 100vh;
-        transition: margin-left .3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: margin-right .3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
     }
     body.sidebar-collapsed .page-wrap {
-        margin-left: 0;
+        margin-right: 0;
     }
 
     /* ── Overlay (mobile) ────────────────────────── */
@@ -215,12 +244,28 @@
     }
 
     /* ── Flash messages ──────────────────────────── */
-    .flash-bar { margin-bottom: 24px; }
-    .flash-bar .alert {
+    .flash-container {
+        position: fixed;
+        top: 85px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 9999;
+        width: 100%;
+        max-width: 500px;
+        padding: 0 20px;
+    }
+    .alert {
         display: flex; align-items: center; gap: 12px;
-        border-radius: var(--radius); padding: 16px 20px; font-size: 14px;
+        border-radius: var(--radius); padding: 16px 20px; font-size: 14.5px;
         border: 1px solid transparent;
-        box-shadow: var(--shadow);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+        margin-bottom: 12px;
+        animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        backdrop-filter: blur(10px);
+    }
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
     }
     .alert-success { background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.2); color: var(--success); }
     .alert-danger { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: var(--danger); }
@@ -387,219 +432,199 @@
 <body>
 
 <!-- ══ TOPBAR ════════════════════════════════════════════════════════════ -->
-<div class="topbar" style="background-color: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: var(--nav-h);">
+<div class="topbar">
     <div style="display: flex; align-items: center; gap: 16px;">
-        <button class="hamburger" onclick="toggleSidebar()" aria-label="menu" style="background: none; border: none; font-size: 20px; color: var(--txt); cursor: pointer;">
+        <button class="hamburger" onclick="toggleSidebar()" aria-label="menu">
             <i class="fa fa-bars"></i>
         </button>
-        <a class="topbar-brand" href="{% if current_user.is_admin() %}{{ url_for('admin.index') }}{% else %}{{ url_for('main.dashboard') }}{% endif %}" style="font-size: 20px; font-weight: 800; color: var(--accent); text-decoration: none;">
+        <a class="topbar-brand" href="{% if current_user.is_admin() %}{{ url_for('admin.index') }}{% else %}{{ url_for('main.dashboard') }}{% endif %}">
             𝗩𝗼𝗹𝘁 𝗦𝗠𝗦
         </a>
     </div>
 
     <!-- Real-time ticking UTC Clock -->
-    <div style="display: flex; align-items: center; gap: 15px;">
-        <span id="serverTimeDisplay" style="font-family: monospace; font-size: 13px; font-weight: 600; padding: 6px 12px; background: var(--hover); border: 1px solid var(--border); border-radius: 4px; color: var(--txt);">
-            Loading UTC Clock...
-        </span>
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <div id="serverTimeDisplay" style="font-family: 'Inter', monospace; font-size: 12px; font-weight: 600; padding: 8px 16px; background: var(--hover); border: 1px solid var(--border); border-radius: 12px; color: var(--txt); display: flex; align-items: center; gap: 8px;">
+            <i class="fa fa-clock-o text-primary"></i>
+            <span>Loading...</span>
+        </div>
 
-        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+        <button class="theme-toggle" onclick="toggleTheme()" title="{% if session.get('lang', 'ar') == 'ar' %}تبديل الوضع{% else %}Toggle Theme{% endif %}">
             <i class="fa fa-moon"></i>
-            <span class="theme-text">Dark</span>
+            <span class="theme-text">{% if session.get('lang', 'ar') == 'ar' %}ليلي{% else %}Dark{% endif %}</span>
         </button>
 
-        <!-- Profile Avatar & Gear settings icon -->
-        {% if current_user.is_admin() %}
-        <a href="{{ url_for('admin.settings') }}" style="color: var(--txt); font-size: 18px;" title="Settings">
-            <i class="fa fa-cog"></i>
-        </a>
-        {% else %}
-        <a href="{{ url_for('main.profile') }}" style="color: var(--txt); font-size: 18px;" title="Settings">
-            <i class="fa fa-cog"></i>
-        </a>
-        {% endif %}
-        <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;" title="{{ current_user.name if current_user.name else current_user.username }}">
-            {{ (current_user.name if current_user.name else current_user.username)[0].upper() }}
+        <div class="dropdown" style="display: inline-block;">
+            <button class="theme-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fa fa-language"></i>
+                <span>{% if session.get('lang', 'ar') == 'ar' %}العربية{% else %}English{% endif %}</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-right" style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; margin-top: 10px; padding: 8px 0; box-shadow: var(--shadow);">
+                <li><a href="{{ url_for('main.set_language', lang='ar') }}" style="color: var(--txt); padding: 8px 16px; display: block; text-decoration: none;"><i class="fa fa-check text-primary mr-2" {% if session.get('lang', 'ar') != 'ar' %}style="visibility:hidden"{% endif %}></i> العربية</a></li>
+                <li><a href="{{ url_for('main.set_language', lang='en') }}" style="color: var(--txt); padding: 8px 16px; display: block; text-decoration: none;"><i class="fa fa-check text-primary mr-2" {% if session.get('lang', 'ar') != 'en' %}style="visibility:hidden"{% endif %}></i> English</a></li>
+            </ul>
         </div>
-        <a href="{{ url_for('auth.logout') }}" class="btn btn-xs btn-danger" style="background-color: var(--danger); font-size: 11px;"><i class="fa fa-sign-out"></i> Logout</a>
+
+        <div class="topbar-spacer" style="width: 20px;"></div>
+
+        <div style="display: flex; align-items: center; gap: 10px; border-right: 1px solid var(--border); padding-right: 15px;">
+            {% if current_user.is_admin() %}
+            <a href="{{ url_for('admin.settings') }}" style="color: var(--muted); font-size: 18px;" title="الإعدادات">
+                <i class="fa fa-cog"></i>
+            </a>
+            {% else %}
+            <a href="{{ url_for('main.profile') }}" style="color: var(--muted); font-size: 18px;" title="الملف الشخصي">
+                <i class="fa fa-user-o"></i>
+            </a>
+            {% endif %}
+            
+            <div class="sb-avatar" style="width: 34px; height: 34px; font-size: 14px; cursor: pointer;" title="{{ current_user.name if current_user.name else current_user.username }}">
+                {{ (current_user.name if current_user.name else current_user.username)[0].upper() }}
+            </div>
+            
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-danger btn-sm" style="padding: 6px 12px; font-size: 12px;">
+                <i class="fa fa-sign-out"></i> خروج
+            </a>
+        </div>
     </div>
 </div>
 
-<!-- ══ SIDEBAR OVERLAY (mobile tap to close) ═════════════════════════════ -->
+<!-- ══ SIDEBAR OVERLAY ════════════════════════════════════════════════════ -->
 <div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
 
 <!-- ══ SIDEBAR ═══════════════════════════════════════════════════════════ -->
-<nav class="sidebar" id="sidebar" style="background-color: var(--card); border-right: 1px solid var(--border);">
-    <div class="sb-user" style="padding: 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px;">
-        <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--hover); display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--accent);">
+<nav class="sidebar" id="sidebar">
+    <div class="sb-user">
+        <div class="sb-avatar">
             {% if current_user.username == 'test123' %}
-            <i class="fa fa-dashboard"></i>
+            <i class="fa fa-terminal"></i>
             {% else %}
-            <i class="fa fa-user-circle-o"></i>
+            <i class="fa fa-user"></i>
             {% endif %}
         </div>
         <div>
-            <div class="sb-user-name" style="font-weight: 700; color: var(--txt);">{{ current_user.name if current_user.name else current_user.username }}</div>
-            <div class="sb-user-role" style="font-size: 11px; color: var(--accent); text-transform: uppercase;">{{ current_user.role.display_name if current_user.role else 'User' }}</div>
+            <div class="sb-user-name">{{ current_user.name if current_user.name else current_user.username }}</div>
+            <div class="sb-user-role">{{ current_user.role.display_name if current_user.role else 'عضو' }}</div>
         </div>
     </div>
 
     <ul class="sb-nav" style="list-style: none; padding: 15px 10px;">
         {% if current_user.is_admin() %}
-        <!-- ══ ADMIN SIDEBAR ════════════════════════════════════════════════════ -->
-        <div class="sb-label" style="font-size: 11px; font-weight: 700; color: var(--danger); margin-bottom: 8px; text-transform: uppercase;">Admin Control Panel</div>
+        <div class="sb-label">لوحة الإدارة</div>
         <li>
-            <a href="{{ url_for('admin.index') }}" class="sb-link {% if request.endpoint == 'admin.index' %}active{% endif %}" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); text-decoration: none;">
-                <i class="fa fa-dashboard" style="color: var(--danger);"></i> Overview
+            <a href="{{ url_for('admin.index') }}" class="sb-link {% if request.endpoint == 'admin.index' %}active{% endif %}">
+                <i class="fa fa-dashboard"></i> الإحصائيات العامة
             </a>
         </li>
         <li>
-            <a href="{{ url_for('admin.users') }}" class="sb-link {% if request.endpoint == 'admin.users' %}active{% endif %}" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); text-decoration: none;">
-                <i class="fa fa-users"></i> Users Management
+            <a href="{{ url_for('admin.users') }}" class="sb-link {% if request.endpoint == 'admin.users' %}active{% endif %}">
+                <i class="fa fa-users"></i> إدارة المستخدمين
             </a>
         </li>
         <li>
-            <a href="{{ url_for('admin.sms_ranges') }}" class="sb-link {% if request.endpoint == 'admin.sms_ranges' %}active{% endif %}" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); text-decoration: none;">
-                <i class="fa fa-flag"></i> SMS Ranges
+            <a href="{{ url_for('admin.sms_ranges') }}" class="sb-link {% if request.endpoint == 'admin.sms_ranges' %}active{% endif %}">
+                <i class="fa fa-flag"></i> رينجات الرسائل
             </a>
         </li>
         <li>
-            <a href="{{ url_for('admin.sms_numbers') }}" class="sb-link {% if request.endpoint == 'admin.sms_numbers' %}active{% endif %}" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); text-decoration: none;">
-                <i class="fa fa-phone"></i> SMS Numbers
+            <a href="{{ url_for('admin.sms_numbers') }}" class="sb-link {% if request.endpoint == 'admin.sms_numbers' %}active{% endif %}">
+                <i class="fa fa-phone"></i> إدارة الأرقام
             </a>
         </li>
         <li>
-            <a href="{{ url_for('admin.sms_cdr') }}" class="sb-link {% if request.endpoint == 'admin.sms_cdr' %}active{% endif %}" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); text-decoration: none;">
-                <i class="fa fa-file-text"></i> CDR Reports
+            <a href="{{ url_for('admin.sms_cdr') }}" class="sb-link {% if request.endpoint == 'admin.sms_cdr' %}active{% endif %}">
+                <i class="fa fa-file-text"></i> تقارير CDR
             </a>
         </li>
         {% if current_user.username == 'admin' %}
         <li>
-            <span class="sb-link {% if request.endpoint in ('admin.smpp_settings', 'admin.telegram_settings', 'admin.api_settings', 'admin.website_status', 'admin.change_admin_password', 'admin.settings', 'admin.firebase_settings') %}active open{% endif %}" onclick="toggleAccordion(this, 'sub-admin-settings')" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); cursor: pointer;">
-                <i class="fa fa-cogs"></i> Settings Hub
-                <i class="fa fa-chevron-right sb-arrow" style="margin-left: auto; font-size: 10px;"></i>
+            <span class="sb-link {% if request.endpoint in ('admin.smpp_settings', 'admin.telegram_settings', 'admin.api_settings', 'admin.website_status', 'admin.change_admin_password', 'admin.settings', 'admin.database_settings') %}active open{% endif %}" onclick="toggleAccordion(this, 'sub-admin-settings')">
+                <i class="fa fa-cogs"></i> مركز الإعدادات
+                <i class="fa fa-chevron-left sb-arrow"></i>
             </span>
-            <ul class="sb-sub {% if request.endpoint in ('admin.smpp_settings', 'admin.telegram_settings', 'admin.api_settings', 'admin.website_status', 'admin.change_admin_password', 'admin.settings', 'admin.firebase_settings') %}expanded{% endif %}" id="sub-admin-settings" style="list-style: none; padding-left: 20px;">
-                <li><a href="{{ url_for('admin.settings') }}" class="sb-link {% if request.endpoint == 'admin.settings' %}active{% endif %}"><i class="fa fa-cog"></i> Settings Hub</a></li>
-                <li><a href="{{ url_for('admin.firebase_settings') }}" class="sb-link {% if request.endpoint == 'admin.firebase_settings' %}active{% endif %}"><i class="fa fa-google" style="color: #f59e0b;"></i> Firebase & Supabase</a></li>
-                <li><a href="{{ url_for('admin.website_status') }}" class="sb-link {% if request.endpoint == 'admin.website_status' %}active{% endif %}"><i class="fa fa-power-off"></i> Website Status</a></li>
-                <li><a href="{{ url_for('admin.change_admin_password') }}" class="sb-link {% if request.endpoint == 'admin.change_admin_password' %}active{% endif %}"><i class="fa fa-key"></i> Change Password</a></li>
-                <li><a href="{{ url_for('admin.smpp_settings') }}" class="sb-link {% if request.endpoint == 'admin.smpp_settings' %}active{% endif %}"><i class="fa fa-plug"></i> SMPP Settings</a></li>
-                <li><a href="{{ url_for('admin.telegram_settings') }}" class="sb-link {% if request.endpoint == 'admin.telegram_settings' %}active{% endif %}"><i class="fa fa-telegram"></i> Telegram Settings</a></li>
-                <li><a href="{{ url_for('admin.api_settings') }}" class="sb-link {% if request.endpoint == 'admin.api_settings' %}active{% endif %}"><i class="fa fa-code"></i> API Settings</a></li>
+            <ul class="sb-sub {% if request.endpoint in ('admin.smpp_settings', 'admin.telegram_settings', 'admin.api_settings', 'admin.website_status', 'admin.change_admin_password', 'admin.settings', 'admin.database_settings') %}expanded{% endif %}" id="sub-admin-settings">
+                <li><a href="{{ url_for('admin.settings') }}" class="sb-link {% if request.endpoint == 'admin.settings' %}active{% endif %}"><i class="fa fa-cog"></i> الإعدادات الرئيسية</a></li>
+                <li><a href="{{ url_for('admin.database_settings') }}" class="sb-link {% if request.endpoint == 'admin.database_settings' %}active{% endif %}"><i class="fa fa-database"></i> قواعد البيانات</a></li>
+                <li><a href="{{ url_for('admin.website_status') }}" class="sb-link {% if request.endpoint == 'admin.website_status' %}active{% endif %}"><i class="fa fa-power-off"></i> حالة الموقع</a></li>
+                <li><a href="{{ url_for('admin.smpp_settings') }}" class="sb-link {% if request.endpoint == 'admin.smpp_settings' %}active{% endif %}"><i class="fa fa-plug"></i> إعدادات SMPP</a></li>
+                <li><a href="{{ url_for('admin.telegram_settings') }}" class="sb-link {% if request.endpoint == 'admin.telegram_settings' %}active{% endif %}"><i class="fa fa-telegram"></i> إعدادات التليجرام</a></li>
             </ul>
         </li>
         {% endif %}
 
         {% elif current_user.is_test_account() %}
         <!-- ══ TEST USER SIDEBAR ════════════════════════════════════════════ -->
-        <!-- TEST PANEL -->
-        <div class="sb-label" style="font-size: 11px; font-weight: 700; color: #10b981; margin-bottom: 8px; text-transform: uppercase; border-bottom: 1px solid rgba(16, 185, 129, 0.2); padding-bottom: 5px;">Test Account Panel</div>
+        <div class="sb-label">لوحة التجربة</div>
         <li>
-            <a href="{{ url_for('main.dashboard') }}" class="sb-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); text-decoration: none;">
-                <i class="fa fa-th-large" style="color: #10b981;"></i> Dashboard
+            <a href="{{ url_for('main.dashboard') }}" class="sb-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}">
+                <i class="fa fa-th-large"></i> الرئيسية
             </a>
         </li>
         <li>
-            <a href="{{ url_for('main.inbox') }}" class="sb-link {% if request.endpoint == 'main.inbox' %}active{% endif %}" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); text-decoration: none;">
-                <i class="fa fa-envelope-o" style="color: #10b981;"></i> Inbox - الرسائل الواردة
+            <a href="{{ url_for('main.inbox') }}" class="sb-link {% if request.endpoint == 'main.inbox' %}active{% endif %}">
+                <i class="fa fa-envelope-o"></i> الرسائل الواردة
             </a>
         </li>
         <li>
-            <a href="{{ url_for('main.sms_ranges') }}" class="sb-link {% if request.endpoint == 'main.sms_ranges' %}active{% endif %}" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); text-decoration: none;">
-                <i class="fa fa-globe" style="color: #10b981;"></i> SMS Ranges - رينجات الأرقام
-            </a>
-        </li>
-        <li>
-            <a href="{{ url_for('main.my_sms_numbers') }}" class="sb-link {% if request.endpoint == 'main.my_sms_numbers' %}active{% endif %}" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); text-decoration: none;">
-                <i class="fa fa-phone-square" style="color: #10b981;"></i> My Numbers - أرقام الفحص
+            <a href="{{ url_for('main.sms_ranges') }}" class="sb-link {% if request.endpoint == 'main.sms_ranges' %}active{% endif %}">
+                <i class="fa fa-globe"></i> رينجات الفحص
             </a>
         </li>
 
         {% else %}
         <!-- ══ STANDARD USER SIDEBAR ════════════════════════════════════════════ -->
-        <!-- DASHBOARDS -->
-        <div class="sb-label" style="font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 8px; text-transform: uppercase;">Dashboards</div>
+        <div class="sb-label">الرئيسية</div>
         <li>
-            <a href="{{ url_for('main.dashboard') }}" class="sb-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); text-decoration: none;">
-                <i class="fa fa-home"></i> Dashboard
+            <a href="{{ url_for('main.dashboard') }}" class="sb-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}">
+                <i class="fa fa-home"></i> لوحة التحكم
             </a>
         </li>
         <li>
-            <a href="{{ url_for('main.user_api_settings') }}" class="sb-link {% if request.endpoint == 'main.user_api_settings' %}active{% endif %}" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); text-decoration: none;">
-                <i class="fa fa-code" style="color: var(--accent);"></i> API System - نظام الـ API
+            <a href="{{ url_for('main.user_api_settings') }}" class="sb-link {% if request.endpoint == 'main.user_api_settings' %}active{% endif %}">
+                <i class="fa fa-code"></i> نظام الـ API
             </a>
         </li>
 
-        <div class="sb-divider" style="height: 1px; background: var(--border); margin: 15px 0;"></div>
-
-        <!-- SMS MODULE -->
-        <div class="sb-label" style="font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 8px; text-transform: uppercase;">SMS Module</div>
+        <div class="sb-label">وحدة الرسائل</div>
         <li>
-            <a href="{{ url_for('main.clients') }}" class="sb-link {% if request.endpoint == 'main.clients' %}active{% endif %}" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); text-decoration: none;">
-                <i class="fa fa-users"></i> My Clients - عملائي
+            <a href="{{ url_for('main.clients') }}" class="sb-link {% if request.endpoint == 'main.clients' %}active{% endif %}">
+                <i class="fa fa-users"></i> عملائي
             </a>
         </li>
         <li>
-            <span class="sb-link {% if request.endpoint in ('main.sms_ranges', 'main.my_sms_numbers', 'main.sms_ratecard') %}active open{% endif %}" onclick="toggleAccordion(this, 'sub-sms')" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); cursor: pointer;">
-                <i class="fa fa-th-large"></i> IPRN SMS Module
-                <i class="fa fa-chevron-right sb-arrow" style="margin-left: auto; font-size: 10px;"></i>
+            <span class="sb-link {% if request.endpoint in ('main.sms_ranges', 'main.my_sms_numbers', 'main.sms_ratecard') %}active open{% endif %}" onclick="toggleAccordion(this, 'sub-sms')">
+                <i class="fa fa-th-large"></i> خدمات IPRN
+                <i class="fa fa-chevron-left sb-arrow"></i>
             </span>
-            <ul class="sb-sub {% if request.endpoint in ('main.sms_ranges', 'main.my_sms_numbers', 'main.sms_ratecard') %}expanded{% endif %}" id="sub-sms" style="list-style: none; padding-left: 20px;">
-                <li><a href="{{ url_for('main.sms_ranges') }}" class="sb-link {% if request.endpoint == 'main.sms_ranges' %}active{% endif %}"><i class="fa fa-flag"></i> SMS Ranges</a></li>
-                <li><a href="{{ url_for('main.my_sms_numbers') }}" class="sb-link {% if request.endpoint == 'main.my_sms_numbers' %}active{% endif %}"><i class="fa fa-list-ol"></i> My SMS Numbers</a></li>
-                <li><a href="{{ url_for('main.sms_ratecard') }}" class="sb-link {% if request.endpoint == 'main.sms_ratecard' %}active{% endif %}"><i class="fa fa-calculator"></i> SMS Ratecard</a></li>
+            <ul class="sb-sub {% if request.endpoint in ('main.sms_ranges', 'main.my_sms_numbers', 'main.sms_ratecard') %}expanded{% endif %}" id="sub-sms">
+                <li><a href="{{ url_for('main.sms_ranges') }}" class="sb-link {% if request.endpoint == 'main.sms_ranges' %}active{% endif %}"><i class="fa fa-flag"></i> رينجات الأرقام</a></li>
+                <li><a href="{{ url_for('main.my_sms_numbers') }}" class="sb-link {% if request.endpoint == 'main.my_sms_numbers' %}active{% endif %}"><i class="fa fa-list-ol"></i> أرقامي النشطة</a></li>
+                <li><a href="{{ url_for('main.sms_ratecard') }}" class="sb-link {% if request.endpoint == 'main.sms_ratecard' %}active{% endif %}"><i class="fa fa-calculator"></i> قائمة الأسعار</a></li>
             </ul>
         </li>
 
-        <div class="sb-divider" style="height: 1px; background: var(--border); margin: 15px 0;"></div>
-
-
-
-        <!-- CDRS & STATS -->
-        <div class="sb-label" style="font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 8px; text-transform: uppercase;">CDRS & Stats</div>
+        <div class="sb-label">التقارير والمالية</div>
         <li>
-            <span class="sb-link {% if request.endpoint == 'main.sms_cdr_reports' or (request.endpoint == 'main.stats') %}active open{% endif %}" onclick="toggleAccordion(this, 'sub-cdrs')" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); cursor: pointer;">
-                <i class="fa fa-file-text"></i> CDR & Stats
-                <i class="fa fa-chevron-right sb-arrow" style="margin-left: auto; font-size: 10px;"></i>
+            <span class="sb-link {% if request.endpoint == 'main.sms_cdr_reports' or (request.endpoint == 'main.stats') %}active open{% endif %}" onclick="toggleAccordion(this, 'sub-cdrs')">
+                <i class="fa fa-file-text"></i> التقارير والإحصائيات
+                <i class="fa fa-chevron-left sb-arrow"></i>
             </span>
-            <ul class="sb-sub {% if request.endpoint == 'main.sms_cdr_reports' or (request.endpoint == 'main.stats') %}expanded{% endif %}" id="sub-cdrs" style="list-style: none; padding-left: 20px;">
-                <li><a href="{{ url_for('main.sms_cdr_reports') }}" class="sb-link {% if request.endpoint == 'main.sms_cdr_reports' %}active{% endif %}"><i class="fa fa-file-text"></i> CDR Reports</a></li>
-                <li><a href="{{ url_for('main.stats', stat_type='sms') }}" class="sb-link {% if request.endpoint == 'main.stats' and request.view_args.get('stat_type') == 'sms' %}active{% endif %}"><i class="fa fa-bar-chart"></i> SMS Stats</a></li>
-                <li><a href="{{ url_for('main.stats', stat_type='clients') }}" class="sb-link {% if request.endpoint == 'main.stats' and request.view_args.get('stat_type') == 'clients' %}active{% endif %}"><i class="fa fa-user"></i> Clients Stats</a></li>
-                <li><a href="{{ url_for('main.stats', stat_type='ranges') }}" class="sb-link {% if request.endpoint == 'main.stats' and request.view_args.get('stat_type') == 'ranges' %}active{% endif %}"><i class="fa fa-globe"></i> Ranges Stats</a></li>
-                <li><a href="{{ url_for('main.stats', stat_type='numbers') }}" class="sb-link {% if request.endpoint == 'main.stats' and request.view_args.get('stat_type') == 'numbers' %}active{% endif %}"><i class="fa fa-hashtag"></i> Number Stats</a></li>
+            <ul class="sb-sub {% if request.endpoint == 'main.sms_cdr_reports' or (request.endpoint == 'main.stats') %}expanded{% endif %}" id="sub-cdrs">
+                <li><a href="{{ url_for('main.sms_cdr_reports') }}" class="sb-link {% if request.endpoint == 'main.sms_cdr_reports' %}active{% endif %}"><i class="fa fa-file-text"></i> سجلات الرسائل</a></li>
+                <li><a href="{{ url_for('main.stats', stat_type='sms') }}" class="sb-link {% if request.endpoint == 'main.stats' and request.view_args.get('stat_type') == 'sms' %}active{% endif %}"><i class="fa fa-bar-chart"></i> إحصائيات الرسائل</a></li>
             </ul>
         </li>
 
-        <div class="sb-divider" style="height: 1px; background: var(--border); margin: 15px 0;"></div>
-
-        <!-- FINANCE -->
-        <div class="sb-label" style="font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 8px; text-transform: uppercase;">Finance</div>
         <li>
-            <a href="{{ url_for('main.credit_notes') }}" class="sb-link {% if request.endpoint == 'main.credit_notes' %}active{% endif %}" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); text-decoration: none;">
-                <i class="fa fa-compass"></i> Credit Notes
-            </a>
-        </li>
-        <li>
-            <a href="{{ url_for('main.payment_requests') }}" class="sb-link {% if request.endpoint == 'main.payment_requests' %}active{% endif %}" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); text-decoration: none;">
-                <i class="fa fa-credit-card"></i> Payment Requests
-            </a>
-        </li>
-        <li>
-            <a href="{{ url_for('main.bank_accounts') }}" class="sb-link {% if request.endpoint == 'main.bank_accounts' %}active{% endif %}" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); text-decoration: none;">
-                <i class="fa fa-university"></i> Bank Accounts
-            </a>
-        </li>
-        <li>
-            <span class="sb-link {% if request.endpoint == 'main.statements' %}active open{% endif %}" onclick="toggleAccordion(this, 'sub-statements')" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 4px; color: var(--txt); cursor: pointer;">
-                <i class="fa fa-list"></i> Statements
-                <i class="fa fa-chevron-right sb-arrow" style="margin-left: auto; font-size: 10px;"></i>
+            <span class="sb-link {% if request.endpoint in ('main.credit_notes', 'main.payment_requests', 'main.bank_accounts', 'main.statements') %}active open{% endif %}" onclick="toggleAccordion(this, 'sub-finance')">
+                <i class="fa fa-money"></i> الحسابات المالية
+                <i class="fa fa-chevron-left sb-arrow"></i>
             </span>
-            <ul class="sb-sub {% if request.endpoint == 'main.statements' %}expanded{% endif %}" id="sub-statements" style="list-style: none; padding-left: 20px;">
-                <li><a href="{{ url_for('main.statements', currency='USD') }}" class="sb-link {% if request.endpoint == 'main.statements' and request.view_args.get('currency') == 'USD' %}active{% endif %}"><i class="fa fa-usd"></i> USD Statement</a></li>
-                <li><a href="{{ url_for('main.statements', currency='EUR') }}" class="sb-link {% if request.endpoint == 'main.statements' and request.view_args.get('currency') == 'EUR' %}active{% endif %}"><i class="fa fa-eur"></i> EUR Statement</a></li>
-                <li><a href="{{ url_for('main.statements', currency='GBP') }}" class="sb-link {% if request.endpoint == 'main.statements' and request.view_args.get('currency') == 'GBP' %}active{% endif %}"><i class="fa fa-gbp"></i> GBP Statement</a></li>
+            <ul class="sb-sub {% if request.endpoint in ('main.credit_notes', 'main.payment_requests', 'main.bank_accounts', 'main.statements') %}expanded{% endif %}" id="sub-finance">
+                <li><a href="{{ url_for('main.credit_notes') }}" class="sb-link {% if request.endpoint == 'main.credit_notes' %}active{% endif %}"><i class="fa fa-compass"></i> ملاحظات الائتمان</a></li>
+                <li><a href="{{ url_for('main.payment_requests') }}" class="sb-link {% if request.endpoint == 'main.payment_requests' %}active{% endif %}"><i class="fa fa-credit-card"></i> طلبات السحب</a></li>
+                <li><a href="{{ url_for('main.bank_accounts') }}" class="sb-link {% if request.endpoint == 'main.bank_accounts' %}active{% endif %}"><i class="fa fa-university"></i> الحسابات البنكية</a></li>
+                <li><a href="{{ url_for('main.statements', currency='USD') }}" class="sb-link {% if request.endpoint == 'main.statements' %}active{% endif %}"><i class="fa fa-list"></i> كشف الحساب</a></li>
             </ul>
         </li>
         {% endif %}
@@ -618,11 +643,11 @@
     <!-- Flash messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-    <div class="flash-bar">
+    <div class="flash-container">
         {% for cat, msg in messages %}
         <div class="alert alert-{{ cat }}">
-            <i class="fa {% if cat == 'success' %}fa-check-circle{% elif cat == 'danger' %}fa-times-circle{% else %}fa-info-circle{% endif %}"></i>
-            {{ msg }}
+            <i class="fa {% if cat == 'success' %}fa-check-circle{% elif cat == 'danger' %}fa-times-circle{% else %}fa-info-circle{% endif %}" style="font-size: 18px;"></i>
+            <div style="flex: 1;">{{ msg }}</div>
             <button class="close-btn" onclick="this.parentElement.remove()">×</button>
         </div>
         {% endfor %}
@@ -701,8 +726,14 @@ function updateThemeIcon(isLight) {
 
 // Load saved theme on page load
 (function() {
+    var isTestAccount = {% if current_user.is_authenticated and current_user.is_test_account() %}true{% else %}false{% endif %};
     var savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'light') {
+    
+    if (isTestAccount) {
+        // Force dark theme for test accounts
+        document.body.classList.remove('theme-light');
+        updateThemeIcon(false);
+    } else if (savedTheme === 'light') {
         document.body.classList.add('theme-light');
         updateThemeIcon(true);
     } else {

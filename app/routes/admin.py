@@ -177,10 +177,9 @@ def create_user():
             flash('Username, email, and password are required.', 'danger')
             return redirect(url_for('admin.create_user'))
 
-        from app.firebase_helper import is_username_in_firebase
         from sqlalchemy import func
         existing_user = User.query.filter(func.lower(User.username) == func.lower(username)).first()
-        if existing_user or is_username_in_firebase(username):
+        if existing_user:
             flash('Username already exists.', 'danger')
             return redirect(url_for('admin.create_user'))
 
@@ -214,13 +213,6 @@ def create_user():
 
         db.session.add(user)
         db.session.commit()
-
-        # Sync user/client to Firebase Firestore
-        try:
-            from app.firebase_helper import sync_client_to_firebase
-            sync_client_to_firebase(user)
-        except Exception as e:
-            print(f"[FIREBASE SYNC] Failed to sync new user to Firestore: {e}")
 
         ActivityLog.log(
             current_user.id,
@@ -282,13 +274,6 @@ def edit_user(user_id):
 
         db.session.commit()
 
-        # Sync user/client updates to Firebase Firestore
-        try:
-            from app.firebase_helper import sync_client_to_firebase
-            sync_client_to_firebase(user)
-        except Exception as e:
-            print(f"[FIREBASE SYNC] Failed to sync edited user to Firestore: {e}")
-
         ActivityLog.log(
             current_user.id,
             'admin_edit_user',
@@ -349,13 +334,6 @@ def delete_user(user_id):
         SMSNumber.query.filter_by(agent_id=user_id_val).update({'agent_id': None})
         SMSNumber.query.filter_by(client_id=user_id_val).update({'client_id': None})
 
-        # Delete from Firestore
-        try:
-            from app.firebase_helper import delete_client_from_firebase
-            delete_client_from_firebase(username)
-        except Exception as e:
-            print(f"[FIREBASE SYNC] Failed to delete user {username} from Firestore: {e}")
-
         db.session.delete(user)
         db.session.commit()
         print(f"[ADMIN] User {username} (ID: {user_id_val}) deleted successfully.")
@@ -388,13 +366,6 @@ def toggle_user_status(user_id):
 
     user.is_active = not user.is_active
     db.session.commit()
-
-    # Sync toggled status to Firebase
-    try:
-        from app.firebase_helper import sync_client_to_firebase
-        sync_client_to_firebase(user)
-    except Exception as e:
-        print(f"[FIREBASE SYNC] Failed to sync toggled user status to Firestore: {e}")
 
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
         return jsonify({
@@ -1065,14 +1036,6 @@ def global_reset_settings():
         
         db.session.commit()
         
-        # Sync to Firebase Firestore in bulk
-        try:
-            from app.firebase_helper import sync_client_to_firebase
-            for user in non_admins:
-                sync_client_to_firebase(user)
-        except Exception as e:
-            print(f"[FIREBASE SYNC] Failed to bulk sync global reset preferences: {e}")
-            
         # Log the activity
         from app.models.activity import ActivityLog
         ActivityLog.log(
@@ -1291,8 +1254,7 @@ def agent_create_client():
             return redirect(url_for('admin.agent_create_client'))
 
         # Check that username and email do not already exist
-        from app.firebase_helper import is_username_in_firebase
-        if User.query.filter_by(username=username).first() or is_username_in_firebase(username):
+        if User.query.filter_by(username=username).first():
             flash('Username already exists.', 'danger')
             return redirect(url_for('admin.agent_create_client'))
 
@@ -1325,13 +1287,6 @@ def agent_create_client():
 
         db.session.add(client)
         db.session.commit()
-
-        # Sync agent-created client to Firebase Firestore
-        try:
-            from app.firebase_helper import sync_client_to_firebase
-            sync_client_to_firebase(client)
-        except Exception as e:
-            print(f"[FIREBASE SYNC] Failed to sync agent client to Firestore: {e}")
 
         # Assign numbers to client if requested
         if numbers_count > 0:
@@ -1424,13 +1379,6 @@ def agent_edit_client(user_id):
 
         db.session.commit()
 
-        # Sync edits to Firebase
-        try:
-            from app.firebase_helper import sync_client_to_firebase
-            sync_client_to_firebase(client)
-        except Exception as e:
-            print(f"[FIREBASE SYNC] Failed to sync agent edited client: {e}")
-
         ActivityLog.log(current_user.id, 'agent_edit_client', f'Edited client {client.username}', ip_address=request.remote_addr)
         flash(f'Client {client.username} updated successfully.', 'success')
         return redirect(url_for('main.clients'))
@@ -1454,13 +1402,6 @@ def agent_delete_client(user_id):
     db.session.delete(client)
     db.session.commit()
 
-    # Delete from Firebase
-    try:
-        from app.firebase_helper import delete_client_from_firebase
-        delete_client_from_firebase(username)
-    except Exception as e:
-        print(f"[FIREBASE SYNC] Failed to delete agent client: {e}")
-
     ActivityLog.log(current_user.id, 'agent_delete_client', f'Deleted client {username}', ip_address=request.remote_addr)
     flash(f'Client {username} deleted.', 'success')
     return redirect(url_for('main.clients'))
@@ -1479,13 +1420,6 @@ def agent_toggle_client_status(user_id):
 
     client.is_active = not client.is_active
     db.session.commit()
-
-    # Sync status to Firebase
-    try:
-        from app.firebase_helper import sync_client_to_firebase
-        sync_client_to_firebase(client)
-    except Exception as e:
-        print(f"[FIREBASE SYNC] Failed to sync agent client status: {e}")
 
     ActivityLog.log(current_user.id, 'agent_toggle_client_status', f'Toggled status of client {client.username} to {client.is_active}', ip_address=request.remote_addr)
     flash(f'Client {client.username} status updated.', 'success')
@@ -2927,62 +2861,6 @@ def test123_send_test_message():
 
 # ============ FIREBASE SETTINGS & FREE STORAGE ============
 
-@admin_bp.route('/firebase-settings', methods=['GET', 'POST'])
-@primary_admin_required
-def firebase_settings():
-    """Configure Firebase Firestore and Storage integration settings"""
-    from app.models.activity import News
-    from app.firebase_helper import FirebaseFirestoreRESTClient
-    
-    if request.method == 'POST':
-        proj_id = request.form.get('firebase_project_id', '').strip()
-        api_key = request.form.get('firebase_api_key', '').strip()
-        db_id = request.form.get('firebase_database_id', '').strip() or '(default)'
-        bucket = request.form.get('firebase_storage_bucket', '').strip()
-        
-        # Save to database (using News model as key-value store)
-        for key, val in [
-            ('firebase_project_id', proj_id),
-            ('firebase_api_key', api_key),
-            ('firebase_database_id', db_id),
-            ('firebase_storage_bucket', bucket)
-        ]:
-            setting = News.query.filter_by(title=key).first()
-            if not setting:
-                setting = News(title=key, content=val)
-                db.session.add(setting)
-            else:
-                setting.content = val
-        
-        db.session.commit()
-        flash('✅ تم حفظ إعدادات فايربيز بنجاح!', 'success')
-        return redirect(url_for('admin.firebase_settings'))
-    
-    # Load settings
-    proj_id_setting = News.query.filter_by(title='firebase_project_id').first()
-    api_key_setting = News.query.filter_by(title='firebase_api_key').first()
-    db_id_setting = News.query.filter_by(title='firebase_database_id').first()
-    bucket_setting = News.query.filter_by(title='firebase_storage_bucket').first()
-    uploads_setting = News.query.filter_by(title='firebase_uploaded_files').first()
-    
-    import json
-    try:
-        uploaded_files = json.loads(uploads_setting.content) if (uploads_setting and uploads_setting.content) else []
-    except Exception:
-        uploaded_files = []
-        
-    client = FirebaseFirestoreRESTClient()
-    
-    settings_data = {
-        'firebase_project_id': proj_id_setting.content if proj_id_setting else (client.project_id or ''),
-        'firebase_api_key': api_key_setting.content if api_key_setting else (client.api_key or ''),
-        'firebase_database_id': db_id_setting.content if db_id_setting else (client.database_id or '(default)'),
-        'firebase_storage_bucket': bucket_setting.content if bucket_setting else (client.storage_bucket or ''),
-        'uploaded_files': uploaded_files
-    }
-    
-    return render_template('admin/firebase_settings.html', **settings_data)
-
 
 @admin_bp.route('/supabase/test-connection', methods=['POST'])
 @primary_admin_required
@@ -2997,125 +2875,6 @@ def supabase_test_connection():
     except Exception as e:
         return jsonify({'success': False, 'message': f'فشل الاتصال بـ Supabase: {str(e)}'})
 
-
-@admin_bp.route('/firebase/test-connection', methods=['POST'])
-@primary_admin_required
-def firebase_test_connection():
-    """Test Firestore Connection"""
-    from app.firebase_helper import FirebaseFirestoreRESTClient
-    
-    proj_id = request.form.get('project_id', '').strip()
-    api_key = request.form.get('api_key', '').strip()
-    db_id = request.form.get('database_id', '').strip() or '(default)'
-    
-    client = FirebaseFirestoreRESTClient(project_id=proj_id, api_key=api_key, database_id=db_id)
-    success, msg = client.test_connection()
-    return jsonify({'success': success, 'message': msg})
-
-
-@admin_bp.route('/firebase/sync-restore', methods=['POST'])
-@primary_admin_required
-def firebase_sync_restore():
-    """Fetch registered users from Firestore and restore them in the local SQLite db"""
-    from app.firebase_helper import restore_clients_from_firebase
-    from flask import current_app
-    
-    try:
-        success = restore_clients_from_firebase(current_app)
-        if success:
-            return jsonify({'success': True, 'message': 'تم استعادة ومزامنة جميع المستخدمين والعملاء المسجلين من Firestore بنجاح!'})
-        else:
-            return jsonify({'success': False, 'error': 'فشلت عملية المزامنة. تأكد من صحة بيانات الاتصال بفايربيز.'})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
-
-
-@admin_bp.route('/firebase/upload-storage', methods=['POST'])
-@primary_admin_required
-def firebase_upload_storage():
-    """Uploads file directly to free Firebase Storage bucket and saves to uploads gallery"""
-    from app.firebase_helper import FirebaseFirestoreRESTClient
-    from app.models.activity import News
-    import json
-    from datetime import datetime
-    
-    if 'file' not in request.files:
-        return jsonify({'success': False, 'error': 'لم يتم العثور على أي ملف للرفع'})
-        
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({'success': False, 'error': 'اسم الملف فارغ'})
-        
-    # Read file data
-    file_data = file.read()
-    filename = file.filename
-    content_type = file.content_type or 'application/octet-stream'
-    
-    client = FirebaseFirestoreRESTClient()
-    if not client.project_id:
-        return jsonify({'success': False, 'error': 'إعدادات فايربيز غير مكتملة في الخادم.'})
-        
-    success, result_url = client.upload_to_firebase_storage(filename, file_data, content_type)
-    if success:
-        # Save to local gallery list in News database setting
-        uploads_setting = News.query.filter_by(title='firebase_uploaded_files').first()
-        try:
-            uploaded_files = json.loads(uploads_setting.content) if (uploads_setting and uploads_setting.content) else []
-        except Exception:
-            uploaded_files = []
-            
-        # Add new file details
-        new_file_record = {
-            'filename': filename,
-            'url': result_url,
-            'content_type': content_type,
-            'uploaded_at': datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'),
-            'size': len(file_data)
-        }
-        uploaded_files.insert(0, new_file_record)
-        
-        # Save back to database
-        if not uploads_setting:
-            uploads_setting = News(title='firebase_uploaded_files', content=json.dumps(uploaded_files))
-            db.session.add(uploads_setting)
-        else:
-            uploads_setting.content = json.dumps(uploaded_files)
-            
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': 'تم رفع الملف بنجاح إلى Firebase Storage!',
-            'url': result_url,
-            'file': new_file_record
-        })
-    else:
-        return jsonify({'success': False, 'error': result_url})
-
-
-@admin_bp.route('/firebase/delete-storage-record', methods=['POST'])
-@primary_admin_required
-def firebase_delete_storage_record():
-    """Deletes upload record from local list gallery (does not delete from Firebase Storage)"""
-    from app.models.activity import News
-    import json
-    
-    url_to_delete = request.form.get('url', '').strip()
-    if not url_to_delete:
-        return jsonify({'success': False, 'error': 'الملف غير محدد'})
-        
-    uploads_setting = News.query.filter_by(title='firebase_uploaded_files').first()
-    if uploads_setting:
-        try:
-            uploaded_files = json.loads(uploads_setting.content)
-            updated_files = [f for f in uploaded_files if f.get('url') != url_to_delete]
-            uploads_setting.content = json.dumps(updated_files)
-            db.session.commit()
-            return jsonify({'success': True})
-        except Exception as e:
-            return jsonify({'success': False, 'error': str(e)})
-            
-    return jsonify({'success': False, 'error': 'لم يتم العثور على أي سجلات مرفوعة'})
 
 
 # ============ DATABASE & SUPABASE SETTINGS ============

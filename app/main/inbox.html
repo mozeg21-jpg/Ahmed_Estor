@@ -1,211 +1,149 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-</head>
 {% extends "base.html" %}
 
-{% block title %}Inbox - Volt SMS{% endblock %}
+{% block title %}الصندوق الوارد | Volt SMS{% endblock %}
 
 {% block content %}
-
 <style>
-    .notice-box {
-        text-align: center;
-        margin-bottom: 20px;
-        line-height: 1.8;
-        color: {% if current_user.is_test_account() %}#f8fafc{% else %}inherit{% endif %};
-    }
-
-    .form-control {
-        {% if current_user.is_test_account() %}
-        background-color: #1e293b !important;
-        border-color: #334155 !important;
-        color: #f8fafc !important;
-        {% endif %}
-    }
-
-    .breadcrumb-custom {
-        background-color: {% if current_user.is_test_account() %}#0f172a{% else %}#f3f4f6{% endif %};
-        padding: 10px 15px;
-        border-radius: 4px;
-        border: 1px solid {% if current_user.is_test_account() %}#1e293b{% else %}#e5e7eb{% endif %};
-        margin-bottom: 20px;
-        font-size: 14px;
-        display: flex;
-        align-items: center;
-    }
-    
-    .breadcrumb-custom a {
-        color: {% if current_user.is_test_account() %}#38bdf8{% else %}#3b82f6{% endif %};
-        text-decoration: none;
-    }
-
-    .table-custom {
-        width: 100%;
-        background: {% if current_user.is_test_account() %}#111827{% else %}#fff{% endif %};
-        border: 1px solid {% if current_user.is_test_account() %}#1e293b{% else %}#e5e7eb{% endif %};
-    }
-
-    .table-custom th {
-        background-color: {% if current_user.is_test_account() %}#1e293b{% else %}#f9fafb{% endif %};
-        color: {% if current_user.is_test_account() %}#94a3b8{% else %}#374151{% endif %};
-        font-weight: 600;
-        text-align: center;
-        padding: 12px;
-        border: 1px solid {% if current_user.is_test_account() %}#334155{% else %}#e5e7eb{% endif %};
-        white-space: nowrap;
-    }
-
-    .table-custom td {
-        padding: 12px;
-        border: 1px solid {% if current_user.is_test_account() %}#1e293b{% else %}#e5e7eb{% endif %};
-        text-align: center;
-        color: {% if current_user.is_test_account() %}#e2e8f0{% else %}#374151{% endif %};
-        vertical-align: middle;
-    }
-    
-    .table-custom tr:nth-child(even) {
-        background-color: {% if current_user.is_test_account() %}#0f172a{% else %}#f9fafb{% endif %};
-    }
-
-    .controls-bar {
-        background: {% if current_user.is_test_account() %}#1e293b{% else %}#f9fafb{% endif %};
-        padding: 10px;
-        border: 1px solid {% if current_user.is_test_account() %}#334155{% else %}#e5e7eb{% endif %};
-        border-bottom: none;
+    .inbox-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        margin-bottom: 24px;
     }
-
-    .table-container {
-        overflow-x: auto;
+    .speak-btn {
+        background: rgba(59, 130, 246, 0.1);
+        color: var(--accent);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        padding: 5px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 12px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .speak-btn:hover {
+        background: var(--accent);
+        color: white;
+    }
+    .mask-badge {
+        color: var(--muted);
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
     }
 </style>
 
-<div class="notice-box">
-    <i class="fa fa-bullhorn" style="color: var(--warn); margin-right: 5px;"></i> <strong>Important Notice:</strong><br>
-    All agents are requested to contact us via Telegram using the following link or click on it<br>
-    <i class="fa fa-telegram" style="color: var(--accent); margin-right: 5px;"></i> <a href="https://t.me/NHP_G" target="_blank" style="color: var(--accent); font-weight: 600;">t.me/NHP_G</a><br>
-    Due to a temporary issue with WhatsApp. Thank you for your understanding.
-</div>
-
-<div class="breadcrumb-custom">
-    <a href="{{ url_for('main.dashboard') }}">Home</a> &nbsp;&raquo;&nbsp; Source Request
-</div>
-
-<div>
-    <p style="font-size: 14px; color: {% if current_user.is_test_account() %}#94a3b8{% else %}#4b5563{% endif %}; margin-bottom: 10px;">
-        Here you can view all your received SMS messages.
-    </p>
-</div>
-
-<div class="table-container">
-    <form method="GET" action="{{ url_for('main.inbox') }}">
-        <div class="controls-bar">
-            <div style="display: flex; gap: 10px;">
-                <input type="text" name="fcli" class="form-control" style="width: 200px; display: inline-block;" value="{{ fcli }}" placeholder="Search...">
-                <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-search"></i></button>
-            </div>
-            <div>
-                <select class="form-control" style="width: 80px; display: inline-block;">
-                    <option>25</option>
-                    <option>50</option>
-                    <option>100</option>
-                </select>
-            </div>
-        </div>
+<div class="inbox-header">
+    <div>
+        <h3 style="font-weight: 800; margin: 0; color: var(--txt);"><i class="fa fa-inbox" style="color: var(--accent); margin-left: 10px;"></i> الصندوق الوارد</h3>
+        <p style="color: var(--muted); margin-top: 5px; font-size: 14px;">استعراض ومراقبة جميع الرسائل المستلمة على أرقامك.</p>
+    </div>
+    <form method="GET" action="{{ url_for('main.inbox') }}" style="display: flex; gap: 10px;">
+        <input type="text" name="fcli" class="form-control" style="width: 250px;" value="{{ fcli }}" placeholder="ابحث برقم المرسل أو المحتوى...">
+        <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i></button>
     </form>
+</div>
 
-    <table class="table-custom">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Range</th>
-                <th>Number</th>
-                <th>Client</th>
-                <th>SMS Text</th>
-                <th>Currency</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% if cdr_records and cdr_records.items %}
-            {% for cdr in cdr_records.items %}
-            <tr>
-                <td style="white-space: nowrap;">{{ cdr.created_at.strftime('%Y-%m-%d %H:%M:%S') if cdr.created_at else 'N/A' }}</td>
-                <td>
-                    {% if cdr.sms_number and cdr.sms_number.sms_range %}
-                        {{ cdr.sms_number.sms_range.country }} - {{ cdr.sms_number.sms_range.operator }}
+<div class="panel">
+    <div class="panel-heading">سجل الرسائل الواردة</div>
+    <div class="panel-body" style="padding: 0;">
+        <div class="table-responsive">
+            <table class="table table-hover" style="margin-bottom: 0;">
+                <thead>
+                    <tr>
+                        <th style="padding-right: 20px;">التاريخ والوقت</th>
+                        <th>الرينج / المصدر</th>
+                        <th>الرقم المستلم</th>
+                        <th>العميل</th>
+                        <th>نص الرسالة</th>
+                        <th class="text-center">الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if cdr_records and cdr_records.items %}
+                    {% for cdr in cdr_records.items %}
+                    <tr>
+                        <td style="padding-right: 20px; font-size: 13px; white-space: nowrap;">{{ cdr.created_at.strftime('%Y-%m-%d %H:%M:%S') if cdr.created_at else 'N/A' }}</td>
+                        <td>
+                            {% if cdr.sms_number and cdr.sms_number.sms_range %}
+                                <span class="btn btn-xs btn-default" style="font-size: 11px;">{{ cdr.sms_number.sms_range.country }}</span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-family: var(--font-mono); font-weight: 700;">
+                            {% if apply_masking %}
+                            {% set num = cdr.sms_number.number if cdr.sms_number else cdr.destination %}
+                            {{ num|mask_last_7 }}
+                            {% else %}
+                            {{ cdr.sms_number.number if cdr.sms_number else cdr.destination }}
+                            {% endif %}
+                        </td>
+                        <td>{{ cdr.sms_number.client.username if cdr.sms_number and cdr.sms_number.client else '-' }}</td>
+                        <td style="max-width: 350px;">
+                            {% if apply_masking %}
+                            <span class="mask-badge"><i class="fa fa-lock"></i> المحتوى مخفي</span>
+                            {% else %}
+                            <div style="display: flex; flex-direction: column; gap: 5px;">
+                                <span style="font-size: 14px; color: var(--txt); line-height: 1.4;">{{ cdr.message }}</span>
+                                {% if cdr.agent_payout > 0 %}
+                                <span style="font-size: 11px; color: var(--success); font-weight: 700;">الربح: ${{ "%.4f"|format(cdr.agent_payout) }}</span>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div style="display: flex; justify-content: center; gap: 8px;">
+                                {% if not apply_masking %}
+                                <button type="button" class="speak-btn" onclick="speakMessage(this)" data-msg="{{ cdr.message|e }}" title="استماع لكود التحقق">
+                                    <i class="fa fa-volume-up"></i> استماع
+                                </button>
+                                {% endif %}
+                                <button class="btn btn-default btn-xs" onclick="copyToClipboard('{{ cdr.message|e }}')" title="نسخ النص">
+                                    <i class="fa fa-copy"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
                     {% else %}
-                        N/A
+                    <tr>
+                        <td colspan="6" class="text-center" style="padding: 60px;">
+                            <div style="color: var(--muted);">
+                                <i class="fa fa-envelope-open-o fa-3x" style="margin-bottom: 15px; opacity: 0.3;"></i>
+                                <p style="font-size: 16px; font-weight: 600;">لا توجد رسائل واردة حالياً</p>
+                                <p style="font-size: 13px;">تأكد من تفعيل الأرقام والبدء في استقبال الرسائل.</p>
+                            </div>
+                        </td>
+                    </tr>
                     {% endif %}
-                </td>
-                <td style="font-family: monospace;">
-                    {% if apply_masking %}
-                    {% set num = cdr.sms_number.number if cdr.sms_number else cdr.destination %}
-                    {{ num|mask_last_7 }}
-                    {% else %}
-                    {{ cdr.sms_number.number if cdr.sms_number else cdr.destination }}
-                    {% endif %}
-                </td>
-                <td>
-                    {% if cdr.sms_number and cdr.sms_number.client %}
-                        {{ cdr.sms_number.client.username }}
-                    {% else %}
-                        -
-                    {% endif %}
-                </td>
-                <td style="text-align: left; max-width: 250px;">
-                    {% if apply_masking %}
-                    <span class="text-muted"><i class="fa fa-lock"></i> Hidden</span>
-                    {% else %}
-                    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;">
-                        <span>{{ cdr.message }}</span>
-                        <button type="button" class="btn btn-xs btn-info" onclick="speakMessage(this)" data-msg="{{ cdr.message|e }}" style="padding: 2px 6px; border-radius: 4px; flex-shrink: 0;" title="Listen to verification code">
-                            <i class="fa fa-volume-up"></i>
-                        </button>
-                    </div>
-                    {% endif %}
-                    {% if cdr.agent_payout > 0 %}
-                    <br><span style="font-size: 11px; color: #10b981;">Payout: ${{ "%.4f"|format(cdr.agent_payout) }}</span>
-                    {% endif %}
-                </td>
-                <td>USD</td>
-            </tr>
-            {% endfor %}
-            {% else %}
-            <tr>
-                <td colspan="6" style="padding: 40px;">
-                    <div style="color: #9ca3af;">
-                        <i class="fa fa-envelope-o" style="font-size: 32px; margin-bottom: 10px;"></i>
-                        <p>No data available in table</p>
-                    </div>
-                </td>
-            </tr>
-            {% endif %}
-        </tbody>
-    </table>
-    
-    {% if cdr_records and cdr_records.pages > 1 %}
-    <div style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center;">
-        <span style="font-size: 13px; color: #6b7280;">Showing {{ cdr_records.page }} of {{ cdr_records.pages }} pages</span>
-        <div class="btn-group">
-            {% if cdr_records.has_prev %}
-            <a href="{{ url_for('main.inbox', page=cdr_records.prev_num, fcli=fcli) }}" class="btn btn-default btn-sm">Previous</a>
-            {% else %}
-            <button class="btn btn-default btn-sm" disabled>Previous</button>
-            {% endif %}
-            
-            {% if cdr_records.has_next %}
-            <a href="{{ url_for('main.inbox', page=cdr_records.next_num, fcli=fcli) }}" class="btn btn-default btn-sm">Next</a>
-            {% else %}
-            <button class="btn btn-default btn-sm" disabled>Next</button>
-            {% endif %}
+                </tbody>
+            </table>
         </div>
     </div>
-    {% endif %}
 </div>
+
+{% if cdr_records and cdr_records.pages > 1 %}
+<div style="display: flex; justify-content: center; margin-top: 20px;">
+    <ul class="pagination">
+        {% if cdr_records.has_prev %}
+        <li><a href="{{ url_for('main.inbox', page=cdr_records.prev_num, fcli=fcli) }}">السابق</a></li>
+        {% endif %}
+        {% for p in range(1, cdr_records.pages + 1) %}
+        <li class="{% if p == cdr_records.page %}active{% endif %}">
+            <a href="{{ url_for('main.inbox', page=p, fcli=fcli) }}">{{ p }}</a>
+        </li>
+        {% endfor %}
+        {% if cdr_records.has_next %}
+        <li><a href="{{ url_for('main.inbox', page=cdr_records.next_num, fcli=fcli) }}">التالي</a></li>
+        {% endif %}
+    </ul>
+</div>
+{% endif %}
 
 <script>
 function speakMessage(btn) {
@@ -216,12 +154,12 @@ function speakMessage(btn) {
     var url = "";
 
     var origHtml = btn.innerHTML;
-    btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
+    btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> جاري التحميل...';
     btn.disabled = true;
 
     if (match) {
         var code = match[0];
-        url = "/api/tts/otp?code=" + encodeURIComponent(code) + "&bot_name=" + encodeURIComponent("Volt%20SMS");
+        url = "/api/tts/otp?code=" + encodeURIComponent(code) + "&bot_name=Volt%20SMS";
     } else {
         url = "/api/tts?text=" + encodeURIComponent(msg);
     }
@@ -233,13 +171,18 @@ function speakMessage(btn) {
             btn.disabled = false;
         }, 1500);
     }).catch(function(err) {
-        console.error("TTS play failed:", err);
-        btn.innerHTML = '<i class="fa fa-times text-danger"></i>';
-        setTimeout(function() {
-            btn.innerHTML = origHtml;
-            btn.disabled = false;
-        }, 2000);
+        console.error("TTS failed:", err);
+        btn.innerHTML = '<i class="fa fa-times text-danger"></i> خطأ';
+        setTimeout(function() { btn.innerHTML = origHtml; btn.disabled = false; }, 2000);
     });
+}
+
+function copyToClipboard(text) {
+    var el = document.createElement('textarea');
+    el.value = text;
+    document.body.appendChild(el); el.select();
+    document.execCommand('copy'); document.body.removeChild(el);
+    alert('تم نسخ محتوى الرسالة!');
 }
 </script>
 {% endblock %}

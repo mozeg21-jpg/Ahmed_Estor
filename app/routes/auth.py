@@ -111,13 +111,6 @@ def login():
             return render_template('auth/login.html', num1=num1, num2=num2, captcha_token=captcha_token)
 
         user = User.query.filter_by(username=username).first()
-        if not user:
-            try:
-                from app.firebase_helper import restore_single_client_from_firebase
-                user = restore_single_client_from_firebase(username)
-            except Exception as e:
-                print(f"[ON-DEMAND RESTORE ERROR] {e}")
-
         if user and user.check_password(password):
             if not user.is_active:
                 flash('Your account has been deactivated.', 'warning')
@@ -229,10 +222,9 @@ def register():
         if account_type not in ['agent', 'client']:
             errors.append('Invalid account type. Please select Agent or Client.')
 
-        from app.firebase_helper import is_username_in_firebase
         from sqlalchemy import func
         existing_user = User.query.filter(func.lower(User.username) == func.lower(username)).first()
-        if existing_user or is_username_in_firebase(username):
+        if existing_user:
             errors.append('Username already exists.')
         if User.query.filter_by(email=email).first():
             errors.append('Email already registered.')
@@ -264,13 +256,6 @@ def register():
 
         db.session.add(user)
         db.session.commit()
-
-        # Sync registered user to Firebase Firestore
-        try:
-            from app.firebase_helper import sync_client_to_firebase
-            sync_client_to_firebase(user)
-        except Exception as e:
-            print(f"[FIREBASE SYNC] Failed to sync registered user to Firestore: {e}")
 
         ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
         ActivityLog.log(user.id, 'register', f'New {account_type} account registered', ip_address=ip)

@@ -144,7 +144,7 @@ def create_app(config_name='default'):
 
         # Trigger automatic monthly reset checks
         try:
-            from app.firebase_helper import check_and_process_monthly_resets
+            from app.db_helper import check_and_process_monthly_resets
             check_and_process_monthly_resets()
         except Exception as cre:
             print(f"[AUTO RESET TRIGGER ERROR] {cre}")
@@ -437,39 +437,6 @@ def create_app(config_name='default'):
                     db.session.add(s)
                 db.session.commit()
                 print("[SYSTEM] Default SMS suppliers seeded.")
-            # ── Auto-initialize Firebase settings in Database if not present ────
-            try:
-                from app.models.activity import News
-                from app.firebase_helper import FirebaseFirestoreRESTClient
-                client = FirebaseFirestoreRESTClient()
-                if client.project_id:
-                    for key, val in [
-                        ('firebase_project_id', client.project_id),
-                        ('firebase_api_key', client.api_key),
-                        ('firebase_database_id', client.database_id),
-                        ('firebase_storage_bucket', client.storage_bucket)
-                    ]:
-                        setting = News.query.filter_by(title=key).first()
-                        if not setting:
-                            if val:
-                                db.session.add(News(title=key, headline=key.replace('_', ' ').title(), content=val))
-                        elif not setting.content and val:
-                            setting.content = val
-                    db.session.commit()
-                    print("[SYSTEM] Firebase configuration seeded to database.")
-            except Exception as fe:
-                print(f"[SYSTEM] Failed to auto-initialize Firebase database settings: {fe}")
-
-            # ── Restore clients from Firestore on startup in a background thread ─
-            try:
-                import threading
-                from app.firebase_helper import restore_clients_from_firebase
-                thread = threading.Thread(target=restore_clients_from_firebase, args=(app,), daemon=True)
-                thread.start()
-                print("[SYSTEM] Started background thread to restore clients from Firestore.")
-            except Exception as e:
-                print(f"[SYSTEM] Restore clients background thread failed: {e}")
-
             # ── Load Telegram settings from database News table ───────────────
             try:
                 from app.models.activity import News

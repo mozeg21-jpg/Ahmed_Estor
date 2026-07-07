@@ -1,88 +1,77 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-</head>
 {% extends "base.html" %}
 
-{% block title %}Activity Logs - Volt SMS{% endblock %}
+{% block title %}سجلات النشاط | Volt SMS{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-md-12">
-        <div class="breadcrumb">
-            <h4><i class="fa fa-history"></i> Activity Logs</h4>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h3 style="font-weight: 800; margin: 0; color: var(--txt);"><i class="fa fa-history" style="color: var(--accent); margin-left: 10px;"></i> سجلات نشاط النظام</h3>
+            <div style="color: var(--muted); font-size: 14px;">مراقبة العمليات والتحركات الأمنية</div>
         </div>
     </div>
 </div>
 
-<div class="widget-block">
-    <div class="widget-head">
-        <h5><i class="fa fa-list"></i> All Activity Logs</h5>
-    </div>
-    <div class="widget-content">
+<div class="panel">
+    <div class="panel-heading">سجل شامل لجميع الإجراءات المتخذة داخل المنصة</div>
+    <div class="panel-body" style="padding: 0;">
         <div class="table-responsive">
-            <table class="table table-striped table-hover">
+            <table class="table table-hover" style="margin-bottom: 0;">
                 <thead>
                     <tr>
-                        <th>#</th>
-                        <th>User</th>
-                        <th>Action</th>
-                        <th>Details</th>
-                        <th>IP Address</th>
-                        <th>Date/Time</th>
+                        <th style="padding-right: 20px;">المعرف</th>
+                        <th>المستخدم</th>
+                        <th>الإجراء</th>
+                        <th>التفاصيل</th>
+                        <th>عنوان IP</th>
+                        <th>التاريخ والوقت</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% if logs.items %}
                     {% for log in logs.items %}
                     <tr>
-                        <td>{{ log.id }}</td>
+                        <td style="padding-right: 20px;">#{{ log.id }}</td>
                         <td>
                             {% if log.user %}
-                            {{ log.user.username }}
+                            <strong style="color: var(--txt);">{{ log.user.username }}</strong>
                             {% else %}
-                            <em class="text-muted">System</em>
+                            <span class="text-muted italic">نظام آلي</span>
                             {% endif %}
                         </td>
-                        <td><span class="label label-primary">{{ log.action }}</span></td>
-                        <td>{{ log.details or 'N/A' }}</td>
-                        <td><code>{{ log.ip_address or 'N/A' }}</code></td>
-                        <td>{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') if log.created_at else 'N/A' }}</td>
+                        <td><span class="btn btn-xs btn-primary" style="font-size: 11px; font-weight: 700;">{{ log.action }}</span></td>
+                        <td style="font-size: 13px; color: var(--muted);">{{ log.details or '-' }}</td>
+                        <td><code style="background: var(--hover); border: 1px solid var(--border); padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono); color: var(--accent);">{{ log.ip_address or 'N/A' }}</code></td>
+                        <td style="font-size: 13px;">{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') if log.created_at else 'N/A' }}</td>
                     </tr>
                     {% endfor %}
                     {% else %}
                     <tr>
-                        <td colspan="6" class="text-center text-muted">No activity logs found.</td>
+                        <td colspan="6" class="text-center" style="padding: 40px; color: var(--muted);">لا توجد سجلات نشاط مسجلة حالياً.</td>
                     </tr>
                     {% endif %}
                 </tbody>
             </table>
         </div>
-
-        {% if logs.pages > 1 %}
-        <nav aria-label="Page navigation">
-            <ul class="pagination justify-content-center">
-                {% if logs.has_prev %}
-                <li class="page-item">
-                    <a class="page-link" href="{{ url_for('admin.activity_logs', page=logs.prev_num) }}">Previous</a>
-                </li>
-                {% endif %}
-
-                {% for p in range(1, logs.pages + 1) %}
-                <li class="page-item {% if p == logs.page %}active{% endif %}">
-                    <a class="page-link" href="{{ url_for('admin.activity_logs', page=p) }}">{{ p }}</a>
-                </li>
-                {% endfor %}
-
-                {% if logs.has_next %}
-                <li class="page-item">
-                    <a class="page-link" href="{{ url_for('admin.activity_logs', page=logs.next_num) }}">Next</a>
-                </li>
-                {% endif %}
-            </ul>
-        </nav>
-        {% endif %}
     </div>
 </div>
+
+{% if logs.pages > 1 %}
+<div style="display: flex; justify-content: center; margin-top: 20px;">
+    <ul class="pagination">
+        {% if logs.has_prev %}
+        <li><a href="{{ url_for('admin.activity_logs', page=logs.prev_num) }}">السابق</a></li>
+        {% endif %}
+        {% for p in range(1, logs.pages + 1) %}
+        <li class="{% if p == logs.page %}active{% endif %}">
+            <a href="{{ url_for('admin.activity_logs', page=p) }}">{{ p }}</a>
+        </li>
+        {% endfor %}
+        {% if logs.has_next %}
+        <li><a href="{{ url_for('admin.activity_logs', page=logs.next_num) }}">التالي</a></li>
+        {% endif %}
+    </ul>
+</div>
+{% endif %}
+
 {% endblock %}

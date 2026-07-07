@@ -1,35 +1,31 @@
 {% extends "base.html" %}
 
-{% block title %}SMS Test Panel - Volt SMS{% endblock %}
+{% block title %}لوحة اختبار الإرسال | Volt SMS{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-md-12">
-        <ol class="breadcrumb" style="background-color: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 12px 16px; margin-bottom: 24px;">
-            <li><a href="{{ url_for('main.dashboard') }}" style="color: var(--accent);"><i class="fa fa-home"></i> Home</a></li>
-            <li class="active" style="color: var(--muted);">SMS Test Panel</li>
-        </ol>
+        <h3 style="font-weight: 800; margin: 0; color: var(--txt);"><i class="fa fa-vial" style="color: var(--accent); margin-left: 10px;"></i> لوحة اختبار إرسال الرسائل</h3>
+        <p style="color: var(--muted); margin-top: 5px; font-size: 14px;">استخدم هذه اللوحة لمحاكاة إرسال رسائل SMS واختبار وصولها لأرقامك الخاصة.</p>
     </div>
 </div>
 
-<div class="row">
+<div class="row" style="margin-top: 30px;">
     <div class="col-md-6 col-md-offset-3">
         <div class="panel">
-            <div class="panel-heading">
-                <span style="font-weight: 600; font-size: 16px;"><i class="fa fa-cubes" style="color: var(--accent);"></i> SMS Test Panel</span>
-            </div>
+            <div class="panel-heading">نموذج محاكاة الإرسال</div>
             <div class="panel-body">
                 <form method="POST" action="{{ url_for('main.sms_test_panel') }}">
                     <div class="form-group">
-                        <label for="cli" class="control-label" style="font-weight: 500;">Originator / Sender (CLI)</label>
-                        <input type="text" name="cli" id="cli" class="form-control" placeholder="e.g. Google, 12025550199" required>
-                        <span class="help-block" style="font-size: 12px; color: var(--muted);">The sender ID that will appear as the source address.</span>
+                        <label>اسم المرسل (Originator / CLI)</label>
+                        <input type="text" name="cli" class="form-control" placeholder="مثلاً: Google, 12025550199" required>
+                        <p class="help-block" style="font-size: 12px; color: var(--muted);">المعرف الذي سيظهر كجهة مرسلة للرسالة.</p>
                     </div>
 
                     <div class="form-group">
-                        <label for="number_id" class="control-label" style="font-weight: 500;">Target / Recipient Number</label>
-                        <select name="number_id" id="number_id" class="form-control" required>
-                            <option value="">-- Select Your Number --</option>
+                        <label>الرقم المستهدف (رقمك المستلم)</label>
+                        <select name="number_id" class="form-control" required>
+                            <option value="">-- اختر رقمك المخصص لاستقبال الرسالة --</option>
                             {% for n in my_numbers %}
                             <option value="{{ n.id }}">{{ n.number }} ({{ n.sms_range.country if n.sms_range else 'N/A' }})</option>
                             {% endfor %}
@@ -37,16 +33,17 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="message" class="control-label" style="font-weight: 500;">Message Content</label>
-                        <textarea name="message" id="message" rows="5" class="form-control" placeholder="Type your test SMS message here..." required></textarea>
-                        <div class="text-right" style="margin-top: 5px;">
-                            <span id="charCount" class="badge" style="background-color: var(--accent);">0</span> characters
+                        <label>محتوى الرسالة</label>
+                        <textarea name="message" id="test_message" rows="5" class="form-control" placeholder="اكتب نص الرسالة الاختبارية هنا..." required></textarea>
+                        <div style="margin-top: 8px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: var(--muted); font-size: 12px;">تأكد من تضمين كود التحقق إذا كنت تختبر OTP.</span>
+                            <span class="btn btn-xs btn-default" style="font-weight: 700; font-family: var(--font-mono);"><span id="charCounter">0</span> حرف</span>
                         </div>
                     </div>
 
-                    <div class="form-group" style="margin-top: 24px;">
-                        <button type="submit" class="btn btn-primary btn-block" style="background-color: var(--accent); border: none; font-weight: 600; padding: 10px 16px;">
-                            <i class="fa fa-paper-plane"></i> Send Test SMS
+                    <div style="margin-top: 30px;">
+                        <button type="submit" class="btn btn-primary btn-block" style="padding: 14px; font-size: 16px; font-weight: 800;">
+                            <i class="fa fa-paper-plane"></i> إرسال رسالة اختبارية
                         </button>
                     </div>
                 </form>
@@ -59,9 +56,9 @@
 {% block extra_js %}
 <script>
     $(document).ready(function() {
-        $('#message').on('input', function() {
+        $('#test_message').on('input', function() {
             var len = $(this).val().length;
-            $('#charCount').text(len);
+            $('#charCounter').text(len);
         });
     });
 </script>

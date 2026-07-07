@@ -915,6 +915,13 @@ def statements(currency):
     
     return render_template('main/statements.html', currency=currency, transactions=transactions)
 
+@main_bp.route('/set_language/<lang>')
+def set_language(lang):
+    from flask import session, request, redirect, url_for
+    if lang in ['ar', 'en']:
+        session['lang'] = lang
+    return redirect(request.referrer or url_for('main.dashboard'))
+
 @main_bp.route('/agent/Stats/<stat_type>')
 @login_required
 def stats(stat_type):

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Admin Panel - Volt SMS{% endblock %}
+{% block title %}لوحة الإدارة | فولت SMS{% endblock %}
 
 {% block content %}
 <style>
@@ -8,9 +8,9 @@
     .admin-header-card {
         background: linear-gradient(135deg, rgba(17, 24, 39, 0.8), rgba(31, 41, 55, 0.8));
         border: 1px solid var(--border);
-        border-radius: 16px;
-        padding: 24px;
-        margin-bottom: 24px;
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 30px;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -18,41 +18,40 @@
     }
 
     .admin-title-badge {
-        background: rgba(59, 130, 246, 0.1);
+        background: rgba(59, 130, 246, 0.15);
         color: var(--accent);
-        padding: 6px 12px;
+        padding: 8px 16px;
         border-radius: 99px;
-        font-size: 12px;
-        font-weight: 600;
-        letter-spacing: 0.5px;
+        font-size: 13px;
+        font-weight: 700;
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        margin-bottom: 8px;
+        gap: 8px;
+        margin-bottom: 12px;
     }
 
     /* KPI Stats Grid */
     .kpi-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 16px;
-        margin-bottom: 30px;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 40px;
     }
 
     .kpi-card {
         background-color: var(--card);
         border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 20px;
+        border-radius: 20px;
+        padding: 24px;
         position: relative;
         overflow: hidden;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: var(--shadow);
     }
 
     .kpi-card:hover {
-        transform: translateY(-4px);
+        transform: translateY(-5px);
         border-color: var(--accent);
-        box-shadow: 0 12px 24px -10px rgba(59, 130, 246, 0.3);
     }
 
     .kpi-card::after {
@@ -61,181 +60,105 @@
         bottom: 0;
         left: 0;
         width: 100%;
-        height: 3px;
+        height: 4px;
         background: linear-gradient(90deg, transparent, var(--accent), transparent);
         opacity: 0;
         transition: opacity 0.3s;
     }
 
-    .kpi-card:hover::after {
-        opacity: 1;
-    }
+    .kpi-card:hover::after { opacity: 1; }
 
     .kpi-icon-wrap {
-        width: 44px;
-        height: 44px;
-        border-radius: 10px;
+        width: 50px;
+        height: 50px;
+        border-radius: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-bottom: 12px;
-        background: rgba(255, 255, 255, 0.05);
+        margin-bottom: 16px;
     }
 
     .kpi-label {
-        font-size: 12px;
+        font-size: 13px;
         color: var(--muted);
-        font-weight: 500;
+        font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
     }
 
     .kpi-value {
-        font-size: 24px;
-        font-weight: 800;
+        font-size: 28px;
+        font-weight: 900;
         color: var(--txt);
-        margin-top: 4px;
+        margin-top: 6px;
     }
 
     /* Modern Admin Modules Grid */
     .module-section-title {
-        font-size: 14px;
-        font-weight: 700;
+        font-size: 15px;
+        font-weight: 800;
         color: var(--muted);
         text-transform: uppercase;
-        letter-spacing: 1px;
-        margin-bottom: 16px;
+        margin-bottom: 20px;
         display: flex;
         align-items: center;
-        gap: 8px;
-    }
-
-    .module-section-title i {
-        color: var(--accent);
+        gap: 10px;
     }
 
     .admin-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 16px;
-        margin-bottom: 30px;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 20px;
+        margin-bottom: 40px;
     }
 
     .admin-module-card {
         background-color: var(--card);
         border: 1px solid var(--border);
-        border-radius: 12px;
+        border-radius: 18px;
         padding: 20px;
         display: flex;
         align-items: center;
-        gap: 16px;
+        gap: 18px;
         text-decoration: none !important;
         transition: all 0.2s ease-in-out;
     }
 
     .admin-module-card:hover {
         border-color: var(--accent);
-        transform: translateY(-2px);
         background: var(--hover);
-        box-shadow: var(--shadow);
+        transform: scale(1.02);
     }
 
     .module-icon-box {
-        width: 48px;
-        height: 48px;
-        border-radius: 10px;
+        width: 54px;
+        height: 54px;
+        border-radius: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
-        transition: transform 0.2s;
     }
 
-    .admin-module-card:hover .module-icon-box {
-        transform: scale(1.08);
-    }
+    .module-icon-box i { font-size: 22px; color: white; }
 
-    .module-icon-box i {
-        font-size: 20px;
-        color: white;
-    }
+    .module-name { color: var(--txt); font-size: 16px; font-weight: 800; }
+    .module-desc { color: var(--muted); font-size: 12px; margin-top: 3px; }
 
-    .module-info {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .module-name {
-        color: var(--txt);
-        font-size: 15px;
-        font-weight: 700;
-    }
-
-    .module-desc {
-        color: var(--muted);
-        font-size: 12px;
-        margin-top: 2px;
-    }
-
-    /* Sidebar Divider/Layout custom */
-    .row-flex {
-        display: flex;
-        gap: 24px;
-        flex-wrap: wrap;
-    }
-
-    .col-flex-left {
-        flex: 2;
-        min-width: 300px;
-    }
-
-    .col-flex-right {
-        flex: 1;
-        min-width: 300px;
-    }
-
-    /* News and Log section */
     .news-panel {
         background-color: var(--card);
         border: 1px solid var(--border);
-        border-radius: 12px;
+        border-radius: 20px;
         overflow: hidden;
-        margin-bottom: 24px;
+        margin-bottom: 30px;
     }
 
     .news-header {
-        padding: 16px 20px;
+        padding: 18px 24px;
         border-bottom: 1px solid var(--border);
         display: flex;
         justify-content: space-between;
         align-items: center;
         background: rgba(255, 255, 255, 0.02);
-    }
-
-    .news-title {
-        font-size: 14px;
-        font-weight: 700;
-        color: var(--txt);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .news-item {
-        padding: 16px 20px;
-        border-bottom: 1px solid var(--border);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        transition: background-color 0.2s;
-    }
-
-    .news-item:last-child {
-        border-bottom: none;
-    }
-
-    .news-item:hover {
-        background-color: var(--hover);
     }
 </style>
 
@@ -243,60 +166,61 @@
 <div class="admin-header-card">
     <div>
         <div class="admin-title-badge">
-            <i class="fa fa-shield"></i> SECURED CONTROL PANEL
+            <i class="fa fa-shield"></i> لوحة الإدارة المؤمنة
         </div>
-        <h3 style="font-weight: 800; margin: 0; color: var(--txt); letter-spacing: -0.5px;">Volt SMS Administrator Dashboard</h3>
-        <p style="color: var(--muted); margin-top: 6px; margin-bottom: 0; font-size: 13.5px;">Real-time overview, short message delivery monitoring, and routing configuration.</p>
+        <h2 style="font-weight: 900; margin: 0; color: var(--txt);">لوحة تحكم مدير Volt SMS</h2>
+        <p style="color: var(--muted); margin-top: 8px; margin-bottom: 0; font-size: 15px;">مراقبة فورية، إدارة المسارات، وتكوين إعدادات النظام.</p>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <a href="{{ url_for('admin.settings') }}" class="btn btn-primary" style="padding: 10px 20px;"><i class="fa fa-cog"></i> الإعدادات</a>
     </div>
 </div>
 
 <!-- ══ KEY PERFORMANCE INDICATORS ════════════════════════════════════════ -->
 <div class="kpi-grid">
     <div class="kpi-card">
-        <div class="kpi-icon-wrap" style="color: #3b82f6; background: rgba(59, 130, 246, 0.1);">
-            <i class="fa fa-users" style="font-size: 18px;"></i>
+        <div class="kpi-icon-wrap" style="color: #3b82f6; background: rgba(59, 130, 246, 0.15);">
+            <i class="fa fa-users"></i>
         </div>
-        <div class="kpi-label">Active / Total Users</div>
+        <div class="kpi-label">المستخدمين (نشط / إجمالي)</div>
         <div class="kpi-value">
             <span style="color: var(--success);">{{ stats.active_users }}</span>
-            <span style="color: var(--muted); font-size: 16px; font-weight: 500;">/ {{ stats.total_users }}</span>
+            <span style="color: var(--muted); font-size: 18px; font-weight: 500;">/ {{ stats.total_users }}</span>
         </div>
     </div>
     
     <div class="kpi-card">
-        <div class="kpi-icon-wrap" style="color: #10b981; background: rgba(16, 185, 129, 0.1);">
-            <i class="fa fa-globe" style="font-size: 18px;"></i>
+        <div class="kpi-icon-wrap" style="color: #10b981; background: rgba(16, 185, 129, 0.15);">
+            <i class="fa fa-globe"></i>
         </div>
-        <div class="kpi-label">Total SMS Ranges</div>
+        <div class="kpi-label">إجمالي الرينجات</div>
         <div class="kpi-value">{{ stats.total_ranges }}</div>
     </div>
 
     <div class="kpi-card">
-        <div class="kpi-icon-wrap" style="color: #06b6d4; background: rgba(6, 182, 212, 0.1);">
-            <i class="fa fa-hashtag" style="font-size: 18px;"></i>
+        <div class="kpi-icon-wrap" style="color: #06b6d4; background: rgba(6, 182, 212, 0.15);">
+            <i class="fa fa-hashtag"></i>
         </div>
-        <div class="kpi-label">Total Active Numbers</div>
+        <div class="kpi-label">الأرقام النشطة</div>
         <div class="kpi-value">{{ stats.total_numbers }}</div>
     </div>
 
     <div class="kpi-card">
-        <div class="kpi-icon-wrap" style="color: #f59e0b; background: rgba(245, 158, 11, 0.1);">
-            <i class="fa fa-paper-plane" style="font-size: 18px;"></i>
+        <div class="kpi-icon-wrap" style="color: #f59e0b; background: rgba(245, 158, 11, 0.15);">
+            <i class="fa fa-paper-plane"></i>
         </div>
-        <div class="kpi-label">Sent Messages (Today)</div>
+        <div class="kpi-label">رسائل اليوم</div>
         <div class="kpi-value" style="color: var(--accent);">{{ stats.today_sms }}</div>
     </div>
 </div>
 
-<!-- ══ MODULES & NEWS ROW ════════════════════════════════════════════════ -->
-<div class="row-flex">
-    
-    <!-- LEFT SIDE: ADMIN MODULES -->
-    <div class="col-flex-left">
+<!-- ══ MODULES ROW ══════════════════════════════════════════════════════ -->
+<div class="row">
+    <div class="col-md-8">
         
-        <!-- Section 1: User & Agent Management -->
+        <!-- Section 1: User Management -->
         <div class="module-section-title">
-            <i class="fa fa-user-circle"></i> User &amp; Client Administration
+            <i class="fa fa-user-circle"></i> إدارة المستخدمين والعملاء
         </div>
         <div class="admin-grid">
             <a href="{{ url_for('admin.users') }}" class="admin-module-card">
@@ -304,8 +228,8 @@
                     <i class="fa fa-users"></i>
                 </div>
                 <div class="module-info">
-                    <span class="module-name">Manage Users</span>
-                    <span class="module-desc">Add, edit, or deactivate user roles</span>
+                    <span class="module-name">إدارة الحسابات</span>
+                    <span class="module-desc">إضافة، تعديل، أو تعطيل المستخدمين</span>
                 </div>
             </a>
 
@@ -314,25 +238,15 @@
                     <i class="fa fa-user-plus"></i>
                 </div>
                 <div class="module-info">
-                    <span class="module-name">Allocate Numbers</span>
-                    <span class="module-desc">Search ranges & assign to users</span>
-                </div>
-            </a>
-
-            <a href="{{ url_for('admin.admin_delete_numbers_from_agent') }}" class="admin-module-card">
-                <div class="module-icon-box" style="background: linear-gradient(135deg, #e11d48, #9f1239);">
-                    <i class="fa fa-user-minus"></i>
-                </div>
-                <div class="module-info">
-                    <span class="module-name">Unassign Agent</span>
-                    <span class="module-desc">Revoke SMS pools from agents</span>
+                    <span class="module-name">تخصيص الأرقام</span>
+                    <span class="module-desc">البحث وتعيين الرينجات للمستخدمين</span>
                 </div>
             </a>
         </div>
 
         <!-- Section 2: SMS & Routing -->
         <div class="module-section-title">
-            <i class="fa fa-rss"></i> SMS &amp; Routing Operations
+            <i class="fa fa-rss"></i> إدارة المسارات والرسائل
         </div>
         <div class="admin-grid">
             <a href="{{ url_for('admin.sms_ranges') }}" class="admin-module-card">
@@ -340,18 +254,8 @@
                     <i class="fa fa-flag"></i>
                 </div>
                 <div class="module-info">
-                    <span class="module-name">SMS Ranges</span>
-                    <span class="module-desc">Configure operator routes & rates</span>
-                </div>
-            </a>
-
-            <a href="{{ url_for('admin.create_sms_ranges_multiple') }}" class="admin-module-card">
-                <div class="module-icon-box" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">
-                    <i class="fa fa-layer-group"></i>
-                </div>
-                <div class="module-info">
-                    <span class="module-name">Multi-Range Add</span>
-                    <span class="module-desc">Upload bulk range tables safely</span>
+                    <span class="module-name">رينجات الإس إم إس</span>
+                    <span class="module-desc">ضبط المسارات والأسعار للدول</span>
                 </div>
             </a>
 
@@ -360,44 +264,8 @@
                     <i class="fa fa-phone"></i>
                 </div>
                 <div class="module-info">
-                    <span class="module-name">SMS Numbers</span>
-                    <span class="module-desc">Review live numbers in pool</span>
-                </div>
-            </a>
-
-            <a href="{{ url_for('admin.admin_allocate_range_numbers') }}" class="admin-module-card">
-                <div class="module-icon-box" style="background: linear-gradient(135deg, #22c55e, #15803d);">
-                    <i class="fa fa-plus-circle"></i>
-                </div>
-                <div class="module-info">
-                    <span class="module-name">Allocate Numbers</span>
-                    <span class="module-desc">Dynamic range search & allocation</span>
-                </div>
-            </a>
-
-            <a href="{{ url_for('admin.admin_remove_numbers_from_client') }}" class="admin-module-card">
-                <div class="module-icon-box" style="background: linear-gradient(135deg, #ef4444, #b91c1c);">
-                    <i class="fa fa-minus-circle"></i>
-                </div>
-                <div class="module-info">
-                    <span class="module-name">Unassign Numbers</span>
-                    <span class="module-desc">Remove numbers from client pool</span>
-                </div>
-            </a>
-        </div>
-
-        <!-- Section 3: Monitoring & Configuration -->
-        <div class="module-section-title">
-            <i class="fa fa-sliders"></i> Systems, Monitoring &amp; Logs
-        </div>
-        <div class="admin-grid">
-            <a href="{{ url_for('admin.activity_logs') }}" class="admin-module-card">
-                <div class="module-icon-box" style="background: linear-gradient(135deg, #f59e0b, #b45309);">
-                    <i class="fa fa-history"></i>
-                </div>
-                <div class="module-info">
-                    <span class="module-name">Activity Logs</span>
-                    <span class="module-desc">Audit actions and session logins</span>
+                    <span class="module-name">الأرقام المتصلة</span>
+                    <span class="module-desc">مراقبة الأرقام النشطة في الحوض</span>
                 </div>
             </a>
 
@@ -406,109 +274,66 @@
                     <i class="fa fa-file-text"></i>
                 </div>
                 <div class="module-info">
-                    <span class="module-name">SMS CDR Logs</span>
-                    <span class="module-desc">Call Detail Records & messages</span>
+                    <span class="module-name">تقارير CDR</span>
+                    <span class="module-desc">سجلات التفاصيل وحالة التسليم</span>
                 </div>
             </a>
-
-            {% if current_user.username == 'admin' %}
-            <a href="{{ url_for('admin.firebase_settings') }}" class="admin-module-card">
-                <div class="module-icon-box" style="background: linear-gradient(135deg, #f59e0b, #b45309);">
-                    <i class="fa fa-google"></i>
-                </div>
-                <div class="module-info">
-                    <span class="module-name">Firebase &amp; Supabase Diagnostics</span>
-                    <span class="module-desc">Firestore sync and live connection monitoring</span>
-                </div>
-            </a>
-
-            <a href="{{ url_for('admin.settings') }}" class="admin-module-card">
-                <div class="module-icon-box" style="background: linear-gradient(135deg, #4b5563, #1f2937);">
-                    <i class="fa fa-cog"></i>
-                </div>
-                <div class="module-info">
-                    <span class="module-name">System Settings</span>
-                    <span class="module-desc">SMS platform and API configuration</span>
-                </div>
-            </a>
-            {% endif %}
         </div>
-
     </div>
 
-    <!-- RIGHT SIDE: NEWS & ANNOUNCEMENTS -->
-    <div class="col-flex-right">
-        
+    <!-- RIGHT SIDE: NEWS & INFO -->
+    <div class="col-md-4">
         <div class="news-panel">
             <div class="news-header">
-                <div class="news-title">
-                    <i class="fa fa-bullhorn" style="color: var(--warn);"></i> News &amp; Bulletins
+                <div style="font-weight: 800; color: var(--txt); display: flex; align-items: center; gap: 8px;">
+                    <i class="fa fa-bullhorn" style="color: var(--warn);"></i> الأخبار والتنبيهات
                 </div>
-                <a href="{{ url_for('admin.create_news') }}" class="btn btn-primary btn-xs" style="font-size: 11px; padding: 4px 10px;"><i class="fa fa-plus"></i> Add News</a>
+                <a href="{{ url_for('admin.create_news') }}" class="btn btn-default btn-xs">إضافة</a>
             </div>
             
-            <div style="background-color: var(--card);">
+            <div style="padding: 10px;">
                 {% if recent_news %}
                     {% for news in recent_news %}
-                    <div class="news-item">
+                    <div style="padding: 12px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <strong style="color: var(--txt); font-size: 13.5px; display: block;">{{ news.headline }}</strong>
-                            <span style="color: var(--muted); font-size: 11px; margin-top: 4px; display: inline-block;">
-                                <i class="fa fa-clock-o"></i> {{ news.created_at.strftime('%Y-%m-%d') if news.created_at else '' }}
-                            </span>
+                            <strong style="display: block; font-size: 14px; color: var(--txt);">{{ news.headline }}</strong>
+                            <small style="color: var(--muted);">{{ news.created_at.strftime('%Y-%m-%d') }}</small>
                         </div>
-                        <a href="{{ url_for('admin.delete_news', news_id=news.id) }}" class="btn btn-xs btn-danger" style="padding: 4px 8px;" onclick="return confirm('Delete this news?')">
-                            <i class="fa fa-trash"></i>
-                        </a>
+                        <a href="{{ url_for('admin.delete_news', news_id=news.id) }}" class="text-danger" onclick="return confirm('حذف هذا الخبر؟')"><i class="fa fa-trash"></i></a>
                     </div>
                     {% endfor %}
                 {% else %}
-                    <div style="padding: 40px; text-align: center; color: var(--muted);">
-                        <i class="fa fa-newspaper-o fa-2x" style="opacity: 0.4; margin-bottom: 8px;"></i>
-                        <p style="margin: 0; font-size: 13px;">No system announcements published yet.</p>
-                    </div>
+                    <div style="padding: 30px; text-align: center; color: var(--muted);">لا توجد أخبار حالياً.</div>
                 {% endif %}
             </div>
         </div>
 
-        <!-- Detail System Info card -->
         <div class="news-panel">
             <div class="news-header">
-                <div class="news-title">
-                    <i class="fa fa-info-circle" style="color: var(--accent);"></i> Live Platform Info
-                </div>
+                <div style="font-weight: 800; color: var(--txt);">حالة النظام الحية</div>
             </div>
-            <div style="padding: 20px; font-size: 13px; line-height: 1.6; color: var(--muted);">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                    <span>Service Brand:</span>
-                    <strong style="color: var(--txt);">Volt SMS</strong>
+            <div style="padding: 20px; font-size: 14px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                    <span style="color: var(--muted);">قاعدة البيانات:</span>
+                    <strong style="color: var(--success);"><i class="fa fa-check-circle"></i> متصلة</strong>
                 </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                    <span>Total Call Records:</span>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                    <span style="color: var(--muted);">إجمالي سجلات CDR:</span>
                     <strong style="color: var(--txt);">{{ stats.total_cdr }}</strong>
                 </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                    <span>Database Status:</span>
-                    <strong style="color: var(--success);"><i class="fa fa-check-circle"></i> Operational</strong>
-                </div>
                 <div style="display: flex; justify-content: space-between;">
-                    <span>System Time (UTC):</span>
-                    <strong style="color: var(--txt);" id="liveSystemTime">--:--:--</strong>
+                    <span style="color: var(--muted);">توقيت النظام (UTC):</span>
+                    <strong style="color: var(--accent);" id="adminLiveClock">--:--:--</strong>
                 </div>
             </div>
         </div>
-
     </div>
-
 </div>
 
 <script>
-    // Simple system ticking clock
     setInterval(function() {
         var d = new Date();
-        var utcStr = d.toUTCString().replace("GMT", "UTC");
-        var timeEl = document.getElementById("liveSystemTime");
-        if (timeEl) timeEl.innerText = utcStr.split(" ")[4];
+        document.getElementById("adminLiveClock").innerText = d.toUTCString().split(" ")[4];
     }, 1000);
 </script>
 {% endblock %}

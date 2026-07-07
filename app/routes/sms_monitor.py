@@ -811,6 +811,14 @@ def _background_worker(app):
                             statuses[label] = {"count": 0, "status": str(e)}
 
                 result = forward_to_reserved(all_msgs)
+                
+                # Periodically check for monthly resets / 45-day logic
+                try:
+                    from app.db_helper import check_and_process_monthly_resets
+                    check_and_process_monthly_resets()
+                except Exception as cre:
+                    print(f"[BG Worker] Monthly reset check failed: {cre}")
+
                 _bg_last_run    = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 _bg_last_result = {
                     "fetched":    len(all_msgs),
@@ -960,23 +968,6 @@ def forward_to_reserved(messages):
     if forwarded:
         db.session.commit()
         
-        # Sync newly saved CDRs and updated accounts/clients to Firebase Firestore (optional, runs in parallel to SQLite hosting database)
-        try:
-            from app.firebase_helper import sync_cdr_to_firebase, sync_client_to_firebase
-            from app.models.user import User
-            for cdr_obj in newly_created_cdrs:
-                sync_cdr_to_firebase(cdr_obj)
-                if cdr_obj.user_id:
-                    u = User.query.get(cdr_obj.user_id)
-                    if u:
-                        sync_client_to_firebase(u)
-                if cdr_obj.client_id:
-                    c = User.query.get(cdr_obj.client_id)
-                    if c:
-                        sync_client_to_firebase(c)
-        except Exception as fe:
-            print(f"[Firebase Sync] Error syncing message logs to Firebase: {fe}")
-
         # Forward test123 incoming messages to Telegram group/channel
         try:
             from app.models.user import User

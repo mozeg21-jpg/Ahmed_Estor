@@ -1,127 +1,125 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-</head>
 {% extends "base.html" %}
 
-{% block title %}SMS Ranges - Volt SMS{% endblock %}
+{% block title %}رينجات الرسائل | Volt SMS{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-md-12">
-        <div class="breadcrumb">
-            <h4><i class="fa fa-flag"></i> SMS Ranges</h4>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h3 style="font-weight: 800; margin: 0; color: var(--txt);"><i class="fa fa-flag" style="color: var(--accent); margin-left: 10px;"></i> رينجات الرسائل</h3>
+            <div style="display: flex; gap: 10px;">
+                <a href="{{ url_for('admin.admin_allocate_range_numbers') }}" class="btn btn-default"><i class="fa fa-share-square"></i> توزيع أرقام</a>
+                <a href="{{ url_for('admin.create_sms_range') }}" class="btn btn-primary"><i class="fa fa-plus"></i> إضافة رينج فردي</a>
+                <a href="{{ url_for('admin.create_sms_ranges_multiple') }}" class="btn btn-success"><i class="fa fa-layer-group"></i> إضافة رينجات متعددة</a>
+            </div>
         </div>
     </div>
 </div>
 
-<div class="widget-block">
-    <div class="widget-head">
-        <h5><i class="fa fa-list"></i> SMS Ranges</h5>
-        <div>
-            <a href="{{ url_for('admin.admin_allocate_range_numbers') }}" class="btn btn-info btn-sm"><i class="fa fa-share-square"></i> Allocate / توزيع أرقام</a>
-            <a href="{{ url_for('admin.create_sms_range') }}" class="btn btn-primary btn-sm"><i class="fa fa-plus"></i> Add Single Range</a>
-            <a href="{{ url_for('admin.create_sms_ranges_multiple') }}" class="btn btn-success btn-sm"><i class="fa fa-layer-group"></i> Add Multiple Ranges</a>
-        </div>
-    </div>
-    <div class="widget-content">
+<div class="panel">
+    <div class="panel-heading">قائمة بنطاقات أرقام الرسائل المتاحة في النظام</div>
+    <div class="panel-body" style="padding: 0;">
         <div class="table-responsive">
-            <table class="table table-striped table-hover">
+            <table class="table table-hover" style="margin-bottom: 0;">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Country</th>
-                        <th>Application</th>
-                        <th>Price</th>
-                        <th>Billing</th>
-                        <th>Numbers</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th style="padding-right: 20px;">المعرف</th>
+                        <th>الاسم</th>
+                        <th>الدولة</th>
+                        <th>التطبيق</th>
+                        <th>السعر</th>
+                        <th>دورة الفوترة</th>
+                        <th>الأرقام (متاح/محجوز)</th>
+                        <th>الحالة</th>
+                        <th class="text-center">الإجراءات</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% if ranges.items %}
                     {% for range in ranges.items %}
                     <tr>
-                        <td>{{ range.id }}</td>
+                        <td style="padding-right: 20px;">#{{ range.id }}</td>
                         <td><strong>{{ range.name or 'N/A' }}</strong></td>
                         <td>{{ range.country }}</td>
                         <td>
                             {% if range.application %}
-                                <span class="label label-default">{{ range.application }}</span>
+                                <span class="btn btn-xs btn-default" style="font-size: 11px;">{{ range.application }}</span>
                             {% else %}
                                 <span class="text-muted">-</span>
                             {% endif %}
                         </td>
                         <td>
-                            <span class="text-success font-bold">${{ range.manual_price if range.manual_price else '0.00' }}</span>
+                            <strong style="color: var(--success);">${{ range.manual_price if range.manual_price else '0.00' }}</strong>
                         </td>
                         <td>
                             {% if range.billing_cycle == 'monthly' %}
-                                <span class="label label-info">Monthly</span>
+                                <span style="color: var(--accent);"><i class="fa fa-calendar"></i> شهري</span>
                             {% else %}
-                                <span class="label label-warning">Weekly</span>
+                                <span style="color: var(--warn);"><i class="fa fa-calendar-o"></i> أسبوعي</span>
                             {% endif %}
                         </td>
                         <td>
-                            <span class="text-success">{{ range.get_available_count() }}</span> /
-                            <span class="text-info">{{ range.get_reserved_count() }}</span>
+                            <span style="color: var(--success); font-weight: 700;">{{ range.get_available_count() }}</span> /
+                            <span style="color: var(--accent);">{{ range.get_reserved_count() }}</span>
                         </td>
                         <td>
                             {% if range.is_active %}
-                            <span class="label label-success">Active</span>
+                            <span style="color: var(--success); font-weight: 700;"><i class="fa fa-check-circle"></i> نشط</span>
                             {% else %}
-                            <span class="label label-danger">Inactive</span>
+                            <span style="color: var(--danger); font-weight: 700;"><i class="fa fa-times-circle"></i> غير نشط</span>
                             {% endif %}
                         </td>
                         <td>
-                            {% if range.file_url %}
-                            <a href="{{ range.file_url }}" target="_blank" class="btn btn-xs btn-info" title="Download File"><i class="fa fa-download"></i></a>
-                            {% endif %}
-                            <a href="{{ url_for('admin.admin_allocate_range_numbers', range_id=range.id) }}" class="btn btn-xs btn-success" title="توزيع أرقام من الرينج"><i class="fa fa-share-square"></i></a>
-                            <a href="{{ url_for('admin.edit_sms_range', range_id=range.id) }}" class="btn btn-xs btn-warning"><i class="fa fa-edit"></i></a>
-                            <form action="{{ url_for('admin.delete_sms_range', range_id=range.id) }}" method="POST" style="display:inline;">
-                                <button type="submit" class="btn btn-xs btn-danger" onclick="return confirm('Are you sure? This will delete the range.')">
-                                    <i class="fa fa-trash"></i>
-                                </button>
-                            </form>
+                            <div class="btn-group action-buttons" style="justify-content: center;">
+                                {% if range.file_url %}
+                                <a href="{{ range.file_url }}" target="_blank" class="btn btn-default" title="تحميل الملف">
+                                    <i class="fa fa-download text-primary"></i>
+                                </a>
+                                {% endif %}
+                                <a href="{{ url_for('admin.admin_allocate_range_numbers', range_id=range.id) }}" class="btn btn-default" title="توزيع أرقام">
+                                    <i class="fa fa-share-square text-success"></i>
+                                </a>
+                                <a href="{{ url_for('admin.edit_sms_range', range_id=range.id) }}" class="btn btn-default" title="تعديل">
+                                    <i class="fa fa-edit text-info"></i>
+                                </a>
+                                <form action="{{ url_for('admin.delete_sms_range', range_id=range.id) }}" method="POST" style="display:inline;">
+                                    <button type="submit" class="btn btn-default" title="حذف" onclick="return confirm('هل أنت متأكد من حذف هذا الرينج؟ سيتم حذف جميع الأرقام المرتبطة به.')">
+                                        <i class="fa fa-trash text-danger"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
                     {% else %}
                     <tr>
-                        <td colspan="9" class="text-center text-muted">No SMS ranges found.</td>
+                        <td colspan="9" class="text-center" style="padding: 40px; color: var(--muted);">لا توجد رينجات مضافة حالياً.</td>
                     </tr>
                     {% endif %}
                 </tbody>
             </table>
         </div>
-
-        {% if ranges.pages > 1 %}
-        <nav aria-label="Page navigation">
-            <ul class="pagination justify-content-center">
-                {% if ranges.has_prev %}
-                <li class="page-item">
-                    <a class="page-link" href="{{ url_for('admin.sms_ranges', page=ranges.prev_num) }}">Previous</a>
-                </li>
-                {% endif %}
-
-                {% for p in range(1, ranges.pages + 1) %}
-                <li class="page-item {% if p == ranges.page %}active{% endif %}">
-                    <a class="page-link" href="{{ url_for('admin.sms_ranges', page=p) }}">{{ p }}</a>
-                </li>
-                {% endfor %}
-
-                {% if ranges.has_next %}
-                <li class="page-item">
-                    <a class="page-link" href="{{ url_for('admin.sms_ranges', page=ranges.next_num) }}">Next</a>
-                </li>
-                {% endif %}
-            </ul>
-        </nav>
-        {% endif %}
     </div>
 </div>
+
+{% if ranges.pages > 1 %}
+<div style="display: flex; justify-content: center; margin-top: 20px;">
+    <ul class="pagination">
+        {% if ranges.has_prev %}
+        <li><a href="{{ url_for('admin.sms_ranges', page=ranges.prev_num) }}">السابق</a></li>
+        {% endif %}
+
+        {% for p in range(1, ranges.pages + 1) %}
+        <li class="{% if p == ranges.page %}active{% endif %}">
+            <a href="{{ url_for('admin.sms_ranges', page=p) }}">{{ p }}</a>
+        </li>
+        {% endfor %}
+
+        {% if ranges.has_next %}
+        <li><a href="{{ url_for('admin.sms_ranges', page=ranges.next_num) }}">التالي</a></li>
+        {% endif %}
+    </ul>
+</div>
+{% endif %}
+
 {% endblock %}
