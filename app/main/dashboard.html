@@ -29,7 +29,7 @@
     }
     
     .dashboard-card:hover {
-        border-color: var(--accent);
+        border-color: {% if current_user.is_test_account() %}#10b981{% else %}var(--accent){% endif %};
         transform: translateY(-3px);
     }
     
@@ -42,11 +42,12 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        border: 1px solid {% if current_user.is_test_account() %}rgba(16, 185, 129, 0.2){% else %}transparent{% endif %};
     }
     
     .dashboard-card i {
         font-size: 24px;
-        color: var(--accent);
+        color: {% if current_user.is_test_account() %}#10b981{% else %}var(--accent){% endif %};
     }
     
     .dashboard-card .title {
@@ -150,8 +151,8 @@
 {% else %}
 <div class="notice-box">
     <i class="fa fa-bullhorn" style="color: var(--warn); margin-right: 5px;"></i> <strong style="color: var(--accent);">Important Notice:</strong><br>
-    All agents are requested to contact us via Microsoft Teams using the following email or click on it<br>
-    <i class="fa fa-envelope" style="color: var(--accent); margin-right: 5px;"></i> <a href="mailto:smshaneenstar@outlook.com" style="color: var(--accent); font-weight: 600;">smshaneenstar@outlook.com</a><br>
+    All agents are requested to contact us via Telegram using the following link or click on it<br>
+    <i class="fa fa-telegram" style="color: var(--accent); margin-right: 5px;"></i> <a href="https://t.me/NHP_G" target="_blank" style="color: var(--accent); font-weight: 600;">t.me/NHP_G</a><br>
     Due to a temporary issue with WhatsApp. Thank you for your understanding.
 </div>
 {% endif %}

@@ -311,44 +311,55 @@ def delete_user(user_id):
         return redirect(url_for('admin.users'))
 
     username = user.username
+    user_id_val = user.id
 
     # Perform thorough cleanup of all related entities to prevent foreign key constraint violations
     try:
         # Nullify sub-users' agent references
-        User.query.filter_by(agent_id=user.id).update({'agent_id': None})
+        User.query.filter_by(agent_id=user_id_val).update({'agent_id': None})
+
+        # Nullify creator references in News and Ranges
+        from app.models.activity import News
+        from app.models.sms import SMDRange
+        News.query.filter_by(created_by=user_id_val).update({'created_by': None})
+        SMDRange.query.filter_by(created_by=user_id_val).update({'created_by': None})
 
         # Delete ActivityLogs
         from app.models.activity import ActivityLog
-        ActivityLog.query.filter_by(user_id=user.id).delete()
+        ActivityLog.query.filter_by(user_id=user_id_val).delete()
 
         # Delete BankAccounts, CreditNotes, and PaymentRequests
         from app.models.finance import BankAccount, CreditNote, PaymentRequest
-        BankAccount.query.filter_by(user_id=user.id).delete()
-        CreditNote.query.filter_by(user_id=user.id).delete()
-        PaymentRequest.query.filter_by(user_id=user.id).delete()
+        BankAccount.query.filter_by(user_id=user_id_val).delete()
+        CreditNote.query.filter_by(user_id=user_id_val).delete()
+        PaymentRequest.query.filter_by(user_id=user_id_val).delete()
 
         # Delete Developer static assets
         from app.models.developer import StaticAsset
-        StaticAsset.query.filter_by(uploader_id=user.id).delete()
+        StaticAsset.query.filter_by(uploader_id=user_id_val).delete()
 
         # Delete SMSNumbers and SMSCDRs linked to user to prevent FK violations
         from app.models.sms import SMSNumber, SMSCDR
-        SMSCDR.query.filter_by(user_id=user.id).delete()
-        SMSCDR.query.filter_by(client_id=user.id).delete()
-        SMSNumber.query.filter_by(agent_id=user.id).delete()
-        SMSNumber.query.filter_by(client_id=user.id).delete()
+        SMSCDR.query.filter_by(user_id=user_id_val).delete()
+        SMSCDR.query.filter_by(client_id=user_id_val).delete()
+        
+        # Unassign numbers instead of deleting them if they are still in the system
+        SMSNumber.query.filter_by(agent_id=user_id_val).update({'agent_id': None})
+        SMSNumber.query.filter_by(client_id=user_id_val).update({'client_id': None})
 
         # Delete from Firestore
         try:
             from app.firebase_helper import delete_client_from_firebase
             delete_client_from_firebase(username)
         except Exception as e:
-            print(f"[FIREBASE SYNC] Failed to delete user from Firestore: {e}")
+            print(f"[FIREBASE SYNC] Failed to delete user {username} from Firestore: {e}")
 
         db.session.delete(user)
         db.session.commit()
+        print(f"[ADMIN] User {username} (ID: {user_id_val}) deleted successfully.")
     except Exception as e:
         db.session.rollback()
+        print(f"[ADMIN ERROR] Failed to delete user {username}: {str(e)}")
         flash(f'Failed to delete user: {str(e)}', 'danger')
         return redirect(url_for('admin.users'))
 

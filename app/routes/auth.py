@@ -315,7 +315,7 @@ def not_found(e):
     if request.path.startswith('/api/') or request.headers.get('Accept') == 'application/json':
         return jsonify({'success': False, 'error': 'المورد المطلوب غير موجود (404)'}), 404
     
-    flash('⚠️ عذراً، الصفحة أو السجل الذي تحاول الوصول إليه غير موجود أو تم حذفه من قاعدة البيانات.', 'warning')
+    flash('⚠️ عذراً، الصفحة أو السجل الذي تحاول الوصول إليه غير موجود حالياً. يرجى التأكد من الرابط.', 'warning')
     referrer = request.referrer
     if referrer and request.host in referrer:
         return redirect(referrer)

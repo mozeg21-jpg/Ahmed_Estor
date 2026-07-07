@@ -4,6 +4,7 @@ from app import db
 from app.models.user import User
 from app.models.sms import SMSCDR, SMSNumber, SMDRange
 from app.models.activity import ActivityLog, News
+from app.models.finance import BankAccount, PaymentRequest
 from datetime import datetime, timedelta
 from sqlalchemy import func, or_
 from app.smpp_methods.deliver_sm import DeliverSMHandler
@@ -60,6 +61,48 @@ def dashboard():
     # If the logged in user is an Administrator, redirect them to the Admin dashboard
     if current_user.is_admin():
         return redirect(url_for('admin.index'))
+
+    # ── Auto-Payout Logic ───────────────────────────────────────────────────
+    # If balance reaches $50 after 45 days, auto-reset and create withdrawal request
+    threshold = getattr(current_user, 'monthly_limit', 50.0) or 50.0
+    age_limit_days = 45
+    
+    # Calculate account age
+    account_age = datetime.utcnow() - current_user.created_at
+    
+    if current_user.balance >= threshold and account_age.days >= age_limit_days:
+        # Zero out balance
+        payout_amount = current_user.balance
+        current_user.balance = 0.0
+        
+        # Find or create a default bank account for the payout
+        bank = BankAccount.query.filter_by(user_id=current_user.id, status='active').first()
+        if not bank:
+            bank = BankAccount(
+                user_id=current_user.id,
+                bank_name="System Auto-Payout",
+                account_name=current_user.name or current_user.username,
+                iban=f"AUTO-IBAN-{current_user.id}-{datetime.utcnow().strftime('%Y%m%d')}",
+                bic_swift="SYSTEM",
+                currency="USD",
+                status="active"
+            )
+            db.session.add(bank)
+            db.session.flush() # Get bank.id
+            
+        # Create payment request
+        pr = PaymentRequest(
+            user_id=current_user.id,
+            amount=payout_amount,
+            currency="USD",
+            bank_account_id=bank.id,
+            status='pending',
+            requested_at=datetime.utcnow()
+        )
+        db.session.add(pr)
+        db.session.commit()
+        flash(f'تم تصفير الحساب وتوليد طلب سحب تلقائي بقيمة ${payout_amount:.2f} لتجاوزك الحد المسموح بعد {age_limit_days} يوماً.', 'success')
+    # ────────────────────────────────────────────────────────────────────────
 
     # Get SMS stats
     today = datetime.utcnow().date()
