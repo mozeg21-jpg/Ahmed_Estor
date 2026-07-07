@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="{{ session.get('lang', 'ar') }}" dir="{% if session.get('lang', 'en') == 'en' %}ltr{% else %}rtl{% endif %}">
+<html lang="{{ session.get('lang', 'en') }}" dir="{% if session.get('lang', 'en') == 'ar' %}rtl{% else %}ltr{% endif %}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Volt SMS | فـولت لإدارة الرسائل{% endblock %}</title>
+    <title>{% block title %}Volt SMS | System Management{% endblock %}</title>
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
     <link href="/static/css/font-awesome.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -42,7 +42,7 @@
 
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
     html{font-size:15px;scroll-behavior:smooth;}
-    body{font-family:{% if session.get('lang', 'ar') == 'ar' %}'Cairo', 'Inter'{% else %}'Inter', 'Cairo'{% endif %}, sans-serif;
+    body{font-family:{% if session.get('lang', 'en') == 'en' %}'Inter', 'Cairo'{% else %}'Cairo', 'Inter'{% endif %}, sans-serif;
          background:var(--bg);color:var(--txt);min-height:100vh;
          transition: background-color 0.3s, color 0.3s;
          overflow-x: hidden;}
@@ -469,11 +469,11 @@
 
         <div style="display: flex; align-items: center; gap: 10px; border-right: 1px solid var(--border); padding-right: 15px;">
             {% if current_user.is_admin() %}
-            <a href="{{ url_for('admin.settings') }}" style="color: var(--muted); font-size: 18px;" title="الإعدادات">
+            <a href="{{ url_for('admin.settings') }}" style="color: var(--muted); font-size: 18px;" title="{% if session.get('lang', 'en') == 'en' %}Settings{% else %}الإعدادات{% endif %}">
                 <i class="fa fa-cog"></i>
             </a>
             {% else %}
-            <a href="{{ url_for('main.profile') }}" style="color: var(--muted); font-size: 18px;" title="الملف الشخصي">
+            <a href="{{ url_for('main.profile') }}" style="color: var(--muted); font-size: 18px;" title="{% if session.get('lang', 'en') == 'en' %}Profile{% else %}الملف الشخصي{% endif %}">
                 <i class="fa fa-user-o"></i>
             </a>
             {% endif %}
@@ -483,7 +483,7 @@
             </div>
             
             <a href="{{ url_for('auth.logout') }}" class="btn btn-danger btn-sm" style="padding: 6px 12px; font-size: 12px;">
-                <i class="fa fa-sign-out"></i> خروج
+                <i class="fa fa-sign-out"></i> {% if session.get('lang', 'en') == 'en' %}Logout{% else %}خروج{% endif %}
             </a>
         </div>
     </div>
@@ -510,94 +510,94 @@
 
     <ul class="sb-nav" style="list-style: none; padding: 15px 10px;">
         {% if current_user.is_admin() %}
-        <div class="sb-label">لوحة الإدارة</div>
+        <div class="sb-label">{% if session.get('lang', 'en') == 'en' %}Admin Panel{% else %}لوحة الإدارة{% endif %}</div>
         <li>
             <a href="{{ url_for('admin.index') }}" class="sb-link {% if request.endpoint == 'admin.index' %}active{% endif %}">
-                <i class="fa fa-dashboard"></i> الإحصائيات العامة
+                <i class="fa fa-dashboard"></i> {% if session.get('lang', 'en') == 'en' %}General Stats{% else %}الإحصائيات العامة{% endif %}
             </a>
         </li>
         <li>
             <a href="{{ url_for('admin.users') }}" class="sb-link {% if request.endpoint == 'admin.users' %}active{% endif %}">
-                <i class="fa fa-users"></i> إدارة المستخدمين
+                <i class="fa fa-users"></i> {% if session.get('lang', 'en') == 'en' %}User Management{% else %}إدارة المستخدمين{% endif %}
             </a>
         </li>
         <li>
             <a href="{{ url_for('admin.sms_ranges') }}" class="sb-link {% if request.endpoint == 'admin.sms_ranges' %}active{% endif %}">
-                <i class="fa fa-flag"></i> رينجات الرسائل
+                <i class="fa fa-flag"></i> {% if session.get('lang', 'en') == 'en' %}SMS Ranges{% else %}رينجات الرسائل{% endif %}
             </a>
         </li>
         <li>
             <a href="{{ url_for('admin.sms_numbers') }}" class="sb-link {% if request.endpoint == 'admin.sms_numbers' %}active{% endif %}">
-                <i class="fa fa-phone"></i> إدارة الأرقام
+                <i class="fa fa-phone"></i> {% if session.get('lang', 'en') == 'en' %}Number Management{% else %}إدارة الأرقام{% endif %}
             </a>
         </li>
         <li>
             <a href="{{ url_for('admin.sms_cdr') }}" class="sb-link {% if request.endpoint == 'admin.sms_cdr' %}active{% endif %}">
-                <i class="fa fa-file-text"></i> تقارير CDR
+                <i class="fa fa-file-text"></i> {% if session.get('lang', 'en') == 'en' %}CDR Reports{% else %}تقارير CDR{% endif %}
             </a>
         </li>
         {% if current_user.username == 'admin' %}
         <li>
             <span class="sb-link {% if request.endpoint in ('admin.smpp_settings', 'admin.telegram_settings', 'admin.api_settings', 'admin.website_status', 'admin.change_admin_password', 'admin.settings', 'admin.database_settings') %}active open{% endif %}" onclick="toggleAccordion(this, 'sub-admin-settings')">
-                <i class="fa fa-cogs"></i> مركز الإعدادات
+                <i class="fa fa-cogs"></i> {% if session.get('lang', 'en') == 'en' %}Settings Center{% else %}مركز الإعدادات{% endif %}
                 <i class="fa fa-chevron-left sb-arrow"></i>
             </span>
             <ul class="sb-sub {% if request.endpoint in ('admin.smpp_settings', 'admin.telegram_settings', 'admin.api_settings', 'admin.website_status', 'admin.change_admin_password', 'admin.settings', 'admin.database_settings') %}expanded{% endif %}" id="sub-admin-settings">
-                <li><a href="{{ url_for('admin.settings') }}" class="sb-link {% if request.endpoint == 'admin.settings' %}active{% endif %}"><i class="fa fa-cog"></i> الإعدادات الرئيسية</a></li>
-                <li><a href="{{ url_for('admin.database_settings') }}" class="sb-link {% if request.endpoint == 'admin.database_settings' %}active{% endif %}"><i class="fa fa-database"></i> قواعد البيانات</a></li>
-                <li><a href="{{ url_for('admin.website_status') }}" class="sb-link {% if request.endpoint == 'admin.website_status' %}active{% endif %}"><i class="fa fa-power-off"></i> حالة الموقع</a></li>
-                <li><a href="{{ url_for('admin.smpp_settings') }}" class="sb-link {% if request.endpoint == 'admin.smpp_settings' %}active{% endif %}"><i class="fa fa-plug"></i> إعدادات SMPP</a></li>
-                <li><a href="{{ url_for('admin.telegram_settings') }}" class="sb-link {% if request.endpoint == 'admin.telegram_settings' %}active{% endif %}"><i class="fa fa-telegram"></i> إعدادات التليجرام</a></li>
+                <li><a href="{{ url_for('admin.settings') }}" class="sb-link {% if request.endpoint == 'admin.settings' %}active{% endif %}"><i class="fa fa-cog"></i> {% if session.get('lang', 'en') == 'en' %}Main Settings{% else %}الإعدادات الرئيسية{% endif %}</a></li>
+                <li><a href="{{ url_for('admin.database_settings') }}" class="sb-link {% if request.endpoint == 'admin.database_settings' %}active{% endif %}"><i class="fa fa-database"></i> {% if session.get('lang', 'en') == 'en' %}Databases{% else %}قواعد البيانات{% endif %}</a></li>
+                <li><a href="{{ url_for('admin.website_status') }}" class="sb-link {% if request.endpoint == 'admin.website_status' %}active{% endif %}"><i class="fa fa-power-off"></i> {% if session.get('lang', 'en') == 'en' %}Site Status{% else %}حالة الموقع{% endif %}</a></li>
+                <li><a href="{{ url_for('admin.smpp_settings') }}" class="sb-link {% if request.endpoint == 'admin.smpp_settings' %}active{% endif %}"><i class="fa fa-plug"></i> {% if session.get('lang', 'en') == 'en' %}SMPP Settings{% else %}إعدادات SMPP{% endif %}</a></li>
+                <li><a href="{{ url_for('admin.telegram_settings') }}" class="sb-link {% if request.endpoint == 'admin.telegram_settings' %}active{% endif %}"><i class="fa fa-telegram"></i> {% if session.get('lang', 'en') == 'en' %}Telegram Settings{% else %}إعدادات التليجرام{% endif %}</a></li>
             </ul>
         </li>
         {% endif %}
 
         {% elif current_user.is_test_account() %}
         <!-- ══ TEST USER SIDEBAR ════════════════════════════════════════════ -->
-        <div class="sb-label">لوحة التجربة</div>
+        <div class="sb-label">{% if session.get('lang', 'en') == 'en' %}Trial Panel{% else %}لوحة التجربة{% endif %}</div>
         <li>
             <a href="{{ url_for('main.dashboard') }}" class="sb-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}">
-                <i class="fa fa-th-large"></i> الرئيسية
+                <i class="fa fa-th-large"></i> {% if session.get('lang', 'en') == 'en' %}Home{% else %}الرئيسية{% endif %}
             </a>
         </li>
         <li>
             <a href="{{ url_for('main.inbox') }}" class="sb-link {% if request.endpoint == 'main.inbox' %}active{% endif %}">
-                <i class="fa fa-envelope-o"></i> الرسائل الواردة
+                <i class="fa fa-envelope-o"></i> {% if session.get('lang', 'en') == 'en' %}Inbox{% else %}الرسائل الواردة{% endif %}
             </a>
         </li>
         <li>
             <a href="{{ url_for('main.sms_ranges') }}" class="sb-link {% if request.endpoint == 'main.sms_ranges' %}active{% endif %}">
-                <i class="fa fa-globe"></i> رينجات الفحص
+                <i class="fa fa-globe"></i> {% if session.get('lang', 'en') == 'en' %}Test Ranges{% else %}رينجات الفحص{% endif %}
             </a>
         </li>
 
         {% else %}
         <!-- ══ STANDARD USER SIDEBAR ════════════════════════════════════════════ -->
-        <div class="sb-label">الرئيسية</div>
+        <div class="sb-label">{% if session.get('lang', 'en') == 'en' %}Home{% else %}الرئيسية{% endif %}</div>
         <li>
             <a href="{{ url_for('main.dashboard') }}" class="sb-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}">
-                <i class="fa fa-home"></i> لوحة التحكم
+                <i class="fa fa-home"></i> {% if session.get('lang', 'en') == 'en' %}Dashboard{% else %}لوحة التحكم{% endif %}
             </a>
         </li>
         <li>
             <a href="{{ url_for('main.user_api_settings') }}" class="sb-link {% if request.endpoint == 'main.user_api_settings' %}active{% endif %}">
-                <i class="fa fa-code"></i> نظام الـ API
+                <i class="fa fa-code"></i> {% if session.get('lang', 'en') == 'en' %}API System{% else %}نظام الـ API{% endif %}
             </a>
         </li>
 
-        <div class="sb-label">وحدة الرسائل</div>
+        <div class="sb-label">{% if session.get('lang', 'en') == 'en' %}Message Unit{% else %}وحدة الرسائل{% endif %}</div>
         <li>
             <a href="{{ url_for('main.clients') }}" class="sb-link {% if request.endpoint == 'main.clients' %}active{% endif %}">
-                <i class="fa fa-users"></i> عملائي
+                <i class="fa fa-users"></i> {% if session.get('lang', 'en') == 'en' %}My Clients{% else %}عملائي{% endif %}
             </a>
         </li>
         <li>
             <span class="sb-link {% if request.endpoint in ('main.sms_ranges', 'main.my_sms_numbers', 'main.sms_ratecard') %}active open{% endif %}" onclick="toggleAccordion(this, 'sub-sms')">
-                <i class="fa fa-th-large"></i> خدمات IPRN
+                <i class="fa fa-th-large"></i> {% if session.get('lang', 'en') == 'en' %}IPRN Services{% else %}خدمات IPRN{% endif %}
                 <i class="fa fa-chevron-left sb-arrow"></i>
             </span>
             <ul class="sb-sub {% if request.endpoint in ('main.sms_ranges', 'main.my_sms_numbers', 'main.sms_ratecard') %}expanded{% endif %}" id="sub-sms">
-                <li><a href="{{ url_for('main.sms_ranges') }}" class="sb-link {% if request.endpoint == 'main.sms_ranges' %}active{% endif %}"><i class="fa fa-flag"></i> رينجات الأرقام</a></li>
+                <li><a href="{{ url_for('main.sms_ranges') }}" class="sb-link {% if request.endpoint == 'main.sms_ranges' %}active{% endif %}"><i class="fa fa-flag"></i> {% if session.get('lang', 'en') == 'en' %}Number Ranges{% else %}رينجات الأرقام{% endif %}</a></li>
                 <li><a href="{{ url_for('main.my_sms_numbers') }}" class="sb-link {% if request.endpoint == 'main.my_sms_numbers' %}active{% endif %}"><i class="fa fa-list-ol"></i> أرقامي النشطة</a></li>
                 <li><a href="{{ url_for('main.sms_ratecard') }}" class="sb-link {% if request.endpoint == 'main.sms_ratecard' %}active{% endif %}"><i class="fa fa-calculator"></i> قائمة الأسعار</a></li>
             </ul>

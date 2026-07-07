@@ -920,7 +920,15 @@ def set_language(lang):
     from flask import session, request, redirect, url_for
     if lang in ['ar', 'en']:
         session['lang'] = lang
+    else:
+        session['lang'] = 'en'
     return redirect(request.referrer or url_for('main.dashboard'))
+
+@main_bp.before_app_request
+def set_default_language():
+    from flask import session
+    if 'lang' not in session:
+        session['lang'] = 'en'
 
 @main_bp.route('/agent/Stats/<stat_type>')
 @login_required

@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>فولت SMS | تسجيل الدخول</title>
+    <title>Volt SMS | Login</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #3b82f6;
@@ -18,7 +18,7 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: 'Cairo', sans-serif;
+            font-family: 'Inter', sans-serif;
             background: radial-gradient(circle at top right, #1e3a8a, #0b0f19);
             background-color: var(--bg);
             color: var(--text);
@@ -64,7 +64,7 @@
             font-size: 28px;
             font-weight: 900;
             margin-bottom: 8px;
-            background: linear-gradient(to left, #fff, #9ca3af);
+            background: linear-gradient(to right, #fff, #9ca3af);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -77,11 +77,11 @@
         .input-group {
             position: relative;
             margin-bottom: 24px;
-            text-align: right;
+            text-align: left;
         }
         .input-group i {
             position: absolute;
-            right: 16px;
+            left: 16px;
             top: 50%;
             transform: translateY(-50%);
             color: #6b7280;
@@ -92,10 +92,10 @@
             background: rgba(0, 0, 0, 0.2);
             border: 1px solid var(--border);
             border-radius: 14px;
-            padding: 14px 48px 14px 16px;
+            padding: 14px 16px 14px 48px;
             color: white;
             font-size: 15px;
-            font-family: 'Cairo', sans-serif;
+            font-family: 'Inter', sans-serif;
             transition: all 0.3s;
         }
         .input-group input:focus {
@@ -166,7 +166,7 @@
             border-radius: 12px;
             margin-bottom: 24px;
             font-size: 14px;
-            text-align: right;
+            text-align: left;
         }
 
         .footer-links {
@@ -191,8 +191,8 @@
             <img src="https://i.ibb.co/zVcT0C1F/IMG-20260706-211650-758.jpg" alt="Logo">
         </div>
         
-        <h1>تسجيل الدخول</h1>
-        <p class="subtitle">مرحباً بك مجدداً في منصة فولت SMS</p>
+        <h1>Login</h1>
+        <p class="subtitle">Welcome back to Volt SMS platform</p>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -208,28 +208,28 @@
             <input type="hidden" name="captcha_token" value="{{ captcha_token }}">
             
             <div class="input-group">
-                <input type="text" name="username" placeholder="اسم المستخدم" required autocomplete="username">
+                <input type="text" name="username" placeholder="Username" required autocomplete="username">
                 <i class="fa fa-user"></i>
             </div>
 
             <div class="input-group">
-                <input type="password" name="password" placeholder="كلمة المرور" required autocomplete="current-password">
+                <input type="password" name="password" placeholder="Password" required autocomplete="current-password">
                 <i class="fa fa-lock"></i>
             </div>
 
             <div class="captcha-box">
-                <span class="captcha-text">ما ناتج: {{ num1 }} + {{ num2 }} ؟</span>
-                <input type="number" name="capt" class="captcha-input" placeholder="الناتج" required>
+                <span class="captcha-text">Result of: {{ num1 }} + {{ num2 }} ?</span>
+                <input type="number" name="capt" class="captcha-input" placeholder="Result" required>
             </div>
 
             <button type="submit" class="login-btn">
-                <span>دخول للمنصة</span>
-                <i class="fa fa-arrow-left"></i>
+                <span>Enter Platform</span>
+                <i class="fa fa-arrow-right"></i>
             </button>
         </form>
 
         <div class="footer-links">
-            ليس لديك حساب؟ <a href="{{ url_for('auth.register') }}">تواصل مع الإدارة</a>
+            Don't have an account? <a href="{{ url_for('auth.register') }}">Contact Admin</a>
         </div>
     </div>
 

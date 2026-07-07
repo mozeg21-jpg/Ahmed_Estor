@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}لوحة الإدارة | فولت SMS{% endblock %}
+{% block title %}{% if session.get('lang', 'en') == 'en' %}Admin Panel{% else %}لوحة الإدارة{% endif %} | Volt SMS{% endblock %}
 
 {% block content %}
 <style>
@@ -166,13 +166,15 @@
 <div class="admin-header-card">
     <div>
         <div class="admin-title-badge">
-            <i class="fa fa-shield"></i> لوحة الإدارة المؤمنة
+            <i class="fa fa-shield"></i> {% if session.get('lang', 'en') == 'en' %}Secured Admin Panel{% else %}لوحة الإدارة المؤمنة{% endif %}
         </div>
-        <h2 style="font-weight: 900; margin: 0; color: var(--txt);">لوحة تحكم مدير Volt SMS</h2>
-        <p style="color: var(--muted); margin-top: 8px; margin-bottom: 0; font-size: 15px;">مراقبة فورية، إدارة المسارات، وتكوين إعدادات النظام.</p>
+        <h2 style="font-weight: 900; margin: 0; color: var(--txt);">{% if session.get('lang', 'en') == 'en' %}Volt SMS Admin Dashboard{% else %}لوحة تحكم مدير Volt SMS{% endif %}</h2>
+        <p style="color: var(--muted); margin-top: 8px; margin-bottom: 0; font-size: 15px;">
+            {% if session.get('lang', 'en') == 'en' %}Real-time monitoring, route management, and system configuration.{% else %}مراقبة فورية، إدارة المسارات، وتكوين إعدادات النظام.{% endif %}
+        </p>
     </div>
     <div style="display: flex; gap: 10px;">
-        <a href="{{ url_for('admin.settings') }}" class="btn btn-primary" style="padding: 10px 20px;"><i class="fa fa-cog"></i> الإعدادات</a>
+        <a href="{{ url_for('admin.settings') }}" class="btn btn-primary" style="padding: 10px 20px;"><i class="fa fa-cog"></i> {% if session.get('lang', 'en') == 'en' %}Settings{% else %}الإعدادات{% endif %}</a>
     </div>
 </div>
 
@@ -182,7 +184,7 @@
         <div class="kpi-icon-wrap" style="color: #3b82f6; background: rgba(59, 130, 246, 0.15);">
             <i class="fa fa-users"></i>
         </div>
-        <div class="kpi-label">المستخدمين (نشط / إجمالي)</div>
+        <div class="kpi-label">{% if session.get('lang', 'en') == 'en' %}Users (Active / Total){% else %}المستخدمين (نشط / إجمالي){% endif %}</div>
         <div class="kpi-value">
             <span style="color: var(--success);">{{ stats.active_users }}</span>
             <span style="color: var(--muted); font-size: 18px; font-weight: 500;">/ {{ stats.total_users }}</span>
@@ -193,7 +195,7 @@
         <div class="kpi-icon-wrap" style="color: #10b981; background: rgba(16, 185, 129, 0.15);">
             <i class="fa fa-globe"></i>
         </div>
-        <div class="kpi-label">إجمالي الرينجات</div>
+        <div class="kpi-label">{% if session.get('lang', 'en') == 'en' %}Total Ranges{% else %}إجمالي الرينجات{% endif %}</div>
         <div class="kpi-value">{{ stats.total_ranges }}</div>
     </div>
 
@@ -201,7 +203,7 @@
         <div class="kpi-icon-wrap" style="color: #06b6d4; background: rgba(6, 182, 212, 0.15);">
             <i class="fa fa-hashtag"></i>
         </div>
-        <div class="kpi-label">الأرقام النشطة</div>
+        <div class="kpi-label">{% if session.get('lang', 'en') == 'en' %}Active Numbers{% else %}الأرقام النشطة{% endif %}</div>
         <div class="kpi-value">{{ stats.total_numbers }}</div>
     </div>
 
@@ -209,7 +211,7 @@
         <div class="kpi-icon-wrap" style="color: #f59e0b; background: rgba(245, 158, 11, 0.15);">
             <i class="fa fa-paper-plane"></i>
         </div>
-        <div class="kpi-label">رسائل اليوم</div>
+        <div class="kpi-label">{% if session.get('lang', 'en') == 'en' %}Today's SMS{% else %}رسائل اليوم{% endif %}</div>
         <div class="kpi-value" style="color: var(--accent);">{{ stats.today_sms }}</div>
     </div>
 </div>
@@ -220,7 +222,7 @@
         
         <!-- Section 1: User Management -->
         <div class="module-section-title">
-            <i class="fa fa-user-circle"></i> إدارة المستخدمين والعملاء
+            <i class="fa fa-user-circle"></i> {% if session.get('lang', 'en') == 'en' %}User & Client Management{% else %}إدارة المستخدمين والعملاء{% endif %}
         </div>
         <div class="admin-grid">
             <a href="{{ url_for('admin.users') }}" class="admin-module-card">
@@ -228,8 +230,8 @@
                     <i class="fa fa-users"></i>
                 </div>
                 <div class="module-info">
-                    <span class="module-name">إدارة الحسابات</span>
-                    <span class="module-desc">إضافة، تعديل، أو تعطيل المستخدمين</span>
+                    <span class="module-name">{% if session.get('lang', 'en') == 'en' %}Account Management{% else %}إدارة الحسابات{% endif %}</span>
+                    <span class="module-desc">{% if session.get('lang', 'en') == 'en' %}Add, edit, or disable users{% else %}إضافة، تعديل، أو تعطيل المستخدمين{% endif %}</span>
                 </div>
             </a>
 
@@ -238,15 +240,15 @@
                     <i class="fa fa-user-plus"></i>
                 </div>
                 <div class="module-info">
-                    <span class="module-name">تخصيص الأرقام</span>
-                    <span class="module-desc">البحث وتعيين الرينجات للمستخدمين</span>
+                    <span class="module-name">{% if session.get('lang', 'en') == 'en' %}Number Allocation{% else %}تخصيص الأرقام{% endif %}</span>
+                    <span class="module-desc">{% if session.get('lang', 'en') == 'en' %}Search and assign ranges to users{% else %}البحث وتعيين الرينجات للمستخدمين{% endif %}</span>
                 </div>
             </a>
         </div>
 
         <!-- Section 2: SMS & Routing -->
         <div class="module-section-title">
-            <i class="fa fa-rss"></i> إدارة المسارات والرسائل
+            <i class="fa fa-rss"></i> {% if session.get('lang', 'en') == 'en' %}Route & Message Management{% else %}إدارة المسارات والرسائل{% endif %}
         </div>
         <div class="admin-grid">
             <a href="{{ url_for('admin.sms_ranges') }}" class="admin-module-card">
@@ -254,8 +256,8 @@
                     <i class="fa fa-flag"></i>
                 </div>
                 <div class="module-info">
-                    <span class="module-name">رينجات الإس إم إس</span>
-                    <span class="module-desc">ضبط المسارات والأسعار للدول</span>
+                    <span class="module-name">{% if session.get('lang', 'en') == 'en' %}SMS Ranges{% else %}رينجات الإس إم إس{% endif %}</span>
+                    <span class="module-desc">{% if session.get('lang', 'en') == 'en' %}Configure routes and rates for countries{% else %}ضبط المسارات والأسعار للدول{% endif %}</span>
                 </div>
             </a>
 
@@ -264,8 +266,8 @@
                     <i class="fa fa-phone"></i>
                 </div>
                 <div class="module-info">
-                    <span class="module-name">الأرقام المتصلة</span>
-                    <span class="module-desc">مراقبة الأرقام النشطة في الحوض</span>
+                    <span class="module-name">{% if session.get('lang', 'en') == 'en' %}Connected Numbers{% else %}الأرقام المتصلة{% endif %}</span>
+                    <span class="module-desc">{% if session.get('lang', 'en') == 'en' %}Monitor active numbers in the pool{% else %}مراقبة الأرقام النشطة في الحوض{% endif %}</span>
                 </div>
             </a>
 
@@ -274,8 +276,8 @@
                     <i class="fa fa-file-text"></i>
                 </div>
                 <div class="module-info">
-                    <span class="module-name">تقارير CDR</span>
-                    <span class="module-desc">سجلات التفاصيل وحالة التسليم</span>
+                    <span class="module-name">{% if session.get('lang', 'en') == 'en' %}CDR Reports{% else %}تقارير CDR{% endif %}</span>
+                    <span class="module-desc">{% if session.get('lang', 'en') == 'en' %}Detail logs and delivery status{% else %}سجلات التفاصيل وحالة التسليم{% endif %}</span>
                 </div>
             </a>
         </div>
@@ -286,9 +288,9 @@
         <div class="news-panel">
             <div class="news-header">
                 <div style="font-weight: 800; color: var(--txt); display: flex; align-items: center; gap: 8px;">
-                    <i class="fa fa-bullhorn" style="color: var(--warn);"></i> الأخبار والتنبيهات
+                    <i class="fa fa-bullhorn" style="color: var(--warn);"></i> {% if session.get('lang', 'en') == 'en' %}News & Alerts{% else %}الأخبار والتنبيهات{% endif %}
                 </div>
-                <a href="{{ url_for('admin.create_news') }}" class="btn btn-default btn-xs">إضافة</a>
+                <a href="{{ url_for('admin.create_news') }}" class="btn btn-default btn-xs">{% if session.get('lang', 'en') == 'en' %}Add{% else %}إضافة{% endif %}</a>
             </div>
             
             <div style="padding: 10px;">
@@ -299,30 +301,30 @@
                             <strong style="display: block; font-size: 14px; color: var(--txt);">{{ news.headline }}</strong>
                             <small style="color: var(--muted);">{{ news.created_at.strftime('%Y-%m-%d') }}</small>
                         </div>
-                        <a href="{{ url_for('admin.delete_news', news_id=news.id) }}" class="text-danger" onclick="return confirm('حذف هذا الخبر؟')"><i class="fa fa-trash"></i></a>
+                        <a href="{{ url_for('admin.delete_news', news_id=news.id) }}" class="text-danger" onclick="return confirm('{% if session.get('lang', 'en') == 'en' %}Delete this news?{% else %}حذف هذا الخبر؟{% endif %}')"><i class="fa fa-trash"></i></a>
                     </div>
                     {% endfor %}
                 {% else %}
-                    <div style="padding: 30px; text-align: center; color: var(--muted);">لا توجد أخبار حالياً.</div>
+                    <div style="padding: 30px; text-align: center; color: var(--muted);">{% if session.get('lang', 'en') == 'en' %}No news currently.{% else %}لا توجد أخبار حالياً.{% endif %}</div>
                 {% endif %}
             </div>
         </div>
 
         <div class="news-panel">
             <div class="news-header">
-                <div style="font-weight: 800; color: var(--txt);">حالة النظام الحية</div>
+                <div style="font-weight: 800; color: var(--txt);">{% if session.get('lang', 'en') == 'en' %}Live System Status{% else %}حالة النظام الحية{% endif %}</div>
             </div>
             <div style="padding: 20px; font-size: 14px;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                    <span style="color: var(--muted);">قاعدة البيانات:</span>
-                    <strong style="color: var(--success);"><i class="fa fa-check-circle"></i> متصلة</strong>
+                    <span style="color: var(--muted);">{% if session.get('lang', 'en') == 'en' %}Database:{% else %}قاعدة البيانات:{% endif %}</span>
+                    <strong style="color: var(--success);"><i class="fa fa-check-circle"></i> {% if session.get('lang', 'en') == 'en' %}Connected{% else %}متصلة{% endif %}</strong>
                 </div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                    <span style="color: var(--muted);">إجمالي سجلات CDR:</span>
+                    <span style="color: var(--muted);">{% if session.get('lang', 'en') == 'en' %}Total CDR Logs:{% else %}إجمالي سجلات CDR:{% endif %}</span>
                     <strong style="color: var(--txt);">{{ stats.total_cdr }}</strong>
                 </div>
                 <div style="display: flex; justify-content: space-between;">
-                    <span style="color: var(--muted);">توقيت النظام (UTC):</span>
+                    <span style="color: var(--muted);">{% if session.get('lang', 'en') == 'en' %}System Time (UTC):{% else %}توقيت النظام (UTC):{% endif %}</span>
                     <strong style="color: var(--accent);" id="adminLiveClock">--:--:--</strong>
                 </div>
             </div>
