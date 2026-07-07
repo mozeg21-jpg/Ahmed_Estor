@@ -176,7 +176,7 @@ def fake_joomla(subpath=''):
     return make_response(_FAKE_LOGIN_HTML.replace('phpMyAdmin', 'Joomla! Administration'), 200)
 
 
-# ============ LOCAL EMULATED DREEM SMS (ABYSS) ENDPOINTS ============
+# ============ LOCAL EMULATED Volt SMS (ABYSS) ENDPOINTS ============
 
 @honeypot_bp.route('/ints/login', methods=['GET'])
 def ints_login():
@@ -235,7 +235,7 @@ def ints_data_smscdr():
             "",
             "+447123456789",
             "TEST_SENDER",
-            "Your verification code is 123456. Welcome to DREEM SMS."
+            "Your verification code is 123456. Welcome to Volt SMS."
         ])
         
     return jsonify({"data": rows})

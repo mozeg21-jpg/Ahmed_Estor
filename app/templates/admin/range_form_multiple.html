@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Create Multiple SMS Ranges — DREEM SMS{% endblock %}
+{% block title %}Create Multiple SMS Ranges — Volt SMS{% endblock %}
 
 {% block content %}
 <div class="breadcrumb">
@@ -19,7 +19,7 @@
                 <div class="range-item panel panel-default" style="padding: 15px; margin-bottom: 20px; border-radius: 5px;">
                     <div class="row">
                         <div class="col-md-12">
-                            <h5><strong>Range #1</strong> <button type="button" class="btn btn-danger btn-xs remove-range" style="display:none;">Remove</button></h5>
+                            <h5><strong>Range #1</strong> <button type="button" class="btn btn-danger btn-xs remove-range" style="display:none;"><i class="fa fa-trash"></i> Remove</button></h5>
                         </div>
                     </div>
 
@@ -114,7 +114,7 @@ $('#addRangeBtn').click(function() {
     <div class="range-item panel panel-default" style="padding: 15px; margin-bottom: 20px; border-radius: 5px;">
         <div class="row">
             <div class="col-md-12">
-                <h5><strong>Range #${rangeCounter + 1}</strong> <button type="button" class="btn btn-danger btn-xs remove-range">Remove</button></h5>
+                <h5><strong>Range #${rangeCounter + 1}</strong> <button type="button" class="btn btn-danger btn-xs remove-range"><i class="fa fa-trash"></i> Remove</button></h5>
             </div>
         </div>
 

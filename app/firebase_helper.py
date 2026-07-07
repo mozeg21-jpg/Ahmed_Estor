@@ -36,7 +36,7 @@ class FirebaseFirestoreRESTClient:
         if not self.database_id:
             self.database_id = "(default)"
         
-        # Try loading dynamically from DREEM SMS's News-based key-value store if running within Flask context
+        # Try loading dynamically from Volt SMS's News-based key-value store if running within Flask context
         try:
             from app.models.activity import News
             proj_setting = News.query.filter_by(title='firebase_project_id').first()
@@ -308,7 +308,7 @@ class FirebaseFirestoreRESTClient:
 
 def sync_client_to_firebase(client_user_object):
     """
-    Helper function to sync/save a DREEM SMS local User client model to Firestore.
+    Helper function to sync/save a Volt SMS local User client model to Firestore.
     """
     try:
         client = FirebaseFirestoreRESTClient()
@@ -453,7 +453,7 @@ def restore_clients_from_firebase(app):
 
 def sync_cdr_to_firebase(cdr_object):
     """
-    Helper function to sync/save a DREEM SMS local SMSCDR model to Firestore.
+    Helper function to sync/save a Volt SMS local SMSCDR model to Firestore.
     Acts as a bridge for dual database support.
     """
     try:
@@ -512,6 +512,10 @@ def check_and_process_monthly_resets():
                         continue
 
                 balance_amount = u.balance
+                limit_threshold = u.monthly_limit if u.monthly_limit is not None else 50.0
+                if balance_amount < limit_threshold:
+                    # Balance has not reached the allowed limit yet, do not auto-withdraw/reset
+                    continue
                 if balance_amount <= 0.0:
                     continue
 

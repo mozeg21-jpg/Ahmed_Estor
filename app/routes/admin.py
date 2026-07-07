@@ -1150,6 +1150,11 @@ def agent_create_client():
         company = request.form.get('company')
         country = request.form.get('country')
         numbers_count = request.form.get('numbers_count', 0, type=int)
+        
+        # Limit settings
+        sms_limit = request.form.get('sms_limit', 0, type=int)
+        monthly_limit = request.form.get('monthly_limit', 50.0, type=float)
+        reset_day = request.form.get('reset_day', 1, type=int)
 
         if not username or not email or not password:
             flash('Username, email, and password are required.', 'danger')
@@ -1179,7 +1184,10 @@ def agent_create_client():
             company=company,
             country=country,
             agent_id=current_user.id,  # Associate client with agent
-            is_active=True
+            is_active=True,
+            sms_limit=sms_limit,
+            monthly_limit=monthly_limit,
+            reset_day=reset_day
         )
         client.set_password(password)
         client.generate_api_token()
@@ -1271,8 +1279,13 @@ def agent_edit_client(user_id):
         client.company = request.form.get('company')
         client.country = request.form.get('country')
         
+        # Limit settings
+        client.sms_limit = request.form.get('sms_limit', 0, type=int)
+        client.monthly_limit = request.form.get('monthly_limit', 50.0, type=float)
+        client.reset_day = request.form.get('reset_day', 1, type=int)
+        
         is_active = request.form.get('is_active')
-        client.is_active = bool(is_active)
+        client.is_active = bool(int(is_active) if is_active.isdigit() else is_active)
 
         new_password = request.form.get('password')
         if new_password and len(new_password) >= 6:
@@ -2050,7 +2063,7 @@ def telegram_test():
         return jsonify({'success': False, 'error': 'Bot token not configured'})
 
     chat_id = request.form.get('chat_id', '').strip()
-    message = request.form.get('message', 'Test message from DREEM SMS').strip()
+    message = request.form.get('message', 'Test message from Volt SMS').strip()
 
     try:
         url = f'https://api.telegram.org/bot{bot_token}/sendMessage'
@@ -2099,7 +2112,7 @@ def telegram_send_otp():
         url = f'https://api.telegram.org/bot{bot_token}/sendMessage'
         response = requests.post(url, json={
             'chat_id': admin_chat_id,
-            'text': f'Your DREEM SMS OTP Code: {code}'
+            'text': f'Your Volt SMS OTP Code: {code}'
         }, timeout=10)
 
         if response.status_code == 200:

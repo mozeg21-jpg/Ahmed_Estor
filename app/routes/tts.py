@@ -55,10 +55,10 @@ def play_otp():
     """
     Converts an OTP code into spaced out digits, reads it in English/Arabic,
     and adds a welcome message at the end.
-    Example: /api/tts/otp?code=123456&bot_name=DREEM%20SMS
+    Example: /api/tts/otp?code=123456&bot_name=Volt%20SMS
     """
     otp_code = request.args.get('code', '').strip()
-    bot_name = request.args.get('bot_name', 'DREEM SMS').strip()
+    bot_name = request.args.get('bot_name', 'Volt SMS').strip()
 
     if not otp_code:
         return jsonify({'error': 'No code provided'}), 400
@@ -124,17 +124,17 @@ def welcome_greeting():
                 text = f"أهلاً بك يا وكيل {display_name} في لوحة دي ريم إس إم إس."
                 lang = 'ar'
             else:
-                text = f"Welcome, Agent {display_name}, to DREEM SMS panel."
+                text = f"Welcome, Agent {display_name}, to Volt SMS panel."
                 lang = 'en'
         else:
             if name_lang == 'ar':
                 text = f"أهلاً بك يا {display_name} في لوحة دي ريم إس إم إس."
                 lang = 'ar'
             else:
-                text = f"Welcome, {display_name}, to DREEM SMS panel."
+                text = f"Welcome, {display_name}, to Volt SMS panel."
                 lang = 'en'
     else:
-        text = "Welcome to DREEM SMS panel."
+        text = "Welcome to Volt SMS panel."
         lang = 'en'
 
     encoded = urllib.parse.quote(text)
