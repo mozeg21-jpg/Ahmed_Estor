@@ -20,6 +20,7 @@
     <div class="widget-head">
         <h5><i class="fa fa-list"></i> SMS Ranges</h5>
         <div>
+            <a href="{{ url_for('admin.admin_allocate_range_numbers') }}" class="btn btn-info btn-sm"><i class="fa fa-share-square"></i> Allocate / توزيع أرقام</a>
             <a href="{{ url_for('admin.create_sms_range') }}" class="btn btn-primary btn-sm"><i class="fa fa-plus"></i> Add Single Range</a>
             <a href="{{ url_for('admin.create_sms_ranges_multiple') }}" class="btn btn-success btn-sm"><i class="fa fa-layer-group"></i> Add Multiple Ranges</a>
         </div>
@@ -79,6 +80,7 @@
                             {% if range.file_url %}
                             <a href="{{ range.file_url }}" target="_blank" class="btn btn-xs btn-info" title="Download File"><i class="fa fa-download"></i></a>
                             {% endif %}
+                            <a href="{{ url_for('admin.admin_allocate_range_numbers', range_id=range.id) }}" class="btn btn-xs btn-success" title="توزيع أرقام من الرينج"><i class="fa fa-share-square"></i></a>
                             <a href="{{ url_for('admin.edit_sms_range', range_id=range.id) }}" class="btn btn-xs btn-warning"><i class="fa fa-edit"></i></a>
                             <form action="{{ url_for('admin.delete_sms_range', range_id=range.id) }}" method="POST" style="display:inline;">
                                 <button type="submit" class="btn btn-xs btn-danger" onclick="return confirm('Are you sure? This will delete the range.')">

@@ -1702,6 +1702,100 @@ def admin_add_numbers_to_agent():
     )
 
 
+@admin_bp.route('/admin/ranges/allocate', methods=['GET', 'POST'])
+@admin_required
+def admin_allocate_range_numbers():
+    """Admin allocates a specific number of numbers from a range to any User (Agent or Client)"""
+    if request.method == 'POST':
+        range_id = request.form.get('range_id', type=int)
+        target_username = request.form.get('target_username', '').strip()
+        numbers_count = request.form.get('numbers_count', 0, type=int)
+
+        if not range_id:
+            flash('الرجاء اختيار رينج.', 'danger')
+            return redirect(url_for('admin.admin_allocate_range_numbers'))
+
+        if not target_username:
+            flash('الرجاء إدخال اسم المستخدم المستهدف.', 'danger')
+            return redirect(url_for('admin.admin_allocate_range_numbers'))
+
+        if numbers_count <= 0:
+            flash('الرجاء إدخال عدد صالح من الأرقام.', 'danger')
+            return redirect(url_for('admin.admin_allocate_range_numbers'))
+
+        # Search for user
+        target_user = User.query.filter_by(username=target_username).first()
+        if not target_user:
+            flash(f'المستخدم "{target_username}" غير موجود.', 'danger')
+            return redirect(url_for('admin.admin_allocate_range_numbers'))
+
+        # Get range
+        sms_range = SMDRange.query.get(range_id)
+        if not sms_range:
+            flash('الرينج المحدد غير صالح.', 'danger')
+            return redirect(url_for('admin.admin_allocate_range_numbers'))
+
+        # Find available numbers in this range (agent_id is None, client_id is None, is_active is True)
+        available_numbers = SMSNumber.query.filter_by(
+            range_id=range_id,
+            agent_id=None,
+            client_id=None,
+            is_active=True
+        ).limit(numbers_count).all()
+
+        if len(available_numbers) < numbers_count:
+            flash(f'عذراً، الأرقام المتاحة غير كافية. المتبقي في هذا الرينج هو {len(available_numbers)} رقم فقط.', 'warning')
+            return redirect(url_for('admin.admin_allocate_range_numbers', range_id=range_id, target_username=target_username))
+
+        # Perform allocation
+        assigned_numbers = []
+        for num in available_numbers:
+            if target_user.is_agent():
+                num.agent_id = target_user.id
+                num.client_id = None
+                num.status = 'reserved'
+            elif target_user.is_client():
+                num.client_id = target_user.id
+                # If client has a parent agent, set agent_id as well
+                if target_user.agent_id:
+                    num.agent_id = target_user.agent_id
+                num.status = 'activated'
+            else:
+                # Other roles (admin/developer)
+                num.agent_id = target_user.id
+                num.status = 'reserved'
+            
+            num.assigned_at = datetime.utcnow()
+            assigned_numbers.append(f"{num.number} | {sms_range.name} | ${sms_range.cost_per_sms if sms_range.cost_per_sms else 0.0}")
+
+        db.session.commit()
+
+        # Log activity
+        ActivityLog.log(
+            current_user.id,
+            'admin_allocate_range_numbers',
+            f'Allocated {len(assigned_numbers)} numbers from range {sms_range.name} to {target_user.username}',
+            ip_address=request.remote_addr
+        )
+
+        flash(f'✅ تم تخصيص {len(assigned_numbers)} رقم من الرينج {sms_range.name} للمستخدم {target_user.username} بنجاح!', 'success')
+        
+        # Download numbers file as a receipt
+        return download_added_numbers(assigned_numbers, target_user.username)
+
+    # GET request
+    ranges = SMDRange.query.filter_by(is_active=True).all()
+    selected_range_id = request.args.get('range_id', type=int)
+    target_username = request.args.get('target_username', '').strip()
+
+    return render_template(
+        'admin/admin_allocate_range_numbers.html',
+        ranges=ranges,
+        selected_range_id=selected_range_id,
+        target_username=target_username
+    )
+
+
 def download_added_numbers(numbers_list, agent_username):
     """Download text file with added numbers"""
     content = "\n".join(numbers_list)

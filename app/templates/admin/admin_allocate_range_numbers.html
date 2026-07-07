@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}توزيع الأرقام من الرينج لمستخدم — Volt SMS{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="breadcrumb">
+            <h4><i class="fa fa-share-square"></i> توزيع وتخصيص الأرقام من رينج محدد لمستخدم (وكيل أو عميل)</h4>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 col-md-offset-2">
+        <div class="widget-block">
+            <div class="widget-head">
+                <h5><i class="fa fa-plus-circle"></i> تخصيص أرقام من رينج مضاف مسبقاً دون الحاجة لملف جديد</h5>
+            </div>
+            <div class="widget-content">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <form method="POST" id="allocateNumbersForm">
+                    <div class="form-group">
+                        <label for="range_id" style="font-weight: bold;">اختر الرينج المستهدف / Select Range</label>
+                        <select name="range_id" id="range_id" class="form-control" required style="height: 45px; font-size: 15px;">
+                            <option value="">-- اختر الرينج / Select Range --</option>
+                            {% for r in ranges %}
+                            <option value="{{ r.id }}" {% if r.id == selected_range_id %}selected{% endif %}>
+                                {{ r.name }} - {{ r.country }} 
+                                (المتاح: {{ r.numbers.filter_by(agent_id=None, client_id=None, is_active=True).count() }} رقم)
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <span class="help-block">اختر رينجاً مضافاً مسبقاً وسيتم سحب الأرقام غير المحجوزة منه تلقائياً.</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="target_username" style="font-weight: bold;">اسم المستخدم المستهدف / Target Username</label>
+                        <input type="text" name="target_username" id="target_username"
+                               class="form-control" placeholder="أدخل اسم المستخدم للوكيل أو العميل هنا..."
+                               value="{{ target_username or '' }}"
+                               autocomplete="off" required style="height: 45px; font-size: 15px;">
+                        <span class="help-block">ابحث عن اسم المستخدم (الوكيل أو العميل) للتحقق التلقائي من الحساب.</span>
+                        <div id="userSearchResult" class="mt-2" style="margin-top: 10px;"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="numbers_count" style="font-weight: bold;">عدد الأرقام المطلوب تخصيصها / Quantity</label>
+                        <input type="number" name="numbers_count" id="numbers_count"
+                               class="form-control" value="10" min="1" required style="height: 45px; font-size: 15px;">
+                        <span class="help-block">سيتم حجز هذا العدد من الأرقام وإسناده للحساب أعلاه مباشرة.</span>
+                    </div>
+
+                    <hr>
+
+                    <div class="form-actions text-center">
+                        <button type="submit" class="btn btn-success btn-lg" style="padding: 10px 30px;">
+                            <i class="fa fa-check-circle"></i> تأكيد التخصيص وتحميل الملف / Allocate & Download
+                        </button>
+                        <a href="{{ url_for('admin.sms_ranges') }}" class="btn btn-default btn-lg" style="padding: 10px 30px;">
+                            <i class="fa fa-arrow-left"></i> إلغاء ورجوع
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const usernameInput = document.getElementById('target_username');
+    const resultDiv = document.getElementById('userSearchResult');
+
+    function checkUser() {
+        const username = usernameInput.value.trim();
+        if (username.length < 2) {
+            resultDiv.innerHTML = '';
+            return;
+        }
+
+        fetch(`/admin/search-user?username=${encodeURIComponent(username)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.found) {
+                    let roleBadge = '';
+                    if (data.role === 'agent') {
+                        roleBadge = '<span class="label label-info">وكيل / Agent</span>';
+                    } else if (data.role === 'client') {
+                        roleBadge = '<span class="label label-success">عميل / Client</span>';
+                    } else {
+                        roleBadge = `<span class="label label-default">${data.role}</span>`;
+                    }
+
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-success" style="margin-top: 10px; border-left: 5px solid #2ecc71;">
+                            <i class="fa fa-check-circle"></i> تم العثور على الحساب بنجاح:
+                            <strong>${data.username}</strong> (${data.email}) - ${roleBadge}
+                        </div>`;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-danger" style="margin-top: 10px; border-left: 5px solid #e74c3c;">
+                            <i class="fa fa-times-circle"></i> عذراً، اسم المستخدم هذا غير موجود في النظام.
+                        </div>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error searching user:', error);
+            });
+    }
+
+    usernameInput.addEventListener('input', checkUser);
+    
+    // Check initial value if present
+    if (usernameInput.value.trim()) {
+        checkUser();
+    }
+});
+</script>
+{% endblock %}
